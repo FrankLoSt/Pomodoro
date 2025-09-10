@@ -38,10 +38,10 @@ fun CounDownTimer (
              modifier = Modifier.fillMaxWidth()
          ) {
              Button(
-                 onClick = {viewModel.start()}
+                 onClick = {viewModel.onClickMainButton()}
              ) {
                  Text(
-                     text = "Start",
+                     text = if (viewModel.isRunning) "Give up" else "Start",
                      style = MaterialTheme.typography.labelLarge,
                  )
              }
