@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun CounDownTimer (
+fun CountDownTimer (
     viewModel: ViewModelCounDown = viewModel(),
 ) {
      Column(
@@ -51,8 +51,6 @@ fun CounDownTimer (
 
 @Preview
 @Composable
-fun CounDownTimerPreview () {
-    CounDownTimer(
-
-    )
+fun CountDownTimerPreview () {
+    CountDownTimer()
 }

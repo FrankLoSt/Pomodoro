@@ -19,7 +19,6 @@ class ViewModelCounDown: ViewModel() {
             val minutes = total / 60
             return String.format("%02d:%02d", minutes, second)
         }
-
     var isRunning by mutableStateOf(false)
     var countDownJob: Job? = null
 
@@ -27,7 +26,7 @@ class ViewModelCounDown: ViewModel() {
         if(isRunning) return
         isRunning = true
         countDownJob?.cancel()
-        viewModelScope.launch {
+        countDownJob = viewModelScope.launch {
             while (total > 0) {
                 delay(1000)
                 total -= 1
