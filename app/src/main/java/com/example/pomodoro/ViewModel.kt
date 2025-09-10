@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 class ViewModelCounDown: ViewModel() {
     var total by mutableIntStateOf(25 * 60)
 
-
     val countdown: String
         get() {
             val second = total % 60
@@ -23,12 +22,14 @@ class ViewModelCounDown: ViewModel() {
     var isRunning by mutableStateOf(false)
 
     fun start() {
+        if(isRunning) return
         isRunning = true
         viewModelScope.launch {
             while (total > 0) {
                 delay(1000)
                 total -= 1
             }
+            isRunning = false
         }
     }
 }
