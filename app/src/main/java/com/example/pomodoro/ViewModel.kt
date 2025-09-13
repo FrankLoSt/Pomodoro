@@ -28,6 +28,8 @@ class ViewModelCountDown(
     fun setRestDurationMinutes(minutes: Int) = controller.setRestDurationMinutes(minutes)
 
     fun formatter(duration: Int): String = controller.formatter(duration)
+
+    fun onSliderChangeTesting(progress: Float) {}
 }
 
 
