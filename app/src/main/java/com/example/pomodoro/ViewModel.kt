@@ -13,12 +13,6 @@ class ViewModelCountDown(
 
     private var countDownJob: Job? = null
 
-    fun setDuration(duration: Int) {
-        pomodoroSettings.setDuration(duration)
-
-    }
-
-    val durationList = pomodoroSettings.durationList
 
     fun startCountDown () {
         println("DEBUG: startCountDown() called")
@@ -27,6 +21,7 @@ class ViewModelCountDown(
         countDownJob = viewModelScope.launch {
             try {
                 pomodoroSettings.countDownLogic()
+                pomodoroSettings.restCountDown()
             } catch (e: Exception) {
                 println("DEBUG: Exception in countDownLogic -> ${e.message}")
             }
@@ -56,7 +51,12 @@ class ViewModelCountDown(
         val minutes = ((min + (max - min) * progress).toInt() / 5) * 5 // round to nearest 5
         pomodoroSettings.setDuration(minutes)
     }
-
+    fun onSliderChangeTesting (progress: Float) {
+        val min = 1
+        val max = 10
+        val minutes = ((min + (max - min) * progress).toInt() / 1) * 1 // round to nearest 5
+        pomodoroSettings.setDuration(minutes)
+    }
 }
 
 

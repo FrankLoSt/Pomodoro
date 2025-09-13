@@ -45,10 +45,10 @@ fun CircularSlider(
     // Recalculate applied angle whenever angle changes
     LaunchedEffect(angle) {
         var a = angle + 60f
-        if (a <= 0f) a += 360f
+        if (a <= 0f) a += 360f //convert it
         appliedAngle = a.coerceIn(0f, 300f)
         onChange(appliedAngle / 300f) // progress in [0,1]
-    }
+    } // I give up -> I cannot understand this. 3 hours, I still cannot wrap my head around this
 
     Canvas(
         modifier = modifier
@@ -57,7 +57,7 @@ fun CircularSlider(
                 detectDragGestures { change, _ ->
                     val center = Offset(this.size.width / 2f, this.size.height / 2f)
                     val touch = change.position
-                    val rad = atan2(center.y - touch.y, center.x - touch.x)
+                    val rad = atan2(center.y - touch.y, center.x - touch.x) //flip atan2() / atan2()'s angle increases counter-clockwise instead of clockwise
                     angle = Math.toDegrees(rad.toDouble()).toFloat()
                 }
             }

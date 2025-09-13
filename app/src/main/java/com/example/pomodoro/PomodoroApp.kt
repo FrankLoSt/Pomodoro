@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,6 +44,9 @@ fun CountDownTimer (
              .fillMaxSize()
              .padding(top = 100.dp)
      ) {
+         Text(
+             text = if (uiState.isStudying) stringResource(R.string.Studying) else  stringResource(R.string.Taking_a_break),
+         )
          Box(
              contentAlignment = Alignment.Center,
              modifier = Modifier.size(300.dp),
@@ -52,12 +56,26 @@ fun CountDownTimer (
                      modifier = Modifier.size(300.dp),
                      stroke = 40f,
                      cap = StrokeCap.Round,
-                     onChange = { viewModel.onSliderChange(it) },
+                     onChange = { viewModel.onSliderChangeTesting(it) }, //Testing
                      thumbColor = Color.Red,
                      progressColor = Color.Green,
                      backgroundColor = Color.LightGray,
                      debug = false
                  )
+             } else if (!uiState.isStudying && uiState.restDuration > 0 ) {
+                 val progress =
+                     if (uiState.initialRestDuration > 0)
+                         1f - (uiState.restDuration.toFloat() / uiState.initialDuration.toFloat())
+                     else 0f
+                 CustomCircularProgressIndicator(
+                     progress = progress,
+                     modifier = Modifier.size(300.dp),
+                     progressColor = Color.Red,
+                     backgroundColor = Color.LightGray,
+                     stroke = 40f,
+                     cap = StrokeCap.Round
+                 )
+
              } else {
                  val progress =
                      if (uiState.initialDuration > 0)
@@ -95,6 +113,14 @@ fun CountDownTimer (
          }
      }
 }
+
+
+
+
+
+
+
+
 
 @Preview
 @Composable

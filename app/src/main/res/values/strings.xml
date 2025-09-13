@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Pomodoro</string>
+    <string name="Studying">Studying</string>
+    <string name="Taking_a_break">Taking a break</string>
 </resources>
