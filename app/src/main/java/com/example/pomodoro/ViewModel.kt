@@ -1,19 +1,21 @@
 package com.example.pomodoro
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlin.math.log
 
 // --- ViewModelCountDown.kt ---
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pomodoro.PomodoroController
+import com.example.pomodoro.PomodoroControllerImpl
+import com.example.pomodoro.UiState
 import kotlinx.coroutines.flow.StateFlow
 
 class ViewModelCountDown(
-    private val controller: PomodoroController
+
 ) : ViewModel() {
+
+    private val controller = PomodoroControllerImpl(scope = viewModelScope)
+
 
     // Expose controller's state directly (keeps single source of truth)
     val uiState: StateFlow<UiState> = controller.uiState
@@ -29,7 +31,13 @@ class ViewModelCountDown(
 
     fun formatter(duration: Int): String = controller.formatter(duration)
 
-    fun onSliderChangeTesting(progress: Float) {}
+    fun onSliderChangeTesting (progress: Float) {
+        val min = 1
+        val max = 10
+        val minutes = ((min + (max - min) * progress).toInt() / 1) * 1 // round to nearest 5
+        Log.d("ViewModelCountDown", "onSliderChangeTesting: $minutes")
+        controller.setDurationMinutes(minutes)
+    }
 }
 
 

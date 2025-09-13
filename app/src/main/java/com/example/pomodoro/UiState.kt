@@ -2,12 +2,15 @@ package com.example.pomodoro
 
 // --- UiState.kt ---
 data class UiState(
+    // Study
     val duration: Int = 25 * 60,
     val initialDuration: Int = 25 * 60,
     val isRunning: Boolean = false,
+
+    //Rest
     val isStudying: Boolean = true,
-    val restDuration: Int = 5 * 60,
-    val initialRestDuration: Int = 5 * 60
+    val restDuration: Int = (0.5 * 60).toInt(),
+    val initialRestDuration: Int = (0.5 * 60).toInt()
 ) {
     // Helpers
     fun studyProgress(): Float =

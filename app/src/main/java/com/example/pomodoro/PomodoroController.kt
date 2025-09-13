@@ -52,6 +52,7 @@ class PomodoroControllerImpl(
                 countdownStudy()
                 // Switch into rest if restDuration > 0
                 _uiState.update { it.copy(isStudying = false, isRunning = true) }
+
                 if (_uiState.value.restDuration > 0) {
                     restJob = launch { countdownRest() }
                     restJob?.join()
