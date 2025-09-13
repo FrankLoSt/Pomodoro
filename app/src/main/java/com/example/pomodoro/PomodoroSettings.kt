@@ -84,12 +84,12 @@ object PomodoroSettingsImpl : PomodoroSettings  {
                 println("DEBUG: Rest Countdown started with duration = ${uiState.value.restDuration}")
                 val restDuration = uiState.value.restDuration
                 delay(1000)
-                if(!uiState.value.isRunning && !uiState.value.isStudying) {
+                if(!uiState.value.isRunning && !uiState.value.isStudying && uiState.value.restDuration > 0) {
                     _uiState.update { it.copy(
                         restDuration = restDuration - 1
                     )
                     }
-                  }
+                  } else break
             }
     }
 

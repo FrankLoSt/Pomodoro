@@ -1,15 +1,17 @@
 package com.example.pomodoro
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.log
 
 class ViewModelCountDown(
     private val pomodoroSettings: PomodoroSettings = PomodoroSettingsImpl
 ): ViewModel(){
-    val uiState: StateFlow<UiState> = PomodoroSettingsImpl.uiState
+    val uiState: StateFlow<UiState> = pomodoroSettings.uiState
 
     private var countDownJob: Job? = null
 
@@ -22,6 +24,7 @@ class ViewModelCountDown(
             try {
                 pomodoroSettings.countDownLogic()
                 pomodoroSettings.restCountDown()
+                Log.d("DEBUG", "DEBUG: countDownLogic finished")
             } catch (e: Exception) {
                 println("DEBUG: Exception in countDownLogic -> ${e.message}")
             }

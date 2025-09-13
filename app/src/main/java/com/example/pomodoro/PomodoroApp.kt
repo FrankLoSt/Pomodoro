@@ -51,7 +51,22 @@ fun CountDownTimer (
              contentAlignment = Alignment.Center,
              modifier = Modifier.size(300.dp),
          ) {
-             if(!uiState.isRunning) {
+              if (!uiState.isStudying && uiState.restDuration > 0 ) {
+             val progress =
+                 if (uiState.initialRestDuration > 0)
+                     1f - (uiState.restDuration.toFloat() / uiState.initialRestDuration.toFloat())
+                 else 0f
+             CustomCircularProgressIndicator(
+                 progress = progress,
+                 modifier = Modifier.size(300.dp),
+                 progressColor = Color.Red,
+                 backgroundColor = Color.LightGray,
+                 stroke = 40f,
+                 cap = StrokeCap.Round
+             )
+
+         }
+             else if(!uiState.isRunning) {
                  CircularSlider(
                      modifier = Modifier.size(300.dp),
                      stroke = 40f,
@@ -62,21 +77,8 @@ fun CountDownTimer (
                      backgroundColor = Color.LightGray,
                      debug = false
                  )
-             } else if (!uiState.isStudying && uiState.restDuration > 0 ) {
-                 val progress =
-                     if (uiState.initialRestDuration > 0)
-                         1f - (uiState.restDuration.toFloat() / uiState.initialDuration.toFloat())
-                     else 0f
-                 CustomCircularProgressIndicator(
-                     progress = progress,
-                     modifier = Modifier.size(300.dp),
-                     progressColor = Color.Red,
-                     backgroundColor = Color.LightGray,
-                     stroke = 40f,
-                     cap = StrokeCap.Round
-                 )
-
-             } else {
+             }
+             else {
                  val progress =
                      if (uiState.initialDuration > 0)
                          1f - (uiState.duration.toFloat() / uiState.initialDuration.toFloat())
@@ -91,8 +93,9 @@ fun CountDownTimer (
                      cap = StrokeCap.Round
                  )
              }
+
              Text(
-                 text = viewModel.formatter(uiState.duration),
+                 text = if(!uiState.isStudying) viewModel.formatter(uiState.restDuration) else viewModel.formatter(uiState.duration),
                  style = MaterialTheme.typography.displayLarge
              )
          }
