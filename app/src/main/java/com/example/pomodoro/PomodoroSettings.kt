@@ -1,110 +1,111 @@
 package com.example.pomodoro
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+// --- PomodoroController.kt ---
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
 
-interface PomodoroSettings {
+interface PomodoroController {
     val uiState: StateFlow<UiState>
 
-    fun setDuration(duration: Int)
-
-    suspend fun countDownLogic()
-
-    fun start ()
+    fun setDurationMinutes(minutes: Int)
+    fun setRestDurationMinutes(minutes: Int)
+    fun start()
     fun giveUp()
-
-    suspend fun restCountDown()
-
-    fun formatter(duration: Int): String
+    suspend fun stop() // optional helper for tests
+    fun formatter(durationSeconds: Int): String
 }
-data class UiState (
-    val duration: Int = 25 * 60,
-    val initialDuration: Int = 25 * 60,
-    val isRunning: Boolean = false,
-    val isStudying: Boolean = true,
-    val restDuration: Int = 5 * 60,
-    val initialRestDuration: Int = 5 * 60
-)
 
-object PomodoroSettingsImpl : PomodoroSettings  {
+class PomodoroControllerImpl(
+    initialState: UiState = UiState(),
+    private val scope: CoroutineScope // usually viewModelScope
+) : PomodoroController {
 
-    private val _uiState = MutableStateFlow(UiState())
+    private val _uiState = MutableStateFlow(initialState)
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    private var studyJob: Job? = null
+    private var restJob: Job? = null
 
+    private val mutex = Mutex() // protect state if necessary
 
-    override fun start(){
-        _uiState.update {
-            it.copy(isRunning = true)
+    override fun setDurationMinutes(minutes: Int) {
+        val seconds = minutes * 60
+        _uiState.update { it.copy(duration = seconds, initialDuration = seconds) }
+    }
+
+    override fun setRestDurationMinutes(minutes: Int) {
+        val seconds = minutes * 60
+        _uiState.update { it.copy(restDuration = seconds, initialRestDuration = seconds) }
+    }
+
+    override fun start() {
+        // Cancel previous jobs (if any)
+        studyJob?.cancel()
+        restJob?.cancel()
+
+        _uiState.update { it.copy(isRunning = true, isStudying = true) }
+
+        // Launch study countdown
+        studyJob = scope.launch {
+            try {
+                countdownStudy()
+                // Switch into rest if restDuration > 0
+                _uiState.update { it.copy(isStudying = false, isRunning = true) }
+                if (_uiState.value.restDuration > 0) {
+                    restJob = launch { countdownRest() }
+                    restJob?.join()
+                }
+            } catch (e: CancellationException) {
+                // job cancelled — leave state as-is or reset as desired
+            } finally {
+                // Ensure we mark stopped when finished
+                _uiState.update { it.copy(isRunning = false, isStudying = false) }
+            }
         }
     }
 
-    var remainingSeconds by mutableIntStateOf(25*60)
-
-    override fun setDuration(duration: Int) {
-        remainingSeconds = duration * 60
-        _uiState.update{
-            it.copy(
-                duration = duration * 60,
-                initialDuration = duration * 60
-            )
-        }
-    }
-
-
-    override suspend fun countDownLogic() {
-        println("DEBUG: Countdown started with duration = ${uiState.value.duration}")
-        _uiState.update { it.copy(isStudying = true) }
-        while (true) {
+    private suspend fun countdownStudy() = coroutineScope {
+        while (isActive) {
             val current = _uiState.value
             if (!current.isRunning || current.duration <= 0) break
-            println("DEBUG: new duration = ${current.duration} sec")
-            delay(1000)
-            _uiState.update { it.copy(duration = it.duration - 1) }
-        }
-        delay(1000)
-        println("DEBUG: Countdown finished or stopped.")
-        _uiState.update { it.copy(
-            isRunning = false,
-            duration = remainingSeconds,
-            isStudying = false
-        )
+            delay(1000L)
+            _uiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
         }
     }
 
-    override suspend fun restCountDown() {
-            while(true) {
-                println("DEBUG: Rest Countdown started with duration = ${uiState.value.restDuration}")
-                val restDuration = uiState.value.restDuration
-                delay(1000)
-                if(!uiState.value.isRunning && !uiState.value.isStudying && uiState.value.restDuration > 0) {
-                    _uiState.update { it.copy(
-                        restDuration = restDuration - 1
-                    )
-                    }
-                  } else break
-            }
+    private suspend fun countdownRest() = coroutineScope {
+        while (isActive) {
+            val current = _uiState.value
+            if (!current.isRunning || current.isStudying || current.restDuration <= 0) break
+            delay(1000L)
+            _uiState.update { it.copy(restDuration = (it.restDuration - 1).coerceAtLeast(0)) }
+        }
     }
 
     override fun giveUp() {
+        studyJob?.cancel()
+        restJob?.cancel()
         _uiState.update {
             it.copy(
                 isRunning = false,
-                duration = remainingSeconds
+                isStudying = false,
+                // reset durations to initial settings so UI shows initial values
+                duration = it.initialDuration,
+                restDuration = it.initialRestDuration
             )
         }
     }
 
-    override fun formatter(duration: Int): String {
-        val m = duration / 60
-        val s = duration % 60
+    override suspend fun stop() {
+        giveUp()
+        studyJob?.join()
+        restJob?.join()
+    }
+
+    override fun formatter(durationSeconds: Int): String {
+        val m = durationSeconds / 60
+        val s = durationSeconds % 60
         return String.format("%02d:%02d", m, s)
     }
 }

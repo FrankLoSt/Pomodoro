@@ -7,9 +7,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -17,12 +14,22 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntSize
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.*
+
+// --- CircularSlider.kt (cleaner angle math) ---
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntSize
 import kotlin.math.*
 
 @Composable
@@ -31,7 +38,6 @@ fun CircularSlider(
     padding: Float = 50f,
     stroke: Float = 20f,
     cap: StrokeCap = StrokeCap.Round,
-    touchStroke: Float = 50f,
     thumbColor: Color = Color.Blue,
     progressColor: Color = Color.Black,
     backgroundColor: Color = Color.LightGray,
@@ -39,16 +45,7 @@ fun CircularSlider(
     onChange: (Float) -> Unit = {}
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
-    var angle by remember { mutableFloatStateOf(0f) }
-    var appliedAngle by remember { mutableFloatStateOf(0f) }
-
-    // Recalculate applied angle whenever angle changes
-    LaunchedEffect(angle) {
-        var a = angle + 60f
-        if (a <= 0f) a += 360f //convert it
-        appliedAngle = a.coerceIn(0f, 300f)
-        onChange(appliedAngle / 300f) // progress in [0,1]
-    } // I give up -> I cannot understand this. 3 hours, I still cannot wrap my head around this
+    var appliedAngle by remember { mutableStateOf(0f) } // 0..300
 
     Canvas(
         modifier = modifier
@@ -57,15 +54,33 @@ fun CircularSlider(
                 detectDragGestures { change, _ ->
                     val center = Offset(this.size.width / 2f, this.size.height / 2f)
                     val touch = change.position
-                    val rad = atan2(center.y - touch.y, center.x - touch.x) //flip atan2() / atan2()'s angle increases counter-clockwise instead of clockwise
-                    angle = Math.toDegrees(rad.toDouble()).toFloat()
+
+                    // Natural vector from center to touch:
+                    val dx = touch.x - center.x
+                    val dy = touch.y - center.y
+
+                    // atan2(dy, dx) -> degrees in -180..180, 0 = right, +90 = up, -90 = down
+                    val deg = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+
+                    // Normalize to 0..360
+                    var deg360 = (deg % 360 + 360) % 360 // safe positive angle
+
+                    // Our arc visually starts at 120° and sweeps 300°
+                    // Compute position relative to 120°:
+                    val relative = (deg360 - 120f + 360f) % 360f
+
+                    // Only accept values inside 0..300; outside that the user touched outside arc gap
+                    val angle = relative.coerceIn(0f, 300f)
+
+                    appliedAngle = angle
+                    onChange(appliedAngle / 300f)
                 }
             }
     ) {
-        val center = Offset(this.size.width / 2f, this.size.height / 2f)
-        val radius = min(this.size.width, this.size.height) / 2f - padding - stroke / 2f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val radius = min(size.width, size.height) / 2f - padding - stroke / 2f
 
-        // Background arc
+        // Background arc (300° starting from -240 so it visually starts bottom-left)
         drawArc(
             color = backgroundColor,
             startAngle = -240f,
@@ -87,15 +102,13 @@ fun CircularSlider(
             style = Stroke(width = stroke, cap = cap)
         )
 
-        // Thumb
-        drawCircle(
-            color = thumbColor,
-            radius = stroke / 2f,
-            center = center + Offset(
-                radius * cos((120 + appliedAngle) * PI / 180f).toFloat(),
-                radius * sin((120 + appliedAngle) * PI / 180f).toFloat()
-            )
+        // Thumb position
+        val radThumb = Math.toRadians((120f + appliedAngle).toDouble())
+        val thumbCenter = center + Offset(
+            radius * cos(radThumb).toFloat(),
+            radius * sin(radThumb).toFloat()
         )
+        drawCircle(color = thumbColor, radius = stroke / 2f, center = thumbCenter)
 
         if (debug) {
             drawCircle(color = Color.Red, center = center, radius = radius, style = Stroke(2f))
@@ -105,6 +118,8 @@ fun CircularSlider(
 
 
 
+
+// --- CustomCircularProgressIndicator.kt ---
 @Composable
 fun CustomCircularProgressIndicator(
     progress: Float, // 0f..1f
@@ -115,14 +130,11 @@ fun CustomCircularProgressIndicator(
     progressColor: Color = Color.Black,
     backgroundColor: Color = Color.LightGray,
 ) {
-    Canvas(
-        modifier = modifier
-    ) {
+    Canvas(modifier = modifier) {
         val size = min(size.width, size.height)
         val radius = size / 2f - padding - stroke / 2f
         val center = Offset(this.size.width / 2f, this.size.height / 2f)
 
-        // Background arc (full 300°)
         drawArc(
             color = backgroundColor,
             startAngle = -240f,
@@ -133,7 +145,6 @@ fun CustomCircularProgressIndicator(
             size = Size(radius * 2, radius * 2)
         )
 
-        // Progress arc
         drawArc(
             color = progressColor,
             startAngle = 120f,
@@ -145,3 +156,4 @@ fun CustomCircularProgressIndicator(
         )
     }
 }
+
