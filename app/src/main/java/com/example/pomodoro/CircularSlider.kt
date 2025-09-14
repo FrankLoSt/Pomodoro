@@ -45,7 +45,7 @@ fun CircularSlider(
     onChange: (Float) -> Unit = {}
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
-    var appliedAngle by remember { mutableStateOf(0f) } // 0..300
+    var appliedAngle by remember { mutableFloatStateOf(0f) } // 0..300
 
     Canvas(
         modifier = modifier
@@ -57,10 +57,16 @@ fun CircularSlider(
 
                     // Natural vector from center to touch:
                     val dx = touch.x - center.x
+
+
                     val dy = touch.y - center.y
 
+
                     // atan2(dy, dx) -> degrees in -180..180, 0 = right, +90 = up, -90 = down
+
                     val deg = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+
+
 
                     // Normalize to 0..360
                     var deg360 = (deg % 360 + 360) % 360 // safe positive angle

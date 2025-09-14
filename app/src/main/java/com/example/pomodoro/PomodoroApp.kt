@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +45,7 @@ fun CountDownTimer (
              .fillMaxSize()
              .padding(top = 100.dp)
      ) {
+     
          Text(
              text = if (uiState.isStudying) stringResource(R.string.Studying) else  stringResource(R.string.Taking_a_break),
          )
@@ -51,6 +53,7 @@ fun CountDownTimer (
              contentAlignment = Alignment.Center,
              modifier = Modifier.size(300.dp),
          ) {
+
               if (!uiState.isStudying && uiState.restDuration > 0 ) {
              val progress =
                  if (uiState.initialRestDuration > 0)
@@ -66,8 +69,7 @@ fun CountDownTimer (
              )
 
          }
-             else if(!uiState.isRunning) {
-                 CircularSlider(
+             else if(!uiState.isRunning) { CircularSlider(
                      modifier = Modifier.size(300.dp),
                      stroke = 40f,
                      cap = StrokeCap.Round,
@@ -76,8 +78,7 @@ fun CountDownTimer (
                      progressColor = Color.Green,
                      backgroundColor = Color.LightGray,
                      debug = false
-                 )
-             }
+                 ) }
              else {
                  val progress =
                      if (uiState.initialDuration > 0)
@@ -106,12 +107,23 @@ fun CountDownTimer (
              modifier = Modifier.fillMaxWidth()
          ) {
              Button(
-                 onClick = {viewModel.toggleStartGiveUp()}
+                 onClick = {viewModel.toggleStartGiveUp()},
+                 modifier = Modifier.width(130.dp)
              ) {
                  Text(
                      text = if (uiState.isRunning) "Give up" else "Start",
                      style = MaterialTheme.typography.labelLarge,
                  )
+             }
+             if(!uiState.isStudying) {
+                 Button(
+                     onClick = { viewModel.giveUp() }
+                 ) {
+                     Text(
+                         text = "Take a break",
+                         style = MaterialTheme.typography.labelLarge,
+                     )
+                 }
              }
          }
      }

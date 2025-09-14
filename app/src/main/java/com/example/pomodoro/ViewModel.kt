@@ -1,13 +1,15 @@
 package com.example.pomodoro
 
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 
 // --- ViewModelCountDown.kt ---
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pomodoro.FocusUiState
 import com.example.pomodoro.PomodoroController
 import com.example.pomodoro.PomodoroControllerImpl
-import com.example.pomodoro.UiState
+
 import kotlinx.coroutines.flow.StateFlow
 
 class ViewModelCountDown(
@@ -18,7 +20,9 @@ class ViewModelCountDown(
 
 
     // Expose controller's state directly (keeps single source of truth)
-    val uiState: StateFlow<UiState> = controller.uiState
+    val uiState: StateFlow<FocusUiState> = controller.focusUiState
+
+    val restUiState: StateFlow<RestUiState> = controller.restUiState
 
     fun startCountDown() = controller.start()
     fun giveUp() = controller.giveUp()
