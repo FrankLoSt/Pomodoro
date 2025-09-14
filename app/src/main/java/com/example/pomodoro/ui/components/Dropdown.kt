@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -62,28 +63,55 @@ fun DropDown (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
 ) {
-    Column() {
-        DropdownFun(
-            label = R.string.focus_duration ,
-            itemLists = focusUiState.listFocusDuration,
-            onItemSelected = { minutes ->
-                viewModel.setDurationMinutes(minutes)
-            }
-        )
-        DropdownFun(
-            label = R.string.rest_duration,
-            itemLists = restUiState.listRestDuration,
-            onItemSelected = { minutes ->
-                viewModel.setRestDurationMinutes(minutes)
-            }
-        )
-        DropdownSessionFun(
-            label = R.string.sessions,
-            itemLists = focusUiState.listSessions,
-            onItemSelected = { sessions ->
-                viewModel.setSessions(sessions)
-            }
-        )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(260.dp)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ){
+            Text(
+                text = stringResource(R.string.focus_duration),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = stringResource(R.string.rest_duration),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = stringResource(R.string.sessions),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Column() {
+            DropdownFun(
+
+                itemLists = focusUiState.listFocusDuration,
+                onItemSelected = { minutes ->
+                    viewModel.setDurationMinutes(minutes)
+                }
+            )
+            DropdownFun(
+
+                itemLists = restUiState.listRestDuration,
+                onItemSelected = { minutes ->
+                    viewModel.setRestDurationMinutes(minutes)
+                }
+            )
+            DropdownSessionFun(
+
+                itemLists = focusUiState.listSessions,
+                onItemSelected = { sessions ->
+                    viewModel.setSessions(sessions)
+                }
+            )
+        }
     }
 }
 
@@ -102,21 +130,14 @@ fun DropDownPreview () {
 
 @Composable
 fun DropdownFun (
-    @StringRes label: Int,
+
     itemLists: List<Int>,
     onItemSelected: (Int) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var selectedDuration by rememberSaveable { mutableIntStateOf(itemLists[0]) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(label),
-        )
+
         Box(
             modifier = Modifier
                 .padding(16.dp)
@@ -137,53 +158,43 @@ fun DropdownFun (
                     imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowLeft,
                     contentDescription = null,
                 )
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.heightIn(max = 200.dp) // limit height
-            ) {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    itemLists.forEach { duration ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(text = "$duration mins")
-                            },
-                            onClick = {
-                                onItemSelected(duration)
-                                selectedDuration = duration
-                                expanded = false
-                            }
-                        )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.heightIn(max = 200.dp) // limit height
+                ) {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        itemLists.forEach { duration ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = "$duration mins")
+                                },
+                                onClick = {
+                                    onItemSelected(duration)
+                                    selectedDuration = duration
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
+
 
 
 
 
 @Composable
 fun DropdownSessionFun(
-    @StringRes label: Int,
+
     itemLists: List<Int>,
     onItemSelected: (Int) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var selectedItem by rememberSaveable { mutableIntStateOf(itemLists[0]) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(label),
-            modifier = Modifier.align(Alignment.CenterVertically)
-        )
         Box(
             modifier = Modifier
                 .padding(16.dp)
@@ -194,7 +205,7 @@ fun DropdownSessionFun(
                     .clickable { expanded = true }
                     .width(100.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(30.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Text(
                     text = if (selectedItem == 1) "$selectedItem session" else "$selectedItem sessions",
@@ -204,30 +215,28 @@ fun DropdownSessionFun(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowLeft,
                     contentDescription = null,
                 )
-            }
-
-            // ⬇️ Important: DropdownMenu is OUTSIDE Row but still inside Box
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.heightIn(max = 200.dp)
-            ) {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    itemLists.forEach { session ->
-                        DropdownMenuItem(
-                            text = { Text(text = if (session == 1) "$session session" else "$session sessions") },
-                            onClick = {
-                                onItemSelected(session)
-                                selectedItem = session
-                                expanded = false
-                            }
-                        )
+                // ⬇️ Important: DropdownMenu is OUTSIDE Row but still inside Box
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.heightIn(max = 200.dp)
+                ) {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        itemLists.forEach { session ->
+                            DropdownMenuItem(
+                                text = { Text(text = if (session == 1) "$session session" else "$session sessions") },
+                                onClick = {
+                                    onItemSelected(session)
+                                    selectedItem = session
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
 
 
 
