@@ -1,4 +1,4 @@
-package com.example.pomodoro
+package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
 import kotlinx.coroutines.*
@@ -6,13 +6,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 
 interface PomodoroController {
-    val focusUIiState: StateFlow<FocusUiState>
+    val focusUiState: StateFlow<FocusUiState>
 
-    val restUIiState: StateFlow<RestUiState>
+    val restUiState: StateFlow<RestUiState>
 
 
     fun setDurationMinutes(minutes: Int)
     fun setRestDurationMinutes(minutes: Int)
+
+    fun setSessions(sessions: Int)
+
     fun start()
     fun giveUp()
     suspend fun stop() // optional helper for tests
@@ -20,18 +23,17 @@ interface PomodoroController {
 }
 
 class PomodoroControllerImpl(
-    FocusUiState: FocusUiState = FocusUiState(),
-    RestUiState: RestUiState = RestUiState(),
-    private val scope: CoroutineScope // usually viewModelScope
+    private val scope: CoroutineScope // usually viewModelScope,
 ) : PomodoroController {
 
-    private val _focusUiState = MutableStateFlow(FocusUiState)
-    val focusUiState: StateFlow<FocusUiState> = _focusUiState.asStateFlow()
+    private val _focusUiState = MutableStateFlow(FocusUiState())
+    override val focusUiState: StateFlow<FocusUiState> = _focusUiState.asStateFlow()
 
-    private val _restUiState = MutableStateFlow(RestUiState)
+    private val _restUiState = MutableStateFlow(RestUiState())
 
-    val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
+    override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
 
+    //Create job controllers for 2 countdown
     private var studyJob: Job? = null
     private var restJob: Job? = null
 
@@ -47,11 +49,16 @@ class PomodoroControllerImpl(
         _restUiState.update { it.copy(restDuration = seconds, initialRestDuration = seconds) }
     }
 
+    override fun setSessions(sessions: Int) {
+        _focusUiState.update { it.copy(duration = sessions) }
+    }
+
     override fun start() {
         // Cancel previous jobs (if any)
         studyJob?.cancel()
         restJob?.cancel()
 
+        //set isRunning to true, isStudying to true
         _focusUiState.update { it.copy(isRunning = true) }
         _restUiState.update { it.copy(isStudying = true) }
 
@@ -59,10 +66,11 @@ class PomodoroControllerImpl(
         studyJob = scope.launch {
             try {
                 countdownStudy()
-                // Switch into rest if restDuration > 0
-                _uiState.update { it.copy(isStudying = false, isRunning = true) }
+                // Switch into rest if restDuration > 0 for now/ but have to add user setting later
+                _focusUiState.update { it.copy( isRunning = true) }
+                _restUiState.update { it.copy(isStudying = true) }
 
-                if (_uiState.value.restDuration > 0) {
+                if (restUiState.value.restDuration > 0) {
                     restJob = launch { countdownRest() }
                     restJob?.join()
                 }
@@ -70,39 +78,46 @@ class PomodoroControllerImpl(
                 // job cancelled — leave state as-is or reset as desired
             } finally {
                 // Ensure we mark stopped when finished
-                _uiState.update { it.copy(isRunning = false, isStudying = false) }
+                _focusUiState.update { it.copy( isRunning = true) }
+                _restUiState.update { it.copy(isStudying = true) }
             }
         }
     }
 
     private suspend fun countdownStudy() = coroutineScope {
         while (isActive) {
-            val current = _uiState.value
+            val current = focusUiState.value
             if (!current.isRunning || current.duration <= 0) break
             delay(1000L)
-            _uiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
+            _focusUiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
         }
     } //countdown for study session
 
     private suspend fun countdownRest() = coroutineScope {
         while (isActive) {
-            val current = _uiState.value
-            if (!current.isRunning || current.isStudying || current.restDuration <= 0) break
+            val currentRest = _restUiState.value
+            val currentFocus = _focusUiState.value
+            if (!currentFocus.isRunning || currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
             delay(1000L)
-            _uiState.update { it.copy(restDuration = (it.restDuration - 1).coerceAtLeast(0)) }
+            _restUiState.update { it.copy(restDuration = (it.restDuration - 1).coerceAtLeast(0)) }
         }
+
     } //countdown for rest session
 
     override fun giveUp() {
         studyJob?.cancel()
         restJob?.cancel()
-        _uiState.update {
+        _focusUiState.update {
             it.copy(
                 isRunning = false,
-                isStudying = false,  //potential bug
-                // reset durations to initial settings so UI shows initial values
                 duration = it.initialDuration,
-                restDuration = it.initialRestDuration
+            )
+        }
+
+        _restUiState.update {
+            it.copy(
+                isStudying = false,
+                restDuration = it.initialRestDuration,
             )
         }
     } //cancel all jobs
