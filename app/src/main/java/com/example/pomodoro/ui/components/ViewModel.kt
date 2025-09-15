@@ -39,9 +39,7 @@ class ViewModelCountDown(
             pause()
         }
     }
-
-
-
+    fun toggleisFinished() = controller.toggleisFinished()
 
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)
     fun setRestDurationMinutes(minutes: Int) = controller.setRestDurationMinutes(minutes) // haven't allowed used to set rest duration

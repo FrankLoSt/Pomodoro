@@ -2,7 +2,9 @@ package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -37,6 +39,8 @@ class PomodoroControllerImpl(
     private val _restUiState = MutableStateFlow(RestUiState())
 
     override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
+
+
 
     //Create job controllers for 2 countdown
     private var studyJob: Job? = null
@@ -120,6 +124,9 @@ class PomodoroControllerImpl(
                 } // -1 session after studying, resting
                 Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.initialSessions}")
             }
+
+            _focusUiState.update { it.copy(isFinished = true) } //isFinished = true => display alert dialog, users have to click Ok to call toggleisFinished() to close it.
+
             reset()
             Log.d("DEBUG", "start: start() ends")
         }
@@ -133,7 +140,7 @@ class PomodoroControllerImpl(
                 isRunning = false,
                 duration = it.initialDuration,
                 sessions = it.initialSessions,
-                isPause = false
+                isPause = false,
             )
         }
         _restUiState.update {
@@ -144,6 +151,9 @@ class PomodoroControllerImpl(
             )
         }
         Log.d("reset", "reset: reset done!")
+    }
+    fun toggleisFinished () {
+        _focusUiState.update { it.copy(isFinished = false) }
     }
 
     // still need breakFun because when my app scale, I need to save users data

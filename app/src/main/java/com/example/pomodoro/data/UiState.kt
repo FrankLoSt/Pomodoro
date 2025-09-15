@@ -8,9 +8,10 @@ data class FocusUiState(
     val duration: Int = 10, //test with 10
     val initialDuration: Int = 10,//test with 10
     val isRunning: Boolean = true,
-    val initialSessions: Int = 3,
-    val sessions: Int = 3, //test with 3
+    val initialSessions: Int = 1,
+    val sessions: Int = 1, //test with 1
     val isPause: Boolean = false,
+    val isFinished: Boolean  = false
 ) {
     // Helpers
     fun studyProgress(): Float =
