@@ -7,166 +7,171 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 
-interface PomodoroController {
-    val focusUiState: StateFlow<FocusUiState>
+sealed class PomodoroState {
+    object Idle : PomodoroState()
+    data class Studying(val remaining: Int, val session: Int) : PomodoroState()
+    data class Resting(val remaining: Int, val session: Int) : PomodoroState()
+    object Paused : PomodoroState()
+    object Finished : PomodoroState()
+    data class Error(val message: String) : PomodoroState()
+}
 
+
+
+interface PomodoroController {
+    val pomodoroState: StateFlow<PomodoroState>
+    val focusUiState: StateFlow<FocusUiState>
     val restUiState: StateFlow<RestUiState>
 
-
-    fun setDurationMinutes(minutes: Int)
-    fun setRestDurationMinutes(minutes: Int)
-
-    fun setSessions(sessions: Int)
-
+    fun configure(studyMinutes: Int, restMinutes: Int, sessions: Int)
     fun start()
-    fun breakFun()
-    fun pause() // optional helper for tests\
-    fun resume ()
-
+    fun pause()
+    fun resume()
     fun reset()
+    fun skipRest()
     fun formatter(durationSeconds: Int): String
 }
 
+
 class PomodoroControllerImpl(
-    private val scope: CoroutineScope // usually viewModelScope,
+    private val scope: CoroutineScope
 ) : PomodoroController {
+
+    private val _pomodoroState = MutableStateFlow<PomodoroState>(PomodoroState.Idle)
+    override val pomodoroState: StateFlow<PomodoroState> = _pomodoroState.asStateFlow()
 
     private val _focusUiState = MutableStateFlow(FocusUiState())
     override val focusUiState: StateFlow<FocusUiState> = _focusUiState.asStateFlow()
 
     private val _restUiState = MutableStateFlow(RestUiState())
-
     override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
 
-    //Create job controllers for 2 countdown
-    private var studyJob: Job? = null
+    private var studyDurationSec: Int = 0
+    private var restDurationSec: Int = 0
+    private var totalSessions: Int = 0
+    private var currentSession: Int = 0
 
-    //private var restJob: Job? = null //-> I leave it here for future use
+    private var timerJob: Job? = null
 
-    // var pauseJob: Job? = null //-> I leave it here for future use
+    override fun configure(studyMinutes: Int, restMinutes: Int, sessions: Int) {
+        studyDurationSec = studyMinutes * 60
+        restDurationSec = restMinutes * 60
+        totalSessions = sessions
+        currentSession = 1
 
-    private val mutex = Mutex() // protect state if necessary
-
-    override fun setDurationMinutes(minutes: Int) {
-        val seconds = minutes   //remove  * 60 for testing  - minutes * 60
-        _focusUiState.update { it.copy(duration = seconds, initialDuration = seconds) }
-        Log.d("DEBUG", "setDurationMinutes: $seconds assigned")
+        _focusUiState.value = FocusUiState(
+            duration = studyDurationSec,
+            initialDuration = studyDurationSec,
+            sessions = sessions,
+            initialSessions = sessions
+        )
+        _restUiState.value = RestUiState(
+            restDuration = restDurationSec,
+            initialRestDuration = restDurationSec
+        )
+        _pomodoroState.value = PomodoroState.Idle
     }
 
-    override fun setRestDurationMinutes(minutes: Int) {
-        val seconds = minutes  //remove  * 60 for testing  - minutes * 60
-        _restUiState.update { it.copy(restDuration = seconds, initialRestDuration = seconds) }
-        Log.d("DEBUG", "setRestDurationMinutes: $seconds assigned")
+    override fun start() {
+        timerJob?.cancel()
+        timerJob = scope.launch {
+            runSessionLoop()
+        }
     }
 
-    override fun setSessions(sessions: Int) {
-        _focusUiState.update { it.copy(sessions = sessions, initialSessions = sessions) }
-        Log.d("DEBUG", "setSessions: $sessions assigned")
-    }
-
-    private suspend fun countdownStudy() = coroutineScope {
-        while (isActive) {
-            while (focusUiState.value.isPause) {
-                Log.d("DEBUG", "countdownStudy: pausing")
-                delay(100L)
+    private suspend fun runSessionLoop() {
+        for (session in currentSession..totalSessions) {
+            // Study phase
+            setState(PomodoroState.Studying(studyDurationSec, session))
+            runTimer(studyDurationSec) { remaining ->
+                setState(PomodoroState.Studying(remaining, session))
             }
-            val current = focusUiState.value
-            if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
+
+            if (session == totalSessions) {
+                setState(PomodoroState.Finished)
+                return
+            }
+
+            // Rest phase
+            setState(PomodoroState.Resting(restDurationSec, session))
+            runTimer(restDurationSec) { remaining ->
+                setState(PomodoroState.Resting(remaining, session))
+            }
+        }
+    }
+
+    private suspend fun runTimer(duration: Int, onTick: (Int) -> Unit) {
+        var timeLeft = duration
+        while (timeLeft > 0 && _pomodoroState.value !is PomodoroState.Idle) {
+            if (_pomodoroState.value is PomodoroState.Paused) {
+                delay(200L)
+                continue
+            }
             delay(1000L)
-            _focusUiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
-            Log.d("DEBUG", "countdownStudy: ${current.duration}")
-        }
-        Log.d("DEBUG", "countdownStudy: study finished")
-    } //countdown for study session
-
-    private suspend fun countdownRest() = coroutineScope {
-        while (isActive) {
-            while (focusUiState.value.isPause) {
-                Log.d("DEBUG", "countdownRest: pausing")
-                delay(100L)
-            }
-            val currentRest = _restUiState.value
-
-            if (currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
-            delay(1000L)
-            _restUiState.update { it.copy(restDuration = (it.restDuration - 1).coerceAtLeast(0)) }
-            Log.d("DEBUG", "countdownRest: ${currentRest.restDuration}")
-        }
-        Log.d("DEBUG", "countdownRest: break finished")
-    } //countdown for rest session
-
-    override fun start () {
-        studyJob?.cancel()
-
-        Log.d("DEBUG", "start: start() runs")
-        _restUiState.update { it.copy(isShowingMenu = false)}
-        studyJob = scope.launch {
-            while (
-                focusUiState.value.sessions > 0
-            ) {
-                _focusUiState.update{ it.copy(isRunning = true, duration = it.initialDuration) }
-                _restUiState.update { it.copy(isStudying = true) }
-                countdownStudy()
-
-                if(focusUiState.value.sessions == 1) break
-
-                _restUiState.update { it.copy(isStudying = false, restDuration = it.initialRestDuration) } //not studying anymore
-                countdownRest() // isRunning, isStudying = false
-
-                _focusUiState.update {
-                    it.copy(
-                        sessions = (it.sessions - 1).coerceAtLeast(0)
-                    )
-                } // -1 session after studying, resting
-                Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.initialSessions}")
-            }
-            reset()
-            Log.d("DEBUG", "start: start() ends")
+            timeLeft--
+            onTick(timeLeft)
         }
     }
-
-     override  fun reset(){
-        studyJob?.cancel()
-
-        _focusUiState.update {
-            it.copy(
-                isRunning = false,
-                duration = it.initialDuration,
-                sessions = it.initialSessions,
-                isPause = false
-            )
-        }
-        _restUiState.update {
-            it.copy(
-                isStudying = false,
-                restDuration = it.initialRestDuration,
-                isShowingMenu = true
-            )
-        }
-        Log.d("reset", "reset: reset done!")
-    }
-
-    // still need breakFun because when my app scale, I need to save users data
-    override fun breakFun () {
-        Log.d("DEBUG", "breakFun: breakFun() runs")
-        reset()
-    } //cancel all jobs
 
     override fun pause() {
-        Log.d("DEBUG", "pause: pause() runs")
-        _focusUiState.update { it.copy(isPause = true) }
-
-    }
-    override fun resume () {
-        Log.d("DEBUG", "resume: resume() runs")
-
-        _focusUiState.update { it.copy(isPause = false) }
+        _pomodoroState.value = PomodoroState.Paused
     }
 
+    override fun resume() {
+        // restore last known state
+        val prev = _pomodoroState.value
+        when (prev) {
+            is PomodoroState.Studying ->
+                _pomodoroState.value = PomodoroState.Studying(prev.remaining, prev.session)
+            is PomodoroState.Resting ->
+                _pomodoroState.value = PomodoroState.Resting(prev.remaining, prev.session)
+            else -> Unit
+        }
+    }
+
+    override fun reset() {
+        timerJob?.cancel()
+        _pomodoroState.value = PomodoroState.Idle
+        _focusUiState.update { it.copy(duration = it.initialDuration, sessions = it.initialSessions, isRunning = false) }
+        _restUiState.update { it.copy(restDuration = it.initialRestDuration, isStudying = false, isShowingMenu = true) }
+    }
+
+    override fun skipRest() {
+        if (_pomodoroState.value is PomodoroState.Resting) {
+            _pomodoroState.value = PomodoroState.Studying(studyDurationSec, currentSession + 1)
+        }
+    }
 
     override fun formatter(durationSeconds: Int): String {
         val m = durationSeconds / 60
         val s = durationSeconds % 60
         return String.format("%02d:%02d", m, s)
     }
+
+    private fun setState(state: PomodoroState) {
+        _pomodoroState.value = state
+
+        // Derive UI states automatically
+        when (state) {
+            is PomodoroState.Studying -> {
+                _focusUiState.update {
+                    it.copy(duration = state.remaining, isRunning = true, sessions = totalSessions - state.session + 1)
+                }
+                _restUiState.update { it.copy(isStudying = true) }
+            }
+            is PomodoroState.Resting -> {
+                _restUiState.update { it.copy(restDuration = state.remaining, isStudying = false) }
+            }
+            PomodoroState.Idle -> {
+                _focusUiState.update { it.copy(isRunning = false) }
+                _restUiState.update { it.copy(isShowingMenu = true) }
+            }
+            PomodoroState.Finished -> {
+                _focusUiState.update { it.copy(isRunning = false, duration = 0, sessions = 0) }
+                _restUiState.update { it.copy(isStudying = false, restDuration = 0) }
+            }
+            else -> Unit
+        }
+    }
 }
+

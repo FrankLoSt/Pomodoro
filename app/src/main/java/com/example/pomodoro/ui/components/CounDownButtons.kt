@@ -27,7 +27,9 @@ fun CountDownButton (
         modifier = Modifier.fillMaxWidth()
     ) {
         Button(
-            onClick = {viewModel.startCountDown()},
+            onClick = {
+                viewModel.startCountDown()
+            },
             modifier = Modifier.width(130.dp)
         ) {
             Text(

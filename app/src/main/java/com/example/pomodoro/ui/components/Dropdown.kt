@@ -49,67 +49,79 @@ import com.example.pomodoro.data.RestUiState
 
 
 @Composable
-fun DropDown (
+fun DropDown(
     viewModel: ViewModelCountDown,
     focusUiState: FocusUiState,
     restUiState: RestUiState,
 ) {
-    Card (
+    // Local states to hold temporary user choices
+    var selectedFocus by rememberSaveable { mutableIntStateOf(focusUiState.initialDuration / 60) }
+    var selectedRest by rememberSaveable { mutableIntStateOf(restUiState.initialRestDuration / 60) }
+    var selectedSessions by rememberSaveable { mutableIntStateOf(focusUiState.initialSessions) }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(dimensionResource(R.dimen.medium_padding)),
         elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.medium_padding))
     ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp)
-            .padding(dimensionResource(R.dimen.medium_padding)),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
-        ){
-            Text(
-                text = stringResource(R.string.focus_duration),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = stringResource(R.string.rest_duration),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = stringResource(R.string.sessions),
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        Column() {
-            DropdownFun(
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(280.dp)
+                .padding(dimensionResource(R.dimen.medium_padding)),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(text = stringResource(R.string.focus_duration), style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(R.string.rest_duration), style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(R.string.sessions), style = MaterialTheme.typography.titleMedium)
+            }
 
-                itemLists = focusUiState.listFocusDuration,
-                onItemSelected = { minutes ->
-                    viewModel.setDurationMinutes(minutes)
-                }
-            )
-            DropdownFun(
-
-                itemLists = restUiState.listRestDuration,
-                onItemSelected = { minutes ->
-                    viewModel.setRestDurationMinutes(minutes)
-                }
-            )
-            DropdownSessionFun(
-                itemLists = focusUiState.listSessions,
-                onItemSelected = { sessions ->
-                    viewModel.setSessions(sessions)
-                }
-            )
+            Column {
+                DropdownFun(
+                    itemLists = focusUiState.listFocusDuration,
+                    onItemSelected = { minutes ->
+                        selectedFocus = minutes
+                        viewModel.configure(
+                            studyMinutes = selectedFocus,
+                            restMinutes = selectedRest,
+                            sessions = selectedSessions
+                        )
+                    }
+                )
+                DropdownFun(
+                    itemLists = restUiState.listRestDuration,
+                    onItemSelected = { minutes ->
+                        selectedRest = minutes
+                        viewModel.configure(
+                            studyMinutes = selectedFocus,
+                            restMinutes = selectedRest,
+                            sessions = selectedSessions
+                        )
+                    }
+                )
+                DropdownSessionFun(
+                    itemLists = focusUiState.listSessions,
+                    onItemSelected = { sessions ->
+                        selectedSessions = sessions
+                        viewModel.configure(
+                            studyMinutes = selectedFocus,
+                            restMinutes = selectedRest,
+                            sessions = selectedSessions
+                        )
+                    }
+                )
+            }
         }
-}   }
+    }
 }
+
 
 
 @Preview(showBackground = true)

@@ -25,20 +25,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pomodoro.data.PomodoroState
 import com.example.pomodoro.ui.components.BreakPauseButtons
 import com.example.pomodoro.ui.components.CircularProgressBar
 import com.example.pomodoro.ui.components.CountDownButton
 import com.example.pomodoro.ui.components.CustomCircularProgressIndicator
 import com.example.pomodoro.ui.components.DropDown
 
+
 import com.example.pomodoro.ui.components.DropdownFun
 
 import com.example.pomodoro.ui.components.ViewModelCountDown
 
 @Composable
-fun CountDownTimer (
+fun CountDownTimer(
     viewModel: ViewModelCountDown = viewModel(),
 ) {
+    val pomodoroState by viewModel.pomodoroState.collectAsState()
     val focusUiState by viewModel.focusUiState.collectAsState()
     val restUiState by viewModel.restUiState.collectAsState()
 
@@ -49,33 +52,90 @@ fun CountDownTimer (
             .fillMaxSize()
             .padding(top = 100.dp)
     ) {
-        //session title
-        if(!restUiState.isShowingMenu) {
-            CircularProgressBar(
-                focusUiState = focusUiState,
-                restUiState = restUiState,
-                viewModel = viewModel,
-            )
-        }
 
-        if(restUiState.isShowingMenu) {
-            DropDown(
-                focusUiState = focusUiState,
-                restUiState = restUiState,
-                viewModel = viewModel,
-            )
-        }
+        // --- Circular Slider or Progress Bar ---
+        when (pomodoroState) {
+            is PomodoroState.Idle -> {
+                DropDown(
+                    focusUiState = focusUiState,
+                    restUiState = restUiState,
+                    viewModel = viewModel
+                )
+                CountDownButton(viewModel = viewModel) // show Start button
+            }
 
-        if(restUiState.isShowingMenu) {
-            CountDownButton(viewModel = viewModel)
-        } else {
-            BreakPauseButtons(
-                viewModel = viewModel,
-                focusUiState = focusUiState,
-            )
+            is PomodoroState.Studying -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = 1f - (focusUiState.duration.toFloat() / focusUiState.initialDuration.toFloat()),
+                            modifier = Modifier.size(250.dp),
+                            progressColor = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = viewModel.formatter(focusUiState.duration),
+                            style = MaterialTheme.typography.displayLarge,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    BreakPauseButtons(
+                        viewModel = viewModel,
+                        focusUiState = focusUiState
+                    )
+                }
+            }
+
+            is PomodoroState.Resting -> {
+                Box(
+
+                ) {
+                    CustomCircularProgressIndicator(
+                        progress = 1f - (restUiState.restDuration.toFloat() / restUiState.initialRestDuration.toFloat()),
+                        modifier = Modifier.size(250.dp),
+                        progressColor = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        text = viewModel.formatter(restUiState.restDuration),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    BreakPauseButtons(
+                        viewModel = viewModel,
+                        focusUiState = focusUiState
+                    )
+                }
+            }
+
+            is PomodoroState.Paused -> {
+                Text("Paused", style = MaterialTheme.typography.headlineSmall)
+                BreakPauseButtons(
+                    viewModel = viewModel,
+                    focusUiState = focusUiState
+                )
+            }
+
+            is PomodoroState.Finished -> {
+                Text("All sessions completed!", style = MaterialTheme.typography.headlineMedium)
+                Button(onClick = { viewModel.reset() }) {
+                    Text("Restart")
+                }
+            }
+
+            is PomodoroState.Error -> {
+                val error = pomodoroState as PomodoroState.Error
+                Text("Error: ${error.message}", color = Color.Red)
+                Button(onClick = { viewModel.reset() }) {
+                    Text("Reset")
+                }
+            }
         }
     }
 }
+
 
 
 
