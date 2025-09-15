@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
+import com.example.pomodoro.data.PomodoroState
 import com.example.pomodoro.data.RestUiState
 
 @Composable
@@ -23,9 +24,13 @@ fun CircularProgressBar (
     restUiState: RestUiState,
 ) {
     Text(
-        text = if ( restUiState.isStudying && focusUiState.isRunning ) stringResource(R.string.Studying) else stringResource(R.string.Taking_a_break
-        ),
-    )
+        text =
+            if ( viewModel.pomodoroState == PomodoroState.Idle )
+            {""} else if (focusUiState.isRunning && restUiState.isStudying )
+            {stringResource(R.string.Studying)}
+            else {stringResource(R.string.Taking_a_break)}
+        )
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.size(300.dp),
