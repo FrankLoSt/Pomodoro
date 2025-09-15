@@ -40,6 +40,7 @@ fun CountDownTimer (
 ) {
     val focusUiState by viewModel.focusUiState.collectAsState()
     val restUiState by viewModel.restUiState.collectAsState()
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -48,17 +49,22 @@ fun CountDownTimer (
             .padding(top = 100.dp)
     ) {
         //session title
-        CircularProgressBar(
-            focusUiState = focusUiState,
-            restUiState = restUiState,
-            viewModel = viewModel,
-        )
-        DropDown(
-            focusUiState = focusUiState,
-            restUiState = restUiState,
-            viewModel = viewModel,
-        )
-        println("DEBUG: UI recomposed, duration = ${focusUiState.duration}")
+        if(!restUiState.isShowingMenu) {
+            CircularProgressBar(
+                focusUiState = focusUiState,
+                restUiState = restUiState,
+                viewModel = viewModel,
+            )
+        }
+
+        if(restUiState.isShowingMenu) {
+            DropDown(
+                focusUiState = focusUiState,
+                restUiState = restUiState,
+                viewModel = viewModel,
+            )
+        }
+
         CountDownButton(
             focusUiState = focusUiState,
             restUiState = restUiState,

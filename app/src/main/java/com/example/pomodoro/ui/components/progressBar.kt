@@ -23,8 +23,7 @@ fun CircularProgressBar (
     restUiState: RestUiState,
 ) {
     Text(
-        text = if (restUiState.isStudying) stringResource(R.string.Studying) else stringResource(
-            R.string.Taking_a_break
+        text = if ( restUiState.isStudying && focusUiState.isRunning ) stringResource(R.string.Studying) else stringResource(R.string.Taking_a_break
         ),
     )
     Box(
@@ -32,8 +31,8 @@ fun CircularProgressBar (
         modifier = Modifier.size(300.dp),
     ) {
         //rest countdown Screen
-        if (!restUiState.isStudying && restUiState.restDuration > 0 ) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
-            val progress = restUiState.restProgress()
+        if (restUiState.isStudying  && focusUiState.isRunning  ) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
+            val progress = focusUiState.studyProgress()
             CustomCircularProgressIndicator(
                 progress = progress,
                 modifier = Modifier.size(300.dp),
@@ -45,7 +44,7 @@ fun CircularProgressBar (
         }
         //progress focus time
         else {
-            val progress = focusUiState.studyProgress()
+            val progress = restUiState.restProgress()
             CustomCircularProgressIndicator(
                 progress = progress,
                 modifier = Modifier.size(300.dp),
@@ -56,8 +55,9 @@ fun CircularProgressBar (
             )
         }
 
+
         Text(
-            text = if(!restUiState.isStudying) viewModel.formatter(restUiState.restDuration) else viewModel.formatter(focusUiState.duration),
+            text = if(focusUiState.isRunning && restUiState.isStudying )  viewModel.formatter(focusUiState.duration) else  viewModel.formatter(restUiState.restDuration),
             style = MaterialTheme.typography.displayLarge
         )
     } //box for progress bar and text

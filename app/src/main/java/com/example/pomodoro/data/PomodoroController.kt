@@ -1,6 +1,8 @@
 package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
+import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -18,7 +20,9 @@ interface PomodoroController {
 
     fun start()
     fun giveUp()
-    suspend fun stop() // optional helper for tests
+    suspend fun stop() // optional helper for tests\
+
+    fun reset()
     fun formatter(durationSeconds: Int): String
 }
 
@@ -40,69 +44,95 @@ class PomodoroControllerImpl(
     private val mutex = Mutex() // protect state if necessary
 
     override fun setDurationMinutes(minutes: Int) {
-        val seconds = minutes * 60
+        val seconds = minutes   //remove  * 60 for testing  - minutes * 60
         _focusUiState.update { it.copy(duration = seconds, initialDuration = seconds) }
+        Log.d("DEBUG", "setDurationMinutes: $seconds assigned")
     }
 
     override fun setRestDurationMinutes(minutes: Int) {
-        val seconds = minutes * 60
+        val seconds = minutes  //remove  * 60 for testing  - minutes * 60
         _restUiState.update { it.copy(restDuration = seconds, initialRestDuration = seconds) }
+        Log.d("DEBUG", "setRestDurationMinutes: $seconds assigned")
     }
 
     override fun setSessions(sessions: Int) {
-        _focusUiState.update { it.copy(duration = sessions) }
-    }
-
-    override fun start() {
-        // Cancel previous jobs (if any)
-        studyJob?.cancel()
-        restJob?.cancel()
-
-        //set isRunning to true, isStudying to true
-        _focusUiState.update { it.copy(isRunning = true) }
-        _restUiState.update { it.copy(isStudying = true) }
-
-        // Launch study countdown
-        studyJob = scope.launch {
-            try {
-                countdownStudy()
-                // Switch into rest if restDuration > 0 for now/ but have to add user setting later
-                _focusUiState.update { it.copy( isRunning = true) }
-                _restUiState.update { it.copy(isStudying = true) }
-
-                if (restUiState.value.restDuration > 0) {
-                    restJob = launch { countdownRest() }
-                    restJob?.join()
-                }
-            } catch (e: CancellationException) {
-                // job cancelled — leave state as-is or reset as desired
-            } finally {
-                // Ensure we mark stopped when finished
-                _focusUiState.update { it.copy( isRunning = true) }
-                _restUiState.update { it.copy(isStudying = true) }
-            }
-        }
+        _focusUiState.update { it.copy(sessions = sessions, initialSessions = sessions) }
+        Log.d("DEBUG", "setSessions: $sessions assigned")
     }
 
     private suspend fun countdownStudy() = coroutineScope {
         while (isActive) {
             val current = focusUiState.value
-            if (!current.isRunning || current.duration <= 0) break
+            if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
             delay(1000L)
             _focusUiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
+            Log.d("DEBUG", "countdownStudy: ${current.duration}")
         }
+        Log.d("DEBUG", "countdownStudy: study finished")
     } //countdown for study session
 
     private suspend fun countdownRest() = coroutineScope {
         while (isActive) {
             val currentRest = _restUiState.value
-            val currentFocus = _focusUiState.value
-            if (!currentFocus.isRunning || currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
+
+            if (currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
             delay(1000L)
             _restUiState.update { it.copy(restDuration = (it.restDuration - 1).coerceAtLeast(0)) }
+            Log.d("DEBUG", "countdownRest: ${currentRest.restDuration}")
         }
-
+        Log.d("DEBUG", "countdownRest: break finished")
     } //countdown for rest session
+
+    override fun start () {
+        studyJob?.cancel()
+        restJob?.cancel()
+        Log.d("DEBUG", "start: start() runs")
+        _restUiState.update { it.copy(isShowingMenu = false)}
+        studyJob = scope.launch {
+            while (
+                focusUiState.value.sessions > 0
+            ) {
+                _focusUiState.update{ it.copy(isRunning = true, duration = it.initialDuration) }
+                _restUiState.update { it.copy(isStudying = true) }
+                countdownStudy()
+
+                if(focusUiState.value.sessions == 1) break
+
+                _restUiState.update { it.copy(isStudying = false, restDuration = it.initialRestDuration) } //not studying anymore
+                countdownRest() // isRunning, isStudying = false
+
+                _focusUiState.update {
+                    it.copy(
+                        sessions = (it.sessions - 1).coerceAtLeast(0)
+                    )
+                } // -1 session after studying, resting
+                Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.initialSessions}")
+            }
+            reset()
+            Log.d("DEBUG", "start: start() ends")
+        }
+    }
+
+    override fun reset(){
+        studyJob?.cancel()
+        restJob?.cancel()
+        _focusUiState.update {
+            it.copy(
+                isRunning = false,
+                duration = it.initialDuration,
+                sessions = it.initialSessions,
+            )
+        }
+        _restUiState.update {
+            it.copy(
+                isStudying = false,
+                restDuration = it.initialRestDuration,
+                isShowingMenu = true
+            )
+        }
+        Log.d("reset", "reset: reset done!")
+    }
+
 
     override fun giveUp() {
         studyJob?.cancel()

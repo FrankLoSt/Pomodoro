@@ -15,7 +15,7 @@ class ViewModelCountDown(
 
 ) : ViewModel() {
 
-    private val controller = PomodoroControllerImpl(scope = viewModelScope)
+     val controller = PomodoroControllerImpl(scope = viewModelScope) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState
     val restUiState: StateFlow<RestUiState> = controller.restUiState
@@ -28,10 +28,6 @@ class ViewModelCountDown(
 
     fun giveUp() = controller.giveUp()
 
-
-    fun toggleStartGiveUp() {
-        if (focusUiState.value.isRunning) giveUp() else startCountDown()
-    }
 
 
 
