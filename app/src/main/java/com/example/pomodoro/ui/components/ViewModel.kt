@@ -10,6 +10,7 @@ import com.example.pomodoro.data.RestUiState
 import com.example.pomodoro.data.PomodoroControllerImpl
 
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class ViewModelCountDown(
 
@@ -26,7 +27,18 @@ class ViewModelCountDown(
     fun startCountDown() = controller.start() //call start() from controller
 
 
-    fun giveUp() = controller.giveUp()
+    fun breakFun() = controller.breakFun()
+
+    fun pause() = controller.pause()
+    fun resume() = controller.resume()
+
+    fun togglePauseResume () {
+        if(focusUiState.value.isPause) {
+            resume()
+        } else {
+            pause()
+        }
+    }
 
 
 
@@ -37,13 +49,6 @@ class ViewModelCountDown(
 
     fun formatter(duration: Int): String = controller.formatter(duration)
 
-    fun onSliderChangeTesting (progress: Float) {
-        val min = 1
-        val max = 10
-        val minutes = ((min + (max - min) * progress).toInt() / 1) * 1 // round to nearest 5
-        Log.d("ViewModelCountDown", "onSliderChangeTesting: $minutes")
-        controller.setDurationMinutes(minutes) //call setDurationMinutes() from controller - with minutes  = 1 - 10 mins
-    }
 }
 
 

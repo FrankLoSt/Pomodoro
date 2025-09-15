@@ -19,8 +19,9 @@ interface PomodoroController {
     fun setSessions(sessions: Int)
 
     fun start()
-    fun giveUp()
-    suspend fun stop() // optional helper for tests\
+    fun breakFun()
+    fun pause() // optional helper for tests\
+    fun resume ()
 
     fun reset()
     fun formatter(durationSeconds: Int): String
@@ -39,7 +40,10 @@ class PomodoroControllerImpl(
 
     //Create job controllers for 2 countdown
     private var studyJob: Job? = null
-    private var restJob: Job? = null
+
+    //private var restJob: Job? = null //-> I leave it here for future use
+
+    // var pauseJob: Job? = null //-> I leave it here for future use
 
     private val mutex = Mutex() // protect state if necessary
 
@@ -62,6 +66,10 @@ class PomodoroControllerImpl(
 
     private suspend fun countdownStudy() = coroutineScope {
         while (isActive) {
+            while (focusUiState.value.isPause) {
+                Log.d("DEBUG", "countdownStudy: pausing")
+                delay(100L)
+            }
             val current = focusUiState.value
             if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
             delay(1000L)
@@ -73,6 +81,10 @@ class PomodoroControllerImpl(
 
     private suspend fun countdownRest() = coroutineScope {
         while (isActive) {
+            while (focusUiState.value.isPause) {
+                Log.d("DEBUG", "countdownRest: pausing")
+                delay(100L)
+            }
             val currentRest = _restUiState.value
 
             if (currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
@@ -85,7 +97,7 @@ class PomodoroControllerImpl(
 
     override fun start () {
         studyJob?.cancel()
-        restJob?.cancel()
+
         Log.d("DEBUG", "start: start() runs")
         _restUiState.update { it.copy(isShowingMenu = false)}
         studyJob = scope.launch {
@@ -113,14 +125,15 @@ class PomodoroControllerImpl(
         }
     }
 
-    override fun reset(){
+     override  fun reset(){
         studyJob?.cancel()
-        restJob?.cancel()
+
         _focusUiState.update {
             it.copy(
                 isRunning = false,
                 duration = it.initialDuration,
                 sessions = it.initialSessions,
+                isPause = false
             )
         }
         _restUiState.update {
@@ -133,30 +146,23 @@ class PomodoroControllerImpl(
         Log.d("reset", "reset: reset done!")
     }
 
-
-    override fun giveUp() {
-        studyJob?.cancel()
-        restJob?.cancel()
-        _focusUiState.update {
-            it.copy(
-                isRunning = false,
-                duration = it.initialDuration,
-            )
-        }
-
-        _restUiState.update {
-            it.copy(
-                isStudying = false,
-                restDuration = it.initialRestDuration,
-            )
-        }
+    // still need breakFun because when my app scale, I need to save users data
+    override fun breakFun () {
+        Log.d("DEBUG", "breakFun: breakFun() runs")
+        reset()
     } //cancel all jobs
 
-    override suspend fun stop() {
-        giveUp()
-        studyJob?.join()
-        restJob?.join()
+    override fun pause() {
+        Log.d("DEBUG", "pause: pause() runs")
+        _focusUiState.update { it.copy(isPause = true) }
+
     }
+    override fun resume () {
+        Log.d("DEBUG", "resume: resume() runs")
+
+        _focusUiState.update { it.copy(isPause = false) }
+    }
+
 
     override fun formatter(durationSeconds: Int): String {
         val m = durationSeconds / 60

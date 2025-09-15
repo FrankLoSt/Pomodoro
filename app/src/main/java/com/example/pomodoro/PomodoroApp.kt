@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pomodoro.ui.components.BreakPauseButtons
 import com.example.pomodoro.ui.components.CircularProgressBar
 import com.example.pomodoro.ui.components.CountDownButton
 import com.example.pomodoro.ui.components.CustomCircularProgressIndicator
@@ -65,12 +66,14 @@ fun CountDownTimer (
             )
         }
 
-        CountDownButton(
-            focusUiState = focusUiState,
-            restUiState = restUiState,
-            viewModel = viewModel,
-        )
-
+        if(restUiState.isShowingMenu) {
+            CountDownButton(viewModel = viewModel)
+        } else {
+            BreakPauseButtons(
+                viewModel = viewModel,
+                focusUiState = focusUiState,
+            )
+        }
     }
 }
 

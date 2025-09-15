@@ -2,7 +2,7 @@ package com.example.pomodoro.data
 
 // --- UiState.kt ---
 data class FocusUiState(
-    // Study\
+    // Study
     val listFocusDuration: List<Int> = (5..180 step 5).toList(),
     val listSessions: List<Int> = (1..30 step 1).toList(),
     val duration: Int = 10, //test with 10
@@ -10,8 +10,7 @@ data class FocusUiState(
     val isRunning: Boolean = true,
     val initialSessions: Int = 3,
     val sessions: Int = 3, //test with 3
-    //Rest
-
+    val isPause: Boolean = false,
 ) {
     // Helpers
     fun studyProgress(): Float =
