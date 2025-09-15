@@ -63,7 +63,7 @@ val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily(Font(R.font.jersey)),
         fontWeight = FontWeight.Normal,
-        fontSize = 70.sp,
+        fontSize = 90.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),

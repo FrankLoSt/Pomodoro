@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.material3)
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.lifecycle.viewmodel.compose)
+    implementation (libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

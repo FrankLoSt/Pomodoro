@@ -117,36 +117,38 @@ fun CircularSlider(
 fun CustomCircularProgressIndicator(
     progress: Float, // 0f..1f
     modifier: Modifier = Modifier,
-    padding: Float = 50f,
-    stroke: Float = 20f,
-    cap: StrokeCap = StrokeCap.Round,
-    progressColor: Color = Color.Black,
-    backgroundColor: Color = Color.LightGray,
+    blockCount: Int = 200, // number of pixel blocks around circle
+    blockSize: Float = 30f, // size of each block (chunky pixels)
+    radiusOffset: Float = 50f,
+    filledColor: Color = Color.Black,
+    emptyColor: Color = Color.LightGray
 ) {
-    Canvas(modifier = modifier) {
+    Canvas(
+        modifier = modifier,
+
+    ) {
         val size = min(size.width, size.height)
-        val radius = size / 2f - padding - stroke / 2f
+        val radius = size / 2f - radiusOffset
         val center = Offset(this.size.width / 2f, this.size.height / 2f)
 
-        drawArc(
-            color = backgroundColor,
-            startAngle = -240f,
-            sweepAngle = 300f,
-            useCenter = false,
-            style = Stroke(stroke, cap = cap),
-            topLeft = center - Offset(radius, radius),
-            size = Size(radius * 2, radius * 2)
-        )
+        val filledBlocks = (blockCount * progress.coerceIn(0f, 1f)).toInt()
 
-        drawArc(
-            color = progressColor,
-            startAngle = 120f,
-            sweepAngle = 300f * progress.coerceIn(0f, 1f),
-            useCenter = false,
-            style = Stroke(stroke, cap = cap),
-            topLeft = center - Offset(radius, radius),
-            size = Size(radius * 2, radius * 2)
-        )
+        repeat(blockCount) { i ->
+            val angle = (i / blockCount.toFloat()) * 300f + 120f // arc range
+            val rad = Math.toRadians(angle.toDouble())
+
+            val x = center.x + radius * cos(rad).toFloat()
+            val y = center.y + radius * sin(rad).toFloat()
+
+            val color = if (i < filledBlocks) filledColor else emptyColor
+
+            drawRect(
+                color = color,
+                topLeft = Offset(x - blockSize / 2f, y - blockSize / 2f),
+                size = Size(blockSize, blockSize)
+            )
+        }
     }
 }
+
 

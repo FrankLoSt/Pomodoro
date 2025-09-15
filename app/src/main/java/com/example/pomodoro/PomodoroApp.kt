@@ -38,7 +38,6 @@ import com.example.pomodoro.ui.components.AlertDialog1
 import com.example.pomodoro.ui.components.BreakPauseButtons
 import com.example.pomodoro.ui.components.CircularProgressBar
 import com.example.pomodoro.ui.components.CountDownButton
-import com.example.pomodoro.ui.components.CustomCircularProgressIndicator
 import com.example.pomodoro.ui.components.DropDown
 
 import com.example.pomodoro.ui.components.DropdownFun

@@ -38,10 +38,6 @@ fun CircularProgressBar (
             CustomCircularProgressIndicator(
                 progress = progress,
                 modifier = Modifier.size(300.dp),
-                progressColor = Color.Red,
-                backgroundColor = Color.LightGray,
-                stroke = 40f,
-                cap = StrokeCap.Round
             )
         }
         //progress focus time
@@ -50,10 +46,6 @@ fun CircularProgressBar (
             CustomCircularProgressIndicator(
                 progress = progress,
                 modifier = Modifier.size(300.dp),
-                progressColor = Color.Red,
-                backgroundColor = Color.LightGray,
-                stroke = 40f,
-                cap = StrokeCap.Round
             )
         }
 
