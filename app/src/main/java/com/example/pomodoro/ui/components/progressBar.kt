@@ -10,11 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun CircularProgressBar (
@@ -23,8 +25,8 @@ fun CircularProgressBar (
     restUiState: RestUiState,
 ) {
     Text(
-        text = if ( restUiState.isStudying && focusUiState.isRunning ) stringResource(R.string.Studying) else stringResource(R.string.Taking_a_break
-        ),
+        text = if ( restUiState.isStudying && focusUiState.isRunning ) stringResource(R.string.Studying) else stringResource(R.string.Taking_a_break),
+        style = MaterialTheme.typography.titleLarge
     )
     Box(
         contentAlignment = Alignment.Center,
@@ -61,5 +63,16 @@ fun CircularProgressBar (
             style = MaterialTheme.typography.displayLarge
         )
     } //box for progress bar and text
+}
 
+@Preview
+@Composable
+fun CircularProgressBarPreview () {
+    PomodoroTheme {
+        CircularProgressBar(
+            focusUiState = FocusUiState(),
+            restUiState = RestUiState(),
+            viewModel = viewModel()
+        )
+    }
 }

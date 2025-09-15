@@ -44,6 +44,7 @@ import com.example.pomodoro.ui.components.DropDown
 import com.example.pomodoro.ui.components.DropdownFun
 
 import com.example.pomodoro.ui.components.ViewModelCountDown
+import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun CountDownTimer (
@@ -92,4 +93,11 @@ fun CountDownTimer (
     }
 }
 
+@Preview (showBackground = true)
+@Composable
+fun CountDownTimerPreview () {
+    PomodoroTheme {
+        CountDownTimer()
+    }
+}
 
