@@ -66,11 +66,12 @@ fun CountDownTimer(
 
             is PomodoroState.Studying -> {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
                         CustomCircularProgressIndicator(
                             progress = 1f - (focusUiState.duration.toFloat() / focusUiState.initialDuration.toFloat()),
@@ -80,7 +81,6 @@ fun CountDownTimer(
                         Text(
                             text = viewModel.formatter(focusUiState.duration),
                             style = MaterialTheme.typography.displayLarge,
-                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
                     BreakPauseButtons(
