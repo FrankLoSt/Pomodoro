@@ -148,6 +148,12 @@ class PomodoroControllerImpl(
         return String.format("%02d:%02d", m, s)
     }
 
+
+    /*---when start() -> state = studying ,
+    * -> when pause() -> state = paused,
+    * -> when resume() -> state = studying or resting depending on the pre state
+    * -> when reset() -> state = idle
+    * */
     private fun setState(state: PomodoroState) {
         _pomodoroState.value = state
 

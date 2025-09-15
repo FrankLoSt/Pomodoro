@@ -31,7 +31,7 @@ fun BreakPauseButtons (
         modifier = Modifier.fillMaxWidth()
     ) {
         Button (
-            onClick = { },
+            onClick = { viewModel.reset()},
             modifier = Modifier.width(130.dp)
         ) {
             Text(
@@ -40,7 +40,7 @@ fun BreakPauseButtons (
             )
         }
         Button (
-            onClick = {  },
+            onClick = { viewModel.togglePauseResume() },
             modifier = Modifier.width(130.dp),
              colors = ButtonDefaults.buttonColors(if(focusUiState.isPause) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
         ) {
