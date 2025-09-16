@@ -63,63 +63,69 @@ fun DropDown (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
 ) {
-    Card (
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(dimensionResource(R.dimen.medium_padding)),
-        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.medium_padding))
+            .background(Color.Transparent)
     ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp)
-            .padding(dimensionResource(R.dimen.medium_padding)),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
-        ){
-            Text(
-                text = stringResource(R.string.focus_duration),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = stringResource(R.string.rest_duration),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = stringResource(R.string.sessions),
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        Column() {
-            DropdownFun(
+        Image(
+            painter = painterResource(R.drawable.ui_flat_frame03a),
+            contentDescription = null,
+            modifier = Modifier.align(Alignment.Center).size(350.dp)
+        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
+                    .padding(dimensionResource(R.dimen.medium_padding))
+                    .align(Alignment.Center),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text(
+                        text = stringResource(R.string.focus_duration),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.rest_duration),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.sessions),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Column() {
+                    DropdownFun(
 
-                itemLists = focusUiState.listFocusDuration,
-                onItemSelected = { minutes ->
-                    viewModel.setDurationMinutes(minutes)
-                }
-            )
-            DropdownFun(
+                        itemLists = focusUiState.listFocusDuration,
+                        onItemSelected = { minutes ->
+                            viewModel.setDurationMinutes(minutes)
+                        }
+                    )
+                    DropdownFun(
 
-                itemLists = restUiState.listRestDuration,
-                onItemSelected = { minutes ->
-                    viewModel.setRestDurationMinutes(minutes)
+                        itemLists = restUiState.listRestDuration,
+                        onItemSelected = { minutes ->
+                            viewModel.setRestDurationMinutes(minutes)
+                        }
+                    )
+                    DropdownSessionFun(
+                        itemLists = focusUiState.listSessions,
+                        onItemSelected = { sessions ->
+                            viewModel.setSessions(sessions)
+                        }
+                    )
                 }
-            )
-            DropdownSessionFun(
-                itemLists = focusUiState.listSessions,
-                onItemSelected = { sessions ->
-                    viewModel.setSessions(sessions)
-                }
-            )
+            }
         }
-      }
     }
-}
+
 
 
 @Preview(showBackground = true)

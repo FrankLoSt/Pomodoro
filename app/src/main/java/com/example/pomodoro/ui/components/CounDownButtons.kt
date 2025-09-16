@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,14 +44,9 @@ fun CountDownButton (
         Button(
             onClick = {viewModel.startCountDown()},
             modifier = Modifier
-                .width(130.dp),
+                .width(200.dp),
             colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
-            Card(
-                shape = RectangleShape,
-                colors = CardDefaults.cardColors(Color.Transparent),
-                elevation = CardDefaults.cardElevation(0.dp)
-            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -57,9 +54,9 @@ fun CountDownButton (
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.big_button2),
+                        painter = painterResource(R.drawable.supperbing),
                         contentDescription = null,
-                        modifier = Modifier.size(100.dp),
+                        modifier = Modifier,
                     )
                     Text(
                         text = stringResource(R.string.start),
@@ -70,7 +67,6 @@ fun CountDownButton (
         }
     }
     //Start - giveUp - take break buttons
-}
 
 @Preview
 @Composable
