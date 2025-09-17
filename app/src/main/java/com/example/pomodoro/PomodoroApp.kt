@@ -24,31 +24,31 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pomodoro.data.FocusUiState
+
 import com.example.pomodoro.ui.components.AlertDialog1
 import com.example.pomodoro.ui.components.BreakPauseButtons
 import com.example.pomodoro.ui.components.CircularProgressBar
 import com.example.pomodoro.ui.components.CountDownButton
 import com.example.pomodoro.ui.components.DropDown
 
-import com.example.pomodoro.ui.components.DropdownFun
+
 
 import com.example.pomodoro.ui.components.ViewModelCountDown
 import com.example.pomodoro.ui.theme.PomodoroTheme
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel // ✅ correct
+
+
 
 @Composable
 fun CountDownTimer (
-    viewModel: ViewModelCountDown = viewModel(),
+    viewModel: ViewModelCountDown = hiltViewModel(),
 ) {
+
     val focusUiState by viewModel.focusUiState.collectAsState()
     val restUiState by viewModel.restUiState.collectAsState()
 

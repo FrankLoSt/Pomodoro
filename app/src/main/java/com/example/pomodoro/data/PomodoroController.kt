@@ -5,9 +5,13 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.example.pomodoro.data.datastore.SettingsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
+import javax.inject.Inject
 
 interface PomodoroController {
     val focusUiState: StateFlow<FocusUiState>
@@ -29,8 +33,9 @@ interface PomodoroController {
     fun formatter(durationSeconds: Int): String
 }
 
-class PomodoroControllerImpl(
-    private val scope: CoroutineScope // usually viewModelScope,
+class PomodoroControllerImpl @Inject constructor(
+    private val scope: CoroutineScope, // usually viewModelScope,
+    private val settingsRepository: SettingsRepository
 ) : PomodoroController {
 
     private val _focusUiState = MutableStateFlow(FocusUiState())
@@ -64,24 +69,42 @@ class PomodoroControllerImpl(
     }
 
     override fun setSessions(sessions: Int) {
-        _focusUiState.update { it.copy(sessions = sessions, initialSessions = sessions) }
+        _focusUiState.update { it.copy(totalSessions = sessions) } //initial session = 1, it will increase by 1 when studying
         Log.d("DEBUG", "setSessions: $sessions assigned")
     }
 
+    var totalFocusSeconds = 0
+
+   suspend fun saveTotalFocusMinutes() {
+       totalFocusSeconds += 1
+        settingsRepository.incrementFocusSeconds(1)
+
+       Log.d("DEBUG", "saveTotalFocusMinutes: ${totalFocusSeconds} saved")
+
+       Log.d("DEBUG", "ACTUAL saveTotalFocusMinutes: ${settingsRepository.getTotalFocusMinutes()} saved")
+   }
     private suspend fun countdownStudy() = coroutineScope {
         while (isActive) {
             while (focusUiState.value.isPause) {
                 Log.d("DEBUG", "countdownStudy: pausing")
                 delay(100L)
             }
+
             val current = focusUiState.value
+
             if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
             delay(1000L)
+
             _focusUiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
+            saveTotalFocusMinutes() //save total focus time every second when studying
+
             Log.d("DEBUG", "countdownStudy: ${current.duration}")
         }
         Log.d("DEBUG", "countdownStudy: study finished")
     } //countdown for study session
+
+
+
 
     private suspend fun countdownRest() = coroutineScope {
         while (isActive) {
@@ -89,11 +112,13 @@ class PomodoroControllerImpl(
                 Log.d("DEBUG", "countdownRest: pausing")
                 delay(100L)
             }
+            Log.d("DEBUG", " test totalFcous: $totalFocusSeconds")
             val currentRest = _restUiState.value
 
             if (currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
             delay(1000L)
             _restUiState.update { it.copy(restDuration = (it.restDuration - 1).coerceAtLeast(0)) }
+
             Log.d("DEBUG", "countdownRest: ${currentRest.restDuration}")
         }
         Log.d("DEBUG", "countdownRest: break finished")
@@ -106,23 +131,24 @@ class PomodoroControllerImpl(
         _restUiState.update { it.copy(isShowingMenu = false)}
         studyJob = scope.launch {
             while (
-                focusUiState.value.sessions > 0
+               focusUiState.value.sessions <= focusUiState.value.totalSessions
             ) {
                 _focusUiState.update{ it.copy(isRunning = true, duration = it.initialDuration) }
                 _restUiState.update { it.copy(isStudying = true) }
-                countdownStudy()
+                countdownStudy() //before running countdown, make sure isRunning = true, duration > 0, and isStudying = true.
 
-                if(focusUiState.value.sessions == 1) break
+                if(focusUiState.value.sessions == focusUiState.value.totalSessions) break // at the last session, break
 
                 _restUiState.update { it.copy(isStudying = false, restDuration = it.initialRestDuration) } //not studying anymore
-                countdownRest() // isRunning, isStudying = false
+                countdownRest() // isStudying = false because users are not studying, they are taking a break.
 
                 _focusUiState.update {
                     it.copy(
-                        sessions = (it.sessions - 1).coerceAtLeast(0)
+                        sessions = it.sessions + 1, //
                     )
-                } // -1 session after studying, resting
-                Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.initialSessions}")
+                } // after finish studying and resting => session + 1 and start studying again
+
+                Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.totalSessions}")
             }
 
             _focusUiState.update { it.copy(isFinished = true) } //isFinished = true => display alert dialog, users have to click Ok to call toggleisFinished() to close it.
@@ -139,7 +165,7 @@ class PomodoroControllerImpl(
             it.copy(
                 isRunning = false,
                 duration = it.initialDuration,
-                sessions = it.initialSessions,
+                sessions = 1,
                 isPause = false,
             )
         }
@@ -157,6 +183,7 @@ class PomodoroControllerImpl(
     }
 
     // still need breakFun because when my app scale, I need to save users data
+    //Before cancell everything -> save users focus time.
     override fun breakFun () {
         Log.d("DEBUG", "breakFun: breakFun() runs")
         reset()

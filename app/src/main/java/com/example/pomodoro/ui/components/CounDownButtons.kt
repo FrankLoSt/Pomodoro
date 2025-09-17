@@ -47,21 +47,21 @@ fun CountDownButton (
                 .width(200.dp),
             colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Transparent),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.supperbing),
-                        contentDescription = null,
-                        modifier = Modifier,
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Transparent),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.supperbing),
+                    contentDescription = null,
+                    modifier = Modifier,
                     )
                     Text(
                         text = stringResource(R.string.start),
                         style = MaterialTheme.typography.titleLarge,
-                    )
+                        )
                 }
             }
         }

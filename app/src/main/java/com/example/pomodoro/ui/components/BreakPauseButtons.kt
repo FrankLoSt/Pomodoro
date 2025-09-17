@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun BreakPauseButtons (
@@ -45,6 +46,7 @@ fun BreakPauseButtons (
                 .width(200.dp),
             colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -93,8 +95,10 @@ fun BreakPauseButtons (
 @Preview
 @Composable
 fun BreakPauseButtonsPreview () {
-    BreakPauseButtons(
-        viewModel = viewModel(),
-        focusUiState = FocusUiState(),
-    )
+    PomodoroTheme {
+        BreakPauseButtons(
+            viewModel = viewModel(),
+            focusUiState = FocusUiState(),
+        )
+    }
 }

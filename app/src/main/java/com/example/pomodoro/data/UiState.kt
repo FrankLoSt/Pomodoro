@@ -5,11 +5,11 @@ data class FocusUiState(
     // Study
     val listFocusDuration: List<Int> = (5..180 step 5).toList(),
     val listSessions: List<Int> = (1..30 step 1).toList(),
-    val duration: Int = 10, //test with 10
+    val duration: Int = 10, //test with 10s = > duration is calculated in seconds, not in minutes.
     val initialDuration: Int = 10,//test with 10
     val isRunning: Boolean = true,
-    val initialSessions: Int = 1,
-    val sessions: Int = 1, //test with 1
+    val sessions: Int = 1,
+    val totalSessions: Int = 1, //test with 1
     val isPause: Boolean = false,
     val isFinished: Boolean  = false
 ) {
