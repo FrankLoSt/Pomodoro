@@ -1,5 +1,7 @@
 [versions]
 agp = "8.12.2"
+androidGifDrawable = "1.2.29"
+coilGif = "2.7.0"
 datastorePreferences = "1.1.7"
 grpcOkhttp = "1.75.0"
 hiltNavigationCompose = "1.3.0"
@@ -19,7 +21,10 @@ hilt = "2.51.1" # ✅ stable, works with Kotlin 2.0+ and AGP 8.1+
 
 
 [libraries]
+android-gif-drawable = { module = "pl.droidsonroids.gif:android-gif-drawable", version.ref = "androidGifDrawable" }
 androidx-hilt-lifecycle-viewmodel-compose = { module = "androidx.hilt:hilt-lifecycle-viewmodel-compose", version.ref = "hiltNavigationCompose" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilGif" }
+coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilGif" }
 grpc-okhttp = { module = "io.grpc:grpc-okhttp", version.ref = "grpcOkhttp" }
 grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpcOkhttp" }
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpcOkhttp" }

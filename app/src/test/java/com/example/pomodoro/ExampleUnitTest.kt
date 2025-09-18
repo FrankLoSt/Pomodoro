@@ -1,14 +1,8 @@
 package com.example.pomodoro
 
 import com.example.pomodoro.data.FocusUiState
-import com.example.pomodoro.ui.components.ViewModelCountDown
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import com.example.pomodoro.ui.Screen1.ViewModelCountDown
 
-import org.junit.Assert.*
 import org.junit.Before
 
 

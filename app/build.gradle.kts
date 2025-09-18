@@ -59,6 +59,10 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.grpc.okhttp)
+//gif
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
+    implementation(libs.android.gif.drawable)
 // or latest version
     implementation(libs.grpc.protobuf)
     implementation(libs.grpc.stub)

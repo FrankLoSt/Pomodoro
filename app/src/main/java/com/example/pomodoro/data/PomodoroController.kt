@@ -1,7 +1,9 @@
 package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -34,7 +36,7 @@ interface PomodoroController {
 }
 
 class PomodoroControllerImpl @Inject constructor(
-    private val scope: CoroutineScope, // usually viewModelScope,
+    private val scope: CoroutineScope, // usually viewModelScope, -----  uses Dispatchers.Main by default
     private val settingsRepository: SettingsRepository
 ) : PomodoroController {
 
@@ -46,7 +48,6 @@ class PomodoroControllerImpl @Inject constructor(
     override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
 
 
-
     //Create job controllers for 2 countdown
     private var studyJob: Job? = null
 
@@ -54,7 +55,7 @@ class PomodoroControllerImpl @Inject constructor(
 
     // var pauseJob: Job? = null //-> I leave it here for future use
 
-    private val mutex = Mutex() // protect state if necessary
+
 
     override fun setDurationMinutes(minutes: Int) {
         val seconds = minutes   //remove  * 60 for testing  - minutes * 60
@@ -73,12 +74,15 @@ class PomodoroControllerImpl @Inject constructor(
         Log.d("DEBUG", "setSessions: $sessions assigned")
     }
 
-    var totalFocusSeconds = 0
 
-   suspend fun saveTotalFocusMinutes() {
-        settingsRepository.incrementFocusSeconds(1)
-       Log.d("DEBUG", "ACTUAL saveTotalFocusMinutes: ${settingsRepository.getTotalFocusMinutes()} saved")
+
+   @RequiresApi(Build.VERSION_CODES.O)
+   suspend fun incrementTodayFocusSeconds() {
+        settingsRepository.incrementTodayFocusSeconds(1)
+       Log.d("DEBUG", "ACTUAL saveTotalFocusMinutes: ${settingsRepository.getTodayFocusMinutes()} saved")
    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun countdownStudy() = coroutineScope {
         while (isActive) {
             while (focusUiState.value.isPause) {
@@ -91,7 +95,7 @@ class PomodoroControllerImpl @Inject constructor(
             delay(1000L)
 
             _focusUiState.update { it.copy(duration = if (focusUiState.value.isPause) it.duration else (it.duration - 1).coerceAtLeast(0)) }
-            saveTotalFocusMinutes() //save total focus time every second when studying
+            incrementTodayFocusSeconds() //save total focus time every second when studying
 
             Log.d("DEBUG", "countdownStudy: ${current.duration}")
         }
@@ -107,7 +111,7 @@ class PomodoroControllerImpl @Inject constructor(
                 Log.d("DEBUG", "countdownRest: pausing")
                 delay(100L)
             }
-            Log.d("DEBUG", " test totalFcous: $totalFocusSeconds")
+
             val currentRest = _restUiState.value
             if (currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
             delay(1000L)
