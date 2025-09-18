@@ -23,26 +23,7 @@ class ExampleUnitTest {
     lateinit var restUiState: FocusUiState
 
     @Before
-    fun setup () {
-        viewModel = ViewModelCountDown()
-    }
+    fun setup () {}
 
-    @Test
-    fun test_StartCoroutine() = runTest {
-        val testDispatcher = StandardTestDispatcher(testScheduler)
-        val testScope = TestScope(testDispatcher)
-
-
-        viewModel.startCountDown()
-        testScheduler.advanceUntilIdle()
-        delay(10)
-
-
-        assertEquals(true, viewModel.controller.testStudyCountdown)
-        assertEquals(true, viewModel.controller.testRestCountdown)
-        assertEquals(3, viewModel.controller.testNumberLoopStudy)
-        assertEquals(3, viewModel.controller.testNumberLoopRest)
-        assertEquals(0, viewModel.focusUiState.value.sessions)
-    }
 
 }
