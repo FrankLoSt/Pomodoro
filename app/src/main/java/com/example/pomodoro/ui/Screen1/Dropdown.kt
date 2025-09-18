@@ -147,23 +147,18 @@ fun DropdownFun (
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .background(Color.Transparent),
+            .background(Color.LightGray),
     ) {
-        Image(
-            painter = painterResource(R.drawable.bar),
-            contentDescription = null,
-            modifier = Modifier.align(Alignment.Center).size(120.dp)
-        )
         Row(
             modifier = Modifier.clickable { expanded = true }.width(120.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
-
             ) {
             Text(
                 text = if (selectedDuration == 1) "$selectedDuration min" else "$selectedDuration mins",
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(8.dp),
+                style = MaterialTheme.typography.titleSmall
             )
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowLeft,
@@ -209,14 +204,9 @@ fun DropdownSessionFun(
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .background(Color.Transparent),
+            .background(Color.LightGray),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(R.drawable.bar),
-            contentDescription = null,
-            modifier = Modifier.align(Alignment.Center).size(120.dp)
-        )
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
@@ -227,8 +217,8 @@ fun DropdownSessionFun(
         ) {
             Text(
                 text = if (selectedItem == 1) "$selectedItem session" else "$selectedItem sessions",
-                modifier = Modifier.padding(4.dp),
-                style = MaterialTheme.typography.titleMedium
+                modifier = Modifier.padding(8.dp),
+                style = MaterialTheme.typography.titleSmall
             )
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowLeft,
@@ -246,7 +236,6 @@ fun DropdownSessionFun(
                     text = {
                         Text(
                             text = if (session == 1) "$session session" else "$session sessions",
-                            style = MaterialTheme.typography.titleMedium
                         )
                            },
                     onClick = {
