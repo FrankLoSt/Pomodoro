@@ -19,18 +19,13 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewModelCountDown @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val channel: ManagedChannel
 ) : ViewModel() {
-    override fun onCleared() {
-        super.onCleared()
-        channel.shutdown() // or channel.shutdownNow()
-    }
+      suspend fun test2 () {}
 
      val controller = PomodoroControllerImpl(scope = viewModelScope, settingsRepository = settingsRepository) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState
     val restUiState: StateFlow<RestUiState> = controller.restUiState
-
 
     fun startCountDown() = controller.start() //call start() from controller
 

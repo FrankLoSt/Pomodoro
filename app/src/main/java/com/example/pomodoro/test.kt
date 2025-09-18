@@ -1,24 +1,25 @@
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-// This is the Well Pump - it creates the stream of water (data)
-fun createWaterFlow(): Flow<Int> = flow {
-    // The pump sends 3 "units" of water, one by one, with delays
-    emit(1) // First unit of water comes out
-    delay(1000) // Wait 1 second
-    emit(2) // Second unit of water
-    delay(1000)
-    emit(3) // Third unit of water
-}
 
-fun main() = runBlocking { // This is like turning on the main water supply
 
-    println("Calling the well operator to start the pump...")
+fun main() = runBlocking {
 
-    // You turning on your tap to collect water (collecting the Flow)
-    createWaterFlow().collect { waterUnit ->
-        println("--> Got water unit: $waterUnit")
+    suspend fun countdown() {
+        for (i in 10 downTo 0) {
+            println("Countdown: $i")
+            delay(1000)
+        }
+    }
+    suspend fun countdown2() {
+        for (i in 10 downTo 0) {
+            println("Countdown2: $i")
+            delay(1000)
+        }
     }
 
-    println("The pump stopped. The pipe is now empty and 'cold'.")
+    val job1 = launch{countdown()}
+    val job2 = launch{countdown2()}
+    //job1, job1 run concurrently
+    joinAll(job1, job2)
 }

@@ -76,29 +76,28 @@ class PomodoroControllerImpl @Inject constructor(
     var totalFocusSeconds = 0
 
    suspend fun saveTotalFocusMinutes() {
-       totalFocusSeconds += 1
         settingsRepository.incrementFocusSeconds(1)
-
-       Log.d("DEBUG", "saveTotalFocusMinutes: ${totalFocusSeconds} saved")
-
        Log.d("DEBUG", "ACTUAL saveTotalFocusMinutes: ${settingsRepository.getTotalFocusMinutes()} saved")
    }
-    private suspend fun countdownStudy() = coroutineScope {
-        while (isActive) {
-            while (focusUiState.value.isPause) {
-                Log.d("DEBUG", "countdownStudy: pausing")
-                delay(100L)
+    private suspend fun countdownStudy() {
+        countdownJob?.cancel()
+        countdownJob = scope.launch {
+            while (isActive) {
+                while (focusUiState.value.isPause) {
+                    Log.d("DEBUG", "countdownStudy: pausing")
+                    delay(100L)
+                }
+
+                val current = focusUiState.value
+
+                if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
+                delay(1000L)
+
+                _focusUiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
+                saveTotalFocusMinutes() //save total focus time every second when studying
+
+                Log.d("DEBUG", "countdownStudy: ${current.duration}")
             }
-
-            val current = focusUiState.value
-
-            if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
-            delay(1000L)
-
-            _focusUiState.update { it.copy(duration = (it.duration - 1).coerceAtLeast(0)) }
-            saveTotalFocusMinutes() //save total focus time every second when studying
-
-            Log.d("DEBUG", "countdownStudy: ${current.duration}")
         }
         Log.d("DEBUG", "countdownStudy: study finished")
     } //countdown for study session
@@ -189,10 +188,11 @@ class PomodoroControllerImpl @Inject constructor(
         reset()
     } //cancel all jobs
 
+    private var countdownJob: Job? = null
+
     override fun pause() {
         Log.d("DEBUG", "pause: pause() runs")
-        _focusUiState.update { it.copy(isPause = true) }
-
+       countdownJob?.cancel()
     }
     override fun resume () {
         Log.d("DEBUG", "resume: resume() runs")

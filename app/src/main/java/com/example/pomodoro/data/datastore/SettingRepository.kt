@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import kotlinx.coroutines.flow.first
 import androidx.datastore.preferences.core.Preferences
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class SettingsRepository @Inject constructor(
@@ -20,8 +21,8 @@ class SettingsRepository @Inject constructor(
     }
 
     suspend fun getTotalFocusMinutes(): Int {
-        val seconds = dataStore.data.first()[TOTAL_FOCUS_SECONDS_TODAY] ?: 0
-        return seconds / 60
+        val seconds: Int = dataStore.data.first()[TOTAL_FOCUS_SECONDS_TODAY] ?: 0
+        return seconds
     }
 
 }

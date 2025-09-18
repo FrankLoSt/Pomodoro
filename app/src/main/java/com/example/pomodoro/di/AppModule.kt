@@ -32,12 +32,4 @@ object AppModule {
             context.preferencesDataStoreFile("settings")
         } //this returns a DataStore<Preferences>
     }
-    @Provides
-    @Singleton
-    fun provideManagedChannel(): ManagedChannel {
-        return ManagedChannelBuilder
-            .forAddress("your.server.com", 50051)
-            .usePlaintext() // or useTransportSecurity() for TLS
-            .build()
-    }
 }
