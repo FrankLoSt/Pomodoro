@@ -1,6 +1,8 @@
 package com.example.pomodoro.ui.Screen1
 
 // --- ViewModelCountDown.kt ---
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pomodoro.data.FocusUiState
@@ -22,6 +24,7 @@ class ViewModelCountDown @Inject constructor(
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState
     val restUiState: StateFlow<RestUiState> = controller.restUiState
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun startCountDown() = controller.start() //call start() from controller
 
 

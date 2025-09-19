@@ -123,12 +123,14 @@ class PomodoroControllerImpl @Inject constructor(
         Log.d("DEBUG", "countdownRest: break finished")
     } //countdown for rest session
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun start () {
         studyJob?.cancel()
 
         Log.d("DEBUG", "start: start() runs")
         _restUiState.update { it.copy(isShowingMenu = false)}
         studyJob = scope.launch {
+            delay(100L)
             while (
                focusUiState.value.sessions <= focusUiState.value.totalSessions
             ) {

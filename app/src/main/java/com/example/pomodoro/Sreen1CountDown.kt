@@ -10,26 +10,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
+import com.example.pomodoro.ui.theme.PomodoroTheme
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel // ✅ correct
 import com.example.pomodoro.ui.Screen1.AlertDialog1
 import com.example.pomodoro.ui.Screen1.BreakPauseButtons
 import com.example.pomodoro.ui.Screen1.CircularProgressBar
 import com.example.pomodoro.ui.Screen1.CountDownButton
 import com.example.pomodoro.ui.Screen1.DropDown
-
-
-
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
-import com.example.pomodoro.ui.theme.PomodoroTheme
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel // ✅ correct
-
 
 
 @Composable
-fun CountDownTimer (
+fun Screen1 (
     viewModel: ViewModelCountDown = hiltViewModel(),
 ) {
 
@@ -80,7 +74,7 @@ fun CountDownTimer (
 @Composable
 fun CountDownTimerPreview () {
     PomodoroTheme {
-        CountDownTimer()
+        Screen1()
     }
 }
 

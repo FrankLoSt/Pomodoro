@@ -120,12 +120,11 @@ fun CustomCircularProgressIndicator(
     blockCount: Int = 200, // number of pixel blocks around circle
     blockSize: Float = 30f, // size of each block (chunky pixels)
     radiusOffset: Float = 50f,
-    filledColor: Color = Color.Black,
+    filledColor: Color = Color(0xFF6B8FD6),
     emptyColor: Color = Color.LightGray
 ) {
     Canvas(
         modifier = modifier,
-
     ) {
         val size = min(size.width, size.height)
         val radius = size / 2f - radiusOffset

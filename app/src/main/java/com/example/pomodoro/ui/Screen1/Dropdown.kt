@@ -67,7 +67,7 @@ fun DropDown (
             .background(Color.Transparent)
     ) {
         Image(
-            painter = painterResource(R.drawable.panel),
+            painter = painterResource(R.drawable.panel_rec),
             contentDescription = null,
             modifier = Modifier.align(Alignment.Center).size(370.dp)
         )
