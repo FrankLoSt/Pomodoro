@@ -26,7 +26,7 @@ import com.example.pomodoro.R
 
 @Composable
 fun CountDownButton (
-    viewModel: ViewModelCountDown = viewModel(),
+    startCountDown:() -> Unit = {},
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceAround,
@@ -37,7 +37,7 @@ fun CountDownButton (
         Button(
             onClick = {
                 isStart = true
-                viewModel.startCountDown() },
+               startCountDown() },
             modifier = Modifier
                 .width(150.dp),
             colors = ButtonDefaults.buttonColors(Color.Transparent)

@@ -11,37 +11,30 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun BreakPauseButtons (
-    viewModel: ViewModelCountDown,
+    breakFun: () -> Unit = {},
+    togglePauseResume: () -> Unit = {},
     focusUiState: FocusUiState,
-
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        var isBreak by rememberSaveable { mutableStateOf(false) }
         Button(
             onClick = {
-                isBreak = true
-                viewModel.breakFun()
+                breakFun()
                       },
             modifier = Modifier
                 .width(150.dp),
@@ -54,7 +47,7 @@ fun BreakPauseButtons (
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = if ( isBreak) painterResource(R.drawable.breakbutton) else painterResource (R.drawable.breakbut2),
+                    painter = painterResource (R.drawable.breakbut2),
                     contentDescription = null,
                     modifier = Modifier.size(100.dp)
                 )
@@ -62,7 +55,7 @@ fun BreakPauseButtons (
         }
 
     Button (
-            onClick = { viewModel.togglePauseResume() },
+            onClick = { togglePauseResume() },
             modifier = Modifier.width(150.dp),
              colors = ButtonDefaults.buttonColors(Color.Transparent)
     ) {
@@ -88,7 +81,6 @@ fun BreakPauseButtons (
 fun BreakPauseButtonsPreview () {
     PomodoroTheme {
         BreakPauseButtons(
-            viewModel = viewModel(),
             focusUiState = FocusUiState(),
         )
     }

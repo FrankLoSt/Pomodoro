@@ -18,9 +18,9 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun CircularProgressBar (
-    viewModel: ViewModelCountDown = viewModel(),
     focusUiState: FocusUiState,
     restUiState: RestUiState,
+    formatter: (Int) ->  String = { minutes -> "$minutes min"}
 ) {
     Text(
         text = if ( restUiState.isStudying && focusUiState.isRunning ) stringResource(R.string.Studying) else stringResource(R.string.Taking_a_break),
@@ -49,7 +49,7 @@ fun CircularProgressBar (
 
 
         Text(
-            text = if(focusUiState.isRunning && restUiState.isStudying )  viewModel.formatter(focusUiState.duration) else  viewModel.formatter(restUiState.restDuration),
+            text = if(focusUiState.isRunning && restUiState.isStudying )  formatter(focusUiState.duration) else  formatter(restUiState.restDuration),
             style = MaterialTheme.typography.displayLarge
         )
     } //box for progress bar and text
@@ -62,7 +62,6 @@ fun CircularProgressBarPreview () {
         CircularProgressBar(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
-            viewModel = viewModel()
         )
     }
 }

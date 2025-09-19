@@ -57,9 +57,11 @@ import com.example.pomodoro.data.RestUiState
 
 @Composable
 fun DropDown (
-    viewModel: ViewModelCountDown,
     focusUiState: FocusUiState,
     restUiState: RestUiState,
+    setDurationMinutes: (Int) -> Unit = {},
+    setRestDurationMinutes: (Int) -> Unit = {},
+    setSessions: (Int) -> Unit = {},
 ) {
     Box(
         modifier = Modifier
@@ -102,19 +104,19 @@ fun DropDown (
                 DropdownFun(
                     itemLists = focusUiState.listFocusDuration,
                     onItemSelected = { minutes ->
-                        viewModel.setDurationMinutes(minutes)
+                       setDurationMinutes(minutes)
                     }
                 )
                 DropdownFun(
                     itemLists = restUiState.listRestDuration,
                     onItemSelected = { minutes ->
-                        viewModel.setRestDurationMinutes(minutes)
+                        setRestDurationMinutes(minutes)
                     }
                 )
                 DropdownSessionFun(
                     itemLists = focusUiState.listSessions,
                     onItemSelected = { sessions ->
-                        viewModel.setSessions(sessions)
+                        setSessions(sessions)
                     }
                 )
             }
@@ -130,7 +132,6 @@ fun DropDownPreview () {
     DropDown(
         focusUiState = FocusUiState(),
         restUiState = RestUiState(),
-        viewModel = viewModel()
     )
 }
 
