@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -63,9 +64,11 @@ fun DropDown (
     setDurationMinutes: (Int) -> Unit = {},
     setRestDurationMinutes: (Int) -> Unit = {},
     setSessions: (Int) -> Unit = {},
+    setMonster: (String) -> Unit = {},
     listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
+    listMonsters: List<String> = listOf("Social Media", "Overthinking", "Fear"),
 ) {
     Box(
         modifier = Modifier
@@ -73,24 +76,24 @@ fun DropDown (
             .background(Color.Transparent),
     ) {
         Image(
-            painter = painterResource(R.drawable.panel_final),
+            painter = painterResource(R.drawable.panel),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.Center)
-                .size(320.dp)
+                .size(360.dp)
         )
         Row(
             modifier = Modifier
-                .height(280.dp)
+                .size(360.dp)
                 .padding(dimensionResource(R.dimen.medium_padding))
                 .align(Alignment.Center),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier.fillMaxHeight().padding(top = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
+                verticalArrangement = Arrangement.spacedBy(45.dp)
             ) {
                 Text(
                     text = stringResource(R.string.focus_duration),
@@ -104,8 +107,12 @@ fun DropDown (
                     text = stringResource(R.string.sessions),
                     style = MaterialTheme.typography.titleMedium
                 )
+                Text(
+                    text = stringResource(R.string.monsters),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
-            Column() {
+            Column{
                 DropdownFun(
                     itemLists = listFocusDuration,
                     onItemSelected = { minutes ->
@@ -124,6 +131,12 @@ fun DropDown (
                         setSessions(sessions)
                     }
                 )
+                DropdownMonsterFun(
+                    itemLists = listMonsters,
+                    onItemSelected = { monster ->
+                        setMonster(monster)
+                    }
+                )
             }
         }
     }
@@ -139,6 +152,16 @@ fun DropDown (
 )
 @Composable
 fun DropDownPreview () {
+    DropDown(
+        setDurationMinutes = {},
+        setRestDurationMinutes = {},
+        setSessions = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DropDownPreview2 () {
     DropDown(
         setDurationMinutes = {},
         setRestDurationMinutes = {},
@@ -164,7 +187,7 @@ fun DropdownFun (
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .width(120.dp),
+                .width(150.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
@@ -224,7 +247,7 @@ fun DropdownSessionFun(
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .width(120.dp)
+                .width(150.dp)
                 .align(Alignment.Center),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -235,7 +258,7 @@ fun DropdownSessionFun(
                 style = MaterialTheme.typography.titleSmall
             )
             Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowLeft,
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
                 contentDescription = null,
             )
         }
@@ -255,6 +278,65 @@ fun DropdownSessionFun(
                     onClick = {
                         onItemSelected(session)
                         selectedItem = session
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun DropdownMonsterFun(
+    itemLists: List<String>,
+    onItemSelected: (String) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selectedItem by rememberSaveable { mutableStateOf(itemLists[0]) }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.LightGray),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .width(150.dp)
+                .align(Alignment.Center),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                text = "$selectedItem monster",
+                modifier = Modifier.padding(8.dp).weight(0.5f),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = null,
+
+            )
+        }
+        // ⬇️ Important: DropdownMenu is OUTSIDE Row but still inside Box
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 200.dp)
+        ) {
+            itemLists.forEach { monster ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = monster,
+                        )
+                    },
+                    onClick = {
+                        onItemSelected(monster)
+                        selectedItem = monster
                         expanded = false
                     }
                 )

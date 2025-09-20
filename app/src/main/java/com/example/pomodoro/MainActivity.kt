@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.ui.Screen1.AdaptiveCountdownScreen
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,9 +29,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
+            val width = windowSizeClass.widthSizeClass
+            val height = windowSizeClass.heightSizeClass
             PomodoroTheme {
                 val viewModel: ViewModelCountDown = hiltViewModel()
-                AdaptiveCountdownScreen (
+                AdaptiveCountdownScreen(
                     focusUiState = viewModel.focusUiState.collectAsState().value,
                     restUiState = viewModel.restUiState.collectAsState().value,
                     setDurationMinutes = { viewModel.setDurationMinutes(it) },

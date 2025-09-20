@@ -14,4 +14,5 @@
     <string name="break_title">Are you sure?</string>
     <string name="break_text">This action cannot be undone!</string>
     <string name="you_ve_focused_for">you have focused for</string>
+    <string name="monsters">Monster</string>
 </resources>

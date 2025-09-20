@@ -1,39 +1,26 @@
-package com.example.pomodoro
-
+package com.example.pomodoro.ui.Screen1
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.example.pomodoro.ui.theme.PomodoroTheme
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
-import com.example.pomodoro.ui.Screen1.AlertDialog1
-
-import com.example.pomodoro.ui.Screen1.CircularProgressBar
-import com.example.pomodoro.ui.Screen1.CountDownButton
-import com.example.pomodoro.ui.Screen1.DropDown
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // ✅
-import androidx.compose.ui.unit.DpSize
-import com.example.pomodoro.ui.Screen1.BreakButton
-import com.example.pomodoro.ui.Screen1.PauseButton
-
+import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AdaptiveCountdownScreen (
     windowSize: WindowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+    windowWidth: WindowWidthSizeClass = windowSize.widthSizeClass,
+    windowHeight: WindowHeightSizeClass = windowSize.heightSizeClass,
     focusUiState: FocusUiState,
     restUiState: RestUiState,
     setDurationMinutes : (Int) -> Unit = {},
@@ -60,8 +47,7 @@ fun AdaptiveCountdownScreen (
                 togglePauseResume = togglePauseResume,
             )
         }
-        WindowWidthSizeClass.Medium,
-        WindowWidthSizeClass.Expanded -> {
+        WindowWidthSizeClass.Medium -> {
             ExpandedScreen(
                 focusUiState = focusUiState,
                 restUiState = restUiState,
@@ -75,84 +61,27 @@ fun AdaptiveCountdownScreen (
                 formatter = formatter
             )
         }
-    }
-}
-
-
-
-
-
-
-
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun Screen1 (
-    focusUiState: FocusUiState,
-    restUiState: RestUiState,
-    setDurationMinutes : (Int) -> Unit = {},
-    setRestDurationMinutes : (Int) -> Unit = {},
-    setSessions : (Int) -> Unit = {},
-    formatter: (Int) ->  String = { minutes -> "$minutes min"},
-    toggleisFinished: () -> Unit ,
-    startCountDown: () -> Unit ,
-    breakFun: () -> Unit ,
-    togglePauseResume: () -> Unit,
-) {
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 100.dp)
-    ) {
-        //session title
-        if(!restUiState.isShowingMenu) {
-            CircularProgressBar(
+        WindowWidthSizeClass.Expanded -> {
+            Screen1(
                 focusUiState = focusUiState,
                 restUiState = restUiState,
-                formatter = formatter
-            )
-        }
-
-        if(restUiState.isShowingMenu) {
-            DropDown(
-                listSessions = focusUiState.listSessions,
-                listFocusDuration = focusUiState.listFocusDuration,
-                listRestDuration = restUiState.listRestDuration,
                 setDurationMinutes = setDurationMinutes,
                 setRestDurationMinutes = setRestDurationMinutes,
                 setSessions = setSessions,
-            )
-        }
-        if(focusUiState.isFinished) {
-            AlertDialog1(
-                onDismiss = toggleisFinished,
-                duration = focusUiState.duration
-            )
-        }
-        if(restUiState.isShowingMenu) {
-            CountDownButton(
+                formatter = formatter,
+                toggleisFinished = toggleisFinished,
                 startCountDown = startCountDown,
+                breakFun = breakFun,
+                togglePauseResume = togglePauseResume,
             )
-        } else {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BreakButton(
-                    breakFun = breakFun,
-                    breakFunDialog = togglePauseResume
-                )
-                PauseButton(
-                    togglePauseResume = togglePauseResume,
-                    focusUiState = focusUiState,
-                )
-            }
         }
     }
 }
+
+
+
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview (showBackground = true)
@@ -165,7 +94,7 @@ fun CountDownTimerPreview () {
             setDurationMinutes = {},
             setRestDurationMinutes = {},
             setSessions = {},
-            formatter = { minutes -> "$minutes min"},
+            formatter = { minutes -> "$minutes min" },
             toggleisFinished = {},
             startCountDown = {},
             breakFun = {},
@@ -190,7 +119,7 @@ fun CountDownTimerPreviewExpanded () {
             setDurationMinutes = {},
             setRestDurationMinutes = {},
             setSessions = {},
-            formatter = { minutes -> "$minutes min"},
+            formatter = { minutes -> "$minutes min" },
             toggleisFinished = {},
             startCountDown = {},
             breakFun = {},
@@ -198,4 +127,3 @@ fun CountDownTimerPreviewExpanded () {
         )
     }
 }
-

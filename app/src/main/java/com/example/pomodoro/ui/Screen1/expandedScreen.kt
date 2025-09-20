@@ -1,4 +1,4 @@
-package com.example.pomodoro
+package com.example.pomodoro.ui.Screen1
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,13 +14,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
-import com.example.pomodoro.ui.Screen1.AlertDialog1
-import com.example.pomodoro.ui.Screen1.BreakButton
-
-import com.example.pomodoro.ui.Screen1.CircularProgressBar
-import com.example.pomodoro.ui.Screen1.CountDownButton
-import com.example.pomodoro.ui.Screen1.DropDown
-import com.example.pomodoro.ui.Screen1.PauseButton
 
 @Preview(
     name = "Expanded Landscape",
@@ -72,17 +65,23 @@ fun ExpandedScreen (
     ) {
 
         if(restUiState.isShowingMenu) {
-            DropDown(
-                listSessions = focusUiState.listSessions,
-                listFocusDuration = focusUiState.listFocusDuration,
-                listRestDuration = restUiState.listRestDuration,
-                setDurationMinutes = setDurationMinutes,
-                setRestDurationMinutes = setRestDurationMinutes,
-                setSessions = setSessions,
-            )
-            CountDownButton(
-                startCountDown = startCountDown,
-            )
+            Row(
+                modifier  = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DropDown(
+                    listSessions = focusUiState.listSessions,
+                    listFocusDuration = focusUiState.listFocusDuration,
+                    listRestDuration = restUiState.listRestDuration,
+                    setDurationMinutes = setDurationMinutes,
+                    setRestDurationMinutes = setRestDurationMinutes,
+                    setSessions = setSessions,
+                )
+                CountDownButton(
+                    startCountDown = startCountDown,
+                )
+            }
         }
         if(focusUiState.isFinished) {
             AlertDialog1(
