@@ -15,7 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
-import com.example.pomodoro.ui.Screen1.AdaptiveCountdownScreen
+import com.example.pomodoro.ui.Screen1.Screen1
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,18 +33,17 @@ class MainActivity : ComponentActivity() {
             val height = windowSizeClass.heightSizeClass
             PomodoroTheme {
                 val viewModel: ViewModelCountDown = hiltViewModel()
-                AdaptiveCountdownScreen(
+                Screen1(
                     focusUiState = viewModel.focusUiState.collectAsState().value,
                     restUiState = viewModel.restUiState.collectAsState().value,
-                    setDurationMinutes = { viewModel.setDurationMinutes(it) },
-                    setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
-                    setSessions = { viewModel.setSessions(it) },
-                    formatter = { viewModel.formatter(it) },
-                    toggleisFinished = { viewModel.toggleisFinished() },
-                    startCountDown = { viewModel.startCountDown() },
-                    breakFun = { viewModel.breakFun() },
-                    togglePauseResume = { viewModel.togglePauseResume() },
-                    windowSize = windowSizeClass
+                    setDurationMinutes = viewModel::setDurationMinutes,
+                    setRestDurationMinutes = viewModel::setRestDurationMinutes,
+                    setSessions = viewModel::setSessions,
+                    formatter = viewModel::formatter,
+                    toggleisFinished = viewModel::toggleisFinished,
+                    startCountDown = viewModel::startCountDown,
+                    breakFun = viewModel::breakFun,
+                    togglePauseResume = viewModel::togglePauseResume,
                 )
             }
         }
