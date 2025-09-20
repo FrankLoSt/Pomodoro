@@ -11,7 +11,7 @@ data class FocusUiState(
     val sessions: Int = 1,
     val totalSessions: Int = 1, //test with 1
     val isPause: Boolean = false,
-    val isFinished: Boolean  = false
+    val isFinished: Boolean  = false,
 ) {
     // Helpers
     fun studyProgress(): Float =

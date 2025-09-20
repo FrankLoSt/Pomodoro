@@ -187,9 +187,8 @@ class PomodoroControllerImpl @Inject constructor(
     //Before cancell everything -> save users focus time.
     override fun breakFun () {
         Log.d("DEBUG", "breakFun: breakFun() runs")
-        reset()
-    } //cancel all jobs
-
+        reset() //cancel all jobs
+    }
 
     override fun pause() {
         Log.d("DEBUG", "pause: pause() runs")

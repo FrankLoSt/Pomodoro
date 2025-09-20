@@ -1,6 +1,8 @@
 package com.example.pomodoro.ui.Screen1
 
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,7 +39,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,36 +52,35 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
-
-
-
+import com.example.pomodoro.ui.theme.PomodoroTheme
 
 
 @Composable
 fun DropDown (
-    focusUiState: FocusUiState,
-    restUiState: RestUiState,
     setDurationMinutes: (Int) -> Unit = {},
     setRestDurationMinutes: (Int) -> Unit = {},
     setSessions: (Int) -> Unit = {},
+    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Transparent)
+            .clip(RectangleShape)
+            .background(Color.Transparent),
     ) {
         Image(
-            painter = painterResource(R.drawable.panel_rec),
+            painter = painterResource(R.drawable.panel_final),
             contentDescription = null,
-            modifier = Modifier.align(Alignment.Center).size(370.dp)
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(320.dp)
         )
         Row(
             modifier = Modifier
-                .fillMaxWidth()
                 .height(280.dp)
                 .padding(dimensionResource(R.dimen.medium_padding))
                 .align(Alignment.Center),
@@ -102,19 +107,19 @@ fun DropDown (
             }
             Column() {
                 DropdownFun(
-                    itemLists = focusUiState.listFocusDuration,
+                    itemLists = listFocusDuration,
                     onItemSelected = { minutes ->
                        setDurationMinutes(minutes)
                     }
                 )
                 DropdownFun(
-                    itemLists = restUiState.listRestDuration,
+                    itemLists = listRestDuration,
                     onItemSelected = { minutes ->
                         setRestDurationMinutes(minutes)
                     }
                 )
                 DropdownSessionFun(
-                    itemLists = focusUiState.listSessions,
+                    itemLists = listSessions,
                     onItemSelected = { sessions ->
                         setSessions(sessions)
                     }
@@ -126,12 +131,18 @@ fun DropDown (
 
 
 
-@Preview(showBackground = true)
+@Preview(
+    name = "Expanded Landscape",
+    widthDp = 800,
+    heightDp = 400,
+    showBackground = true
+)
 @Composable
 fun DropDownPreview () {
     DropDown(
-        focusUiState = FocusUiState(),
-        restUiState = RestUiState(),
+        setDurationMinutes = {},
+        setRestDurationMinutes = {},
+        setSessions = {},
     )
 }
 
@@ -151,7 +162,9 @@ fun DropdownFun (
             .background(Color.LightGray),
     ) {
         Row(
-            modifier = Modifier.clickable { expanded = true }.width(120.dp),
+            modifier = Modifier
+                .clickable { expanded = true }
+                .width(120.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
@@ -162,7 +175,7 @@ fun DropdownFun (
                 style = MaterialTheme.typography.titleSmall
             )
             Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowLeft,
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
                 contentDescription = null,
             )
         }
@@ -254,8 +267,12 @@ fun DropdownSessionFun(
 @Composable
 fun AlertDialog1 (
     onDismiss: () -> Unit,
-    focusUiState: FocusUiState,
-) {
+    @StringRes text1: Int = R.string.congrat_mess,
+    @StringRes text2: Int = R.string.you_ve_focused_for,
+    @StringRes text3: Int = R.string.you_ve_earned_an_armor,
+    @DrawableRes image: Int = R.drawable.amor,
+    duration: Int = 1
+    ) {
     Dialog(
         onDismissRequest = onDismiss,
     ) {
@@ -270,22 +287,22 @@ fun AlertDialog1 (
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Hooray! ",
+                Text( //text1
+                    text = stringResource(text1),
                     style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "you've spent ${focusUiState.duration} minutes doing something meaningful with your life!",
+                Text(//text2
+                    text = stringResource(text2) + " $duration minutes",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = "you've earned 15 lucky coins!",
+                Text(//text3
+                    text = stringResource(text3),
                 )
-                Image(
-                    painter = painterResource(R.drawable.golden_coin_with_clover_icon),
+                Image(//image
+                    painter = painterResource(image),
                     contentDescription = null,
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(50.dp)
                 )
                 Button(onClick = onDismiss) {
                     Text("Okay")
@@ -298,7 +315,19 @@ fun AlertDialog1 (
 
 
 
-
+@Preview
+@Composable
+fun AlertDialog1Preview () {
+    PomodoroTheme {
+        AlertDialog1(
+            onDismiss = {},
+            text1 = R.string.congrat_mess,
+            text2 = R.string.you_ve_earned_an_armor,
+            text3 = R.string.you_ve_earned_an_armor,
+            image = R.drawable.amor,
+        )
+    }
+}
 
 
 

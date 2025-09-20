@@ -29,6 +29,9 @@ class ViewModelCountDown @Inject constructor(
 
 
     fun breakFun() = controller.breakFun()
+    fun breakFunDialog() {
+        togglePauseResume()
+    }
 
     fun pause() = controller.pause()
     fun resume() = controller.resume()

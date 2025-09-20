@@ -9,5 +9,9 @@
     <string name="break_fun">Break</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
-
+    <string name="congrat_mess">"Hooray! "</string>
+    <string name="you_ve_earned_an_armor">you\'ve earned an armor!</string>
+    <string name="break_title">Are you sure?</string>
+    <string name="break_text">This action cannot be undone!</string>
+    <string name="you_ve_focused_for">you have focused for</string>
 </resources>
