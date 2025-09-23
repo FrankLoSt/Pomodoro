@@ -2,59 +2,182 @@ package com.example.pomodoro
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.Screen1.Screen1
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
+import com.example.pomodoro.ui.screen2.LineChart
+import com.example.pomodoro.ui.screen2.ViewModelChart
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val windowSizeClass = calculateWindowSizeClass(this)
-            val width = windowSizeClass.widthSizeClass
-            val height = windowSizeClass.heightSizeClass
             PomodoroTheme {
-                val viewModel: ViewModelCountDown = hiltViewModel()
-                Screen1(
-                    focusUiState = viewModel.focusUiState.collectAsState().value,
-                    restUiState = viewModel.restUiState.collectAsState().value,
-                    setDurationMinutes = viewModel::setDurationMinutes,
-                    setRestDurationMinutes = viewModel::setRestDurationMinutes,
-                    setSessions = viewModel::setSessions,
-                    formatter = viewModel::formatter,
-                    toggleisFinished = viewModel::toggleisFinished,
-                    startCountDown = viewModel::startCountDown,
-                    breakFun = viewModel::breakFun,
-                    togglePauseResume = viewModel::togglePauseResume,
-                )
+                val navHostController = rememberNavController()
+                val drawerState = rememberDrawerState(DrawerValue.Closed)
+                val scope = rememberCoroutineScope()
+                val viewModelChart: ViewModelChart = hiltViewModel()
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    drawerContent = {
+                        ModalDrawerSheet(
+                            modifier = Modifier.width(200.dp)
+                        ) {
+                            Row () {
+                                Icon(
+                                    painter = painterResource(R.drawable.sprite_11_2),
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                                Text(
+                                    stringResource(R.string.menu),
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                                NavigationDrawerItem(
+                                    label = { Text(stringResource(R.string.statistics)) },
+                                    selected = false,
+                                    onClick = {
+                                        navHostController.navigate(EnumScreenClass.screen2.name)
+                                        scope.launch {
+                                            drawerState.close()
+                                            Log.d("DEBUG", "onCreate: ${viewModelChart.chartData}")
+                                        }
+                                        viewModelChart.getTodayFocusMinutesConverter()
+                                    }
+                                )
+                            NavigationDrawerItem(
+                                label = { Text("Count Down") },
+                                selected = false,
+                                onClick = {
+                                    navHostController.navigate(EnumScreenClass.screen1.name)
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavigationDrawerItem(
+                                label = { Text(stringResource(R.string.about)) },
+                                selected = false,
+                                onClick = { /*TODO*/ }
+                            )
+                        }
+                    }
+                ) {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text(stringResource(R.string.menu)) },
+                                navigationIcon = {
+                                    IconButton(
+                                        onClick = { scope.launch { drawerState.open() } }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.sprite_11_2),
+                                            contentDescription = stringResource(R.string.menu)
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    ) { innerPadding ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                        ) {
+                            ScreenNavigation(
+                                navHostController = navHostController,
+                                viewModelChart = viewModelChart
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+
+
+
 //haven't done screen 2 yet
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScreenNavigation (
-    navHostController: NavHostController = rememberNavController(),
+    navHostController: NavHostController,
     viewModel: ViewModelCountDown = hiltViewModel(),
+    viewModelChart: ViewModelChart,
     focusUiState: FocusUiState = viewModel.focusUiState.collectAsState().value,
     restUiState: RestUiState = viewModel.restUiState.collectAsState().value,
-) {}
+) {
+    NavHost(
+        navController = navHostController,
+        startDestination = EnumScreenClass.screen1.name
+    ){
+        composable(EnumScreenClass.screen1.name) {
+            Screen1(
+                focusUiState = focusUiState,
+                restUiState = restUiState,
+                togglePauseResume = {viewModel.togglePauseResume()},
+                toggleisFinished = {viewModel.toggleisFinished()},
+                formatter = {viewModel.formatter(it)},
+                breakFun = {viewModel.breakFun()},
+                setDurationMinutes = {viewModel.setDurationMinutes(it)},
+                setRestDurationMinutes = {viewModel.setRestDurationMinutes(it)},
+                setSessions = {viewModel.setSessions(it)},
+                startCountDown = {viewModel.startCountDown()},
+                navHostController = navHostController,
+                breakFunDialog = {viewModel.breakFunDialog()}
+            )
+        }
+        composable(EnumScreenClass.screen2.name) {
+            LineChart(
+                viewModelChart = viewModelChart,
+                navHostController = navHostController
+            )
+        }
+    }
+}

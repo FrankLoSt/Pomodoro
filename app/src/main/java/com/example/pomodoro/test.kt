@@ -1,25 +1,16 @@
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
+@RequiresApi(Build.VERSION_CODES.O)
+fun main () {
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy'T'HH")
+        val hourKey = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).format(formatter)
+    println(hourKey)
 
-
-fun main() = runBlocking {
-
-    suspend fun countdown() {
-        for (i in 10 downTo 0) {
-            println("Countdown: $i")
-            delay(1000)
-        }
-    }
-    suspend fun countdown2() {
-        for (i in 10 downTo 0) {
-            println("Countdown2: $i")
-            delay(1000)
-        }
-    }
-
-    val job1 = launch{countdown()}
-    val job2 = launch{countdown2()}
-    //job1, job1 run concurrently
-    joinAll(job1, job2)
 }

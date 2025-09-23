@@ -12,6 +12,9 @@ import dagger.hilt.components.SingletonComponent
 import androidx.datastore.preferences.core.Preferences
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
 
@@ -31,5 +34,9 @@ object AppModule {
         return PreferenceDataStoreFactory.create {
             context.preferencesDataStoreFile("settings")
         } //this returns a DataStore<Preferences>
+    }
+    @Provides
+    fun provideCoroutineScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
 }

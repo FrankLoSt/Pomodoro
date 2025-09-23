@@ -21,16 +21,19 @@ class ViewModelCountDown @Inject constructor(
 
      val controller = PomodoroControllerImpl(scope = viewModelScope, settingsRepository = settingsRepository) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)
-    val focusUiState: StateFlow<FocusUiState> = controller.focusUiState
-    val restUiState: StateFlow<RestUiState> = controller.restUiState
+    val focusUiState: StateFlow<FocusUiState> = controller.focusUiState //reference to focusUiState in controller
+    val restUiState: StateFlow<RestUiState> = controller.restUiState //reference to restUiState in controller
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun startCountDown() = controller.start() //call start() from controller
 
 
     fun breakFun() = controller.breakFun()
+    //only turns on pause when users want to break if it is not already paused
     fun breakFunDialog() {
-        togglePauseResume()
+        if(!focusUiState.value.isPause) {
+            togglePauseResume()
+        }
     }
 
     fun pause() = controller.pause()

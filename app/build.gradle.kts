@@ -19,6 +19,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -44,10 +45,14 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.material3.window.size.class1)
+    implementation(libs.androidx.benchmark.traceprocessor)
     kapt(libs.hilt.compiler)
 //navigation
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.navigation.compose)
+
+    implementation(libs.plot)
+
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -85,3 +90,4 @@ configurations.all {
         force("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
     }
 }
+

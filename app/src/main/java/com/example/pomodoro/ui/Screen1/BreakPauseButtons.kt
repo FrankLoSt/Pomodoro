@@ -83,7 +83,9 @@ fun BreakAlertDialog (
     AlertDialog(
         title = {Text(text = stringResource(title))},
         text = {Text(text = stringResource(text))},
-        onDismissRequest = { },
+        onDismissRequest = {
+            onDismissRequest()
+        },
         confirmButton = {
             TextButton(onClick = { confirmButton()}) {Text("Yes")}
         } ,

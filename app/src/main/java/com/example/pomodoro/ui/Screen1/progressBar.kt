@@ -1,9 +1,12 @@
 package com.example.pomodoro.ui.Screen1
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +32,7 @@ fun CircularProgressBar (
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = if (restUiState.isStudying && focusUiState.isRunning) stringResource(R.string.Studying) else stringResource(
@@ -39,7 +42,7 @@ fun CircularProgressBar (
         )
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(300.dp),
+            modifier = Modifier.wrapContentSize(),
         ) {
             //rest countdown Screen
             if (restUiState.isStudying && focusUiState.isRunning) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
@@ -67,6 +70,22 @@ fun CircularProgressBar (
 }
 
 @Preview
+@Composable
+fun CircularProgressBarPreview2 () {
+    PomodoroTheme {
+        CircularProgressBar(
+            focusUiState = FocusUiState(),
+            restUiState = RestUiState(),
+        )
+    }
+}
+
+@Preview(
+    name = "Expanded Landscape",
+    widthDp = 800,
+    heightDp = 1280,
+    showBackground = true
+)
 @Composable
 fun CircularProgressBarPreview () {
     PomodoroTheme {

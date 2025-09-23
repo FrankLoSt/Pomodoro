@@ -21,16 +21,7 @@ import com.example.pomodoro.data.RestUiState
 
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // ✅
 import androidx.compose.ui.unit.DpSize
-
-
-
-
-
-
-
-
-
-
+import androidx.navigation.NavHostController
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -42,10 +33,12 @@ fun Screen1 (
     setRestDurationMinutes : (Int) -> Unit = {},
     setSessions : (Int) -> Unit = {},
     formatter: (Int) ->  String = { minutes -> "$minutes min"},
-    toggleisFinished: () -> Unit ,
-    startCountDown: () -> Unit ,
-    breakFun: () -> Unit ,
+    toggleisFinished: () -> Unit,
+    startCountDown: () -> Unit,
+    breakFun: () -> Unit,
     togglePauseResume: () -> Unit,
+    breakFunDialog: () -> Unit,
+    navHostController: NavHostController
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -90,7 +83,7 @@ fun Screen1 (
             ) {
                 BreakButton(
                     breakFun = breakFun,
-                    breakFunDialog = togglePauseResume
+                    breakFunDialog = breakFunDialog
                 )
                 PauseButton(
                     togglePauseResume = togglePauseResume,
@@ -100,4 +93,6 @@ fun Screen1 (
         }
     }
 }
+
+
 
