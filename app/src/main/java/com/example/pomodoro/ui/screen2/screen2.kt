@@ -11,6 +11,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,27 +29,42 @@ import com.madrapps.plot.line.DataPoint
 import com.madrapps.plot.line.LineGraph
 import com.madrapps.plot.line.LinePlot
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
-
+@Composable
+fun Screen2Test(
+    text: String,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text)
+    }
+}
 
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LineChart(
+fun Screen2LineChart(
     viewModelChart: ViewModelChart,
     navHostController: NavHostController
 ) {
-
-
+    val lastDayActive by viewModelChart.lastDayActive.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally, 
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        ChartTest(listData = viewModelChart.chartData )
+        Text(
+            text = "Last time fighting: ${lastDayActive ?: "No fight recorded"}"
+        )
+        ChartTest()
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
         ) {
@@ -55,6 +72,7 @@ fun LineChart(
         }
     }
 }
+
 
 
 

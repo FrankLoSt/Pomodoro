@@ -10,6 +10,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import androidx.datastore.preferences.core.Preferences
+import com.example.pomodoro.data.datastore.SettingsRepository
+import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
+import dagger.Binds
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -24,12 +27,12 @@ import javax.inject.Singleton
 * @InstallIn: tells Hilt that this module is created once and reused for the lifetime of the application, can be used everywhere
 * @Provides
 * */
-@Module
+@Module //this tells Hilt that this is a module, where I tell it how to create dependencies, like “This class contains recipes for how to build things.”
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Provides
-    @Singleton
+    @Provides //this tells Hilt that this function provides a dependency
+    @Singleton //this tells Hilt that there should only be one instance of this dependency
     fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create {
             context.preferencesDataStoreFile("settings")
@@ -39,4 +42,16 @@ object AppModule {
     fun provideCoroutineScope(): CoroutineScope {
         return CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
+
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(
+        impl: SettingsRepositoryImpl
+    ): SettingsRepository
 }

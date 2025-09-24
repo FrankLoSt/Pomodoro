@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,7 +41,7 @@ import com.example.pomodoro.data.RestUiState
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.Screen1.Screen1
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
-import com.example.pomodoro.ui.screen2.LineChart
+import com.example.pomodoro.ui.screen2.Screen2LineChart
 import com.example.pomodoro.ui.screen2.ViewModelChart
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -85,9 +84,7 @@ class MainActivity : ComponentActivity() {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
                                         scope.launch {
                                             drawerState.close()
-                                            Log.d("DEBUG", "onCreate: ${viewModelChart.chartData}")
                                         }
-                                        viewModelChart.getTodayFocusMinutesConverter()
                                     }
                                 )
                             NavigationDrawerItem(
@@ -143,6 +140,8 @@ class MainActivity : ComponentActivity() {
 
 
 
+
+
 //haven't done screen 2 yet
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -174,7 +173,7 @@ fun ScreenNavigation (
             )
         }
         composable(EnumScreenClass.screen2.name) {
-            LineChart(
+            Screen2LineChart(
                 viewModelChart = viewModelChart,
                 navHostController = navHostController
             )

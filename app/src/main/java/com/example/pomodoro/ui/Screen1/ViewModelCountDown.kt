@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
+@RequiresApi(Build.VERSION_CODES.O)
 class ViewModelCountDown @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
+
 
      val controller = PomodoroControllerImpl(scope = viewModelScope, settingsRepository = settingsRepository) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)
