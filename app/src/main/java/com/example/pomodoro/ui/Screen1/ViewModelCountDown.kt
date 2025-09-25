@@ -33,9 +33,9 @@ class ViewModelCountDown @Inject constructor(
     fun breakFun() = controller.breakFun()
     //only turns on pause when users want to break if it is not already paused
     fun breakFunDialog() {
-        if(!focusUiState.value.isPause) {
+        if(!focusUiState.value.isPause) { //if isPause = true -> nothing happens, if false -> pause()
             togglePauseResume()
-        }
+        } 
     }
 
     fun pause() = controller.pause()

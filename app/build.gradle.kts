@@ -53,6 +53,12 @@ dependencies {
 
     implementation(libs.plot)
 
+    //Vico
+    implementation(libs.core)
+    implementation(libs.compose)
+    implementation(libs.compose.m3) // Optional
+
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

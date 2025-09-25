@@ -29,6 +29,7 @@ import com.madrapps.plot.line.DataPoint
 import com.madrapps.plot.line.LineGraph
 import com.madrapps.plot.line.LinePlot
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -54,7 +55,15 @@ fun Screen2LineChart(
     viewModelChart: ViewModelChart,
     navHostController: NavHostController
 ) {
-    val lastDayActive by viewModelChart.lastDayActive.collectAsState()
+    val chartState by viewModelChart.chartState.collectAsState()
+    val lastDayActive by viewModelChart.lastDayActive.collectAsState() //String?
+    val formatterUI = DateTimeFormatter.ofPattern("dd MM yyyy")
+    val storageFormatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
+    val parsedDate = lastDayActive
+        ?.let { LocalDate.parse(it, storageFormatter) }
+        ?.format(formatterUI)
+//to convert from string with custom format to LocalDate or LocalDateTime Object,
+// you need to make sure the format used to transform them match the current format of the string, or else -> crash
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -62,9 +71,11 @@ fun Screen2LineChart(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Last time fighting: ${lastDayActive ?: "No fight recorded"}"
+            text = "Last time fighting: $parsedDate"
         )
-        ChartTest()
+        ChartTest(
+            listData = chartState.chartData
+        )
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
         ) {
@@ -81,33 +92,7 @@ fun Screen2LineChart(
 
 @Composable
 fun ChartTest (
-    listData: List<DataPoint> = listOf(
-        DataPoint(x = 0f, y = 0f),
-        DataPoint(x = 1f, y = 0f),
-        DataPoint(x = 2f, y = 0f),
-        DataPoint(x = 3f, y = 0f),
-        DataPoint(x = 4f, y = 0f),
-        DataPoint(x = 5f, y = 0f),
-        DataPoint(x = 6f, y = 600f),    // 10 mins
-        DataPoint(x = 7f, y = 1800f),   // 30 mins
-        DataPoint(x = 8f, y = 1200f),   // 20 mins
-        DataPoint(x = 9f, y = 2400f),   // 40 mins
-        DataPoint(x = 10f, y = 3600f),  // 1 hour
-        DataPoint(x = 11f, y = 1800f),  // 30 mins
-        DataPoint(x = 12f, y = 900f),   // 15 mins
-        DataPoint(x = 13f, y = 0f),
-        DataPoint(x = 14f, y = 1500f),  // 25 mins
-        DataPoint(x = 15f, y = 2700f),  // 45 mins
-        DataPoint(x = 16f, y = 0f),
-        DataPoint(x = 17f, y = 3000f),  // 50 mins
-        DataPoint(x = 18f, y = 600f),   // 10 mins
-        DataPoint(x = 19f, y = 1800f),  // 30 mins
-        DataPoint(x = 20f, y = 1200f),  // 20 mins
-        DataPoint(x = 21f, y = 900f),   // 15 mins
-        DataPoint(x = 22f, y = 0f),
-        DataPoint(x = 23f, y = 0f)
-    )
-
+    listData: List<DataPoint>
 ) {
     LineGraph(
         plot = LinePlot(
@@ -115,7 +100,7 @@ fun ChartTest (
                 LinePlot.Line(
                     dataPoints = listData,
                     connection = LinePlot.Connection(color = Color.Blue),
-                    intersection = LinePlot.Intersection(color = Color.Red),
+                    intersection = LinePlot.Intersection(color = Color.Magenta),
                     highlight = LinePlot.Highlight(color = Color.Yellow)
                 )
             ),
@@ -132,10 +117,11 @@ fun ChartTest (
 
 
 
+
 @Preview
 @Composable
 fun ChartPreview () {
     PomodoroTheme {
-        ChartTest()
+
     }
 }

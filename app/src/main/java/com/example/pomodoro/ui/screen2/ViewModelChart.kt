@@ -2,6 +2,9 @@ package com.example.pomodoro.ui.screen2
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pomodoro.data.datastore.GapResult
@@ -16,10 +19,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.prefs.Preferences
 import javax.inject.Inject
-
 
 
 
@@ -27,23 +32,22 @@ import javax.inject.Inject
 @HiltViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 class ViewModelChart @Inject constructor (
-    private val settingsRepository: SettingsRepositoryImpl
+    private val settingsRepository: SettingsRepositoryImpl,
 ): ViewModel() {
+    init {
+        viewModelScope.launch {
+            create24hoursKeys()
+        }
+    }
+
+
     private val _gapResult = MutableStateFlow<GapResult>(GapResult.None)
     val gapResult: StateFlow<GapResult> = _gapResult.asStateFlow()
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
-
-    init {
-        viewModelScope.launch {
-            checkDataGap() //check dataGap first when the app is open
-        }
+    val chartState = settingsRepository.chartState
+    suspend fun create24hoursKeys () {
+            settingsRepository.create24hoursKeys()
     }
 
-    fun checkDataGap() {
-        viewModelScope.launch {
-            val result = settingsRepository.fillMissingKeysWithRule()
-            _gapResult.value = result //assign state
-        }
-    }
 }

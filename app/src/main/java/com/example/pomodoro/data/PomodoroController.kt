@@ -75,16 +75,19 @@ class PomodoroControllerImpl @Inject constructor(
 
     private suspend fun countdownStudy() = coroutineScope {
         while (isActive) {
-            if (focusUiState.value.isPause) {
+            while (focusUiState.value.isPause) {
                 Log.d("DEBUG", "countdownStudy: pausing")
-                continue
+                delay(100L)
             }
             val current = focusUiState.value
 
             if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
             delay(1000L)
 
-            settingsRepository.saveHourlyFocusDuration(1)
+            if(!focusUiState.value.isPause && focusUiState.value.isRunning && restUiState.value.isStudying)
+            {settingsRepository.saveHourlyFocusDuration(1)}
+            //only save when isPause = false, app is running and users are studying
+
             //save one second
 
             _focusUiState.update { it.copy(duration = if (focusUiState.value.isPause) it.duration else (it.duration - 1).coerceAtLeast(0)) }

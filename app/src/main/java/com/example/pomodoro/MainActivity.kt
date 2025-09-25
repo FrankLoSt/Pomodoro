@@ -60,6 +60,7 @@ class MainActivity : ComponentActivity() {
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
                 val viewModelChart: ViewModelChart = hiltViewModel()
+
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     drawerContent = {
@@ -84,6 +85,7 @@ class MainActivity : ComponentActivity() {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
                                         scope.launch {
                                             drawerState.close()
+                                            viewModelChart.create24hoursKeys()
                                         }
                                     }
                                 )
