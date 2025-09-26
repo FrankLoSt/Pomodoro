@@ -2,6 +2,7 @@ package com.example.pomodoro.ui.Screen1
 
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,7 +55,7 @@ fun Screen1 (
             .padding(top = 100.dp)
     ) {
         //session title
-        if(focusUiState.focusPhase == PomodoroPhase.FOCUS || focusUiState.focusPhase == PomodoroPhase.REST || restUiState.restTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.STOPPED || restUiState.restTimerStatus == TimerStatus.STOPPED) {
+        if(focusUiState.focusPhase == PomodoroPhase.FOCUS || focusUiState.focusPhase == PomodoroPhase.REST || restUiState.restTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.PAUSED) {
             CircularProgressBar(
                 focusUiState = focusUiState,
                 restUiState = restUiState,
@@ -71,11 +72,12 @@ fun Screen1 (
                 PauseButton(
                     togglePauseResume = togglePauseResume,
                     focusUiState = focusUiState,
+                    restUiState = restUiState
                 )
             }
         }
 
-        if(restUiState.restPhase == PomodoroPhase.IDLE && focusUiState.focusPhase == PomodoroPhase.IDLE) {
+        if( (restUiState.restPhase == PomodoroPhase.IDLE && focusUiState.focusPhase == PomodoroPhase.IDLE) && (focusUiState.focusTimerStatus != TimerStatus.RUNNING && restUiState.restTimerStatus != TimerStatus.RUNNING) ) {
             DropDown(
                 listSessions = focusUiState.availableSessions,
                 listFocusDuration = focusUiState.availableDurations,
@@ -84,6 +86,7 @@ fun Screen1 (
                 setRestDurationMinutes = setRestDurationMinutes,
                 setSessions = setSessions,
             )
+            Log.d("DEBUG", "Screen1:  \n focus timer status: ${focusUiState.focusTimerStatus} and rest timer status: ${restUiState.restTimerStatus} \n focus phase: ${focusUiState.focusPhase} and rest phase: ${restUiState.restPhase}")
             CountDownButton(
                 startCountDown = startCountDown,
             )

@@ -26,6 +26,8 @@ class ViewModelCountDown @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+
+
     // Create controller tied to ViewModel scope
     private val controller = PomodoroControllerImpl(
         scope = viewModelScope,
@@ -44,6 +46,7 @@ class ViewModelCountDown @Inject constructor(
 
     fun togglePauseResume() {
         Log.d("DEBUG", "togglePauseResume: focus: ${focusUiState.value.focusTimerStatus} and rest: ${restUiState.value.restTimerStatus}")
+        Log.d("DEBUG", "togglePauseResume: focus: ${focusUiState.value.focusPhase} and rest: ${restUiState.value.restPhase}")
         if(
             (focusUiState.value.focusTimerStatus == TimerStatus.RUNNING && focusUiState.value.focusPhase == PomodoroPhase.FOCUS) || (restUiState.value.restTimerStatus == TimerStatus.RUNNING && restUiState.value.restPhase == PomodoroPhase.REST)) {
             pause()

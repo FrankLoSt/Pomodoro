@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
+import com.example.pomodoro.data.RestUiState
 import com.example.pomodoro.data.TimerStatus
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
@@ -98,6 +99,7 @@ fun BreakAlertDialog (
 fun PauseButton (
     togglePauseResume: () -> Unit = {},
     focusUiState: FocusUiState,
+    restUiState: RestUiState
 ) {
     Button (
         onClick = { togglePauseResume() },
@@ -110,7 +112,7 @@ fun PauseButton (
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = if (focusUiState.focusTimerStatus == TimerStatus.PAUSED) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
+                painter = if (focusUiState.focusTimerStatus == TimerStatus.PAUSED || restUiState.restTimerStatus == TimerStatus.PAUSED) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
                 contentDescription = null,
                 modifier = Modifier.size(width = 100.dp, height = 50.dp)
             )
@@ -127,15 +129,7 @@ fun BreakPauseButtonsPreview () {
     }
 }
 
-@Preview
-@Composable
-fun BreakPauseButtonsPreview2 () {
-    PomodoroTheme {
-        PauseButton(
-            focusUiState = FocusUiState()
-        )
-    }
-}
+
 @Preview
 @Composable
 fun BreakAlertDialogPreview () {

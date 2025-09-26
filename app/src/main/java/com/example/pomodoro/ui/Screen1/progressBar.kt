@@ -49,7 +49,7 @@ fun CircularProgressBar (
             modifier = Modifier.wrapContentSize(),
         ) {
             //rest countdown Screen
-            if (focusUiState.focusTimerStatus == TimerStatus.RUNNING || focusUiState.focusTimerStatus == TimerStatus.PAUSED) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
+            if (focusUiState.focusTimerStatus == TimerStatus.RUNNING || focusUiState.focusTimerStatus == TimerStatus.PAUSED) {
             val progress = focusUiState.progress
             CustomCircularProgressIndicator(
                 progress = progress,
