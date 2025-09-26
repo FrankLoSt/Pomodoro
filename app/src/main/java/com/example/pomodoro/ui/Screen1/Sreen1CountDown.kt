@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -55,7 +56,7 @@ fun Screen1 (
             .padding(top = 100.dp)
     ) {
         //session title
-        if(focusUiState.focusPhase == PomodoroPhase.FOCUS || focusUiState.focusPhase == PomodoroPhase.REST || restUiState.restTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.PAUSED) {
+        if(focusUiState.focusPhase == PomodoroPhase.FOCUS || restUiState.restPhase == PomodoroPhase.REST || restUiState.restTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.PAUSED) {
             CircularProgressBar(
                 focusUiState = focusUiState,
                 restUiState = restUiState,
@@ -75,6 +76,9 @@ fun Screen1 (
                     restUiState = restUiState
                 )
             }
+        }
+        else {
+            Text("it is not running idiot")
         }
 
         if( (restUiState.restPhase == PomodoroPhase.IDLE && focusUiState.focusPhase == PomodoroPhase.IDLE) && (focusUiState.focusTimerStatus != TimerStatus.RUNNING && restUiState.restTimerStatus != TimerStatus.RUNNING) ) {
