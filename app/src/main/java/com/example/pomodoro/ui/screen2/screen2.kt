@@ -74,7 +74,7 @@ fun Screen2LineChart(
             text = "Last time fighting: $parsedDate"
         )
         ChartTest(
-            listData = chartState.chartData
+            listData = chartState.chartDataDay
         )
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }

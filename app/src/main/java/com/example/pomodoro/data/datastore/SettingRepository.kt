@@ -21,10 +21,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.time.temporal.WeekFields
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
@@ -40,7 +42,10 @@ interface SettingsRepository {
 
 
 data class ChartState (
-    val chartData: List<DataPoint> = emptyList(),
+    val chartDataYear: List<DataPoint> = emptyList(),
+    val chartDataWeek: List<DataPoint> = emptyList(),
+    val chartDataMonth: List<DataPoint> = emptyList(),
+    val chartDataDay: List<DataPoint> = emptyList(),
 )
 
 @Singleton
@@ -94,28 +99,46 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
 
     suspend fun create24hoursKeys() {
-        val todayKey: String? = LocalDate.now().format(formatterDay)
-        val listTodayKey: MutableList<Preferences.Key<Int>> = mutableListOf()
-        val listTodayDataPoint: MutableList<DataPoint> = mutableListOf()
-        for ( key in keys) {
-            listTodayKey.add(
-                intPreferencesKey(name = if(key < 10 ) todayKey + "T" + "0" + key else todayKey + "T" + key)
-            )
+        val todayKey = getTodayFormattedKey()
+        val preferences = dataStore.data.first()
+
+        val chartDataDay = buildList {
+            keys.forEachIndexed { index, hour ->
+                val hourKey = createHourKey(todayKey, hour)
+                val value = preferences[hourKey]?.toFloat() ?: 0f
+
+                add(DataPoint(index.toFloat(), value))
+            }
         }
-        Log.d("DEBUG", "create24hoursKeys: $listTodayKey")
-        for (key in listTodayKey) {
-            listTodayDataPoint.add(
-                DataPoint(
-                    listTodayKey.indexOf(key).toFloat(),
-                    dataStore.data.first()[key]?.toFloat() ?: 0f
-                )
-            )
-        }
-        _chartState.update{
-            it.copy(
-                chartData = listTodayDataPoint
-            )
-        }
-        Log.d("DEBUG", "create24hoursKeys: ${chartState.value.chartData}")
+
+        updateChartState(chartDataDay)
     }
+
+    // Helper functions for better organization
+    private fun getTodayFormattedKey(): String {
+        return LocalDate.now().format(formatterDay)
+    }
+
+    private fun createHourKey(todayKey: String, hour: Int): Preferences.Key<Int> {
+        val hourString = hour.toString().padStart(2, '0')
+        return intPreferencesKey("${todayKey}T$hourString")
+    }
+
+    private fun updateChartState(chartData: List<DataPoint>) {
+        _chartState.update { it.copy(chartDataDay = chartData) }
+        Log.d("DEBUG", "Chart data updated: ${chartData.size} points")
+    }
+
+    fun trackweekYear () {
+        val today = LocalDate.now()
+        val dayOfWeek = today.dayOfWeek  // e.g., MONDAY, TUESDAY
+        val dayName = dayOfWeek.name     // "MONDAY"
+        val dayIndex = dayOfWeek.value   // 1 (Monday) to 7 (Sunday)
+        val weekOfYear = today.get(WeekFields.ISO.weekOfYear())  // e.g., 39
+        Log.d("DEBUG", "trackweekYear: $dayName, $dayIndex, $weekOfYear")
+    } //this is only for testing
+
+
+
+
 }

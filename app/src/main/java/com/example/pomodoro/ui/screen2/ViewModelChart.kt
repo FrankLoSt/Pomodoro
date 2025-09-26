@@ -7,7 +7,7 @@ import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pomodoro.data.datastore.GapResult
+
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
 import com.madrapps.plot.line.DataPoint
@@ -38,11 +38,11 @@ class ViewModelChart @Inject constructor (
         viewModelScope.launch {
             create24hoursKeys()
         }
+        trackweekYear()
     }
 
+    fun trackweekYear () = settingsRepository.trackweekYear()
 
-    private val _gapResult = MutableStateFlow<GapResult>(GapResult.None)
-    val gapResult: StateFlow<GapResult> = _gapResult.asStateFlow()
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
     val chartState = settingsRepository.chartState

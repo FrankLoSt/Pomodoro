@@ -21,7 +21,6 @@ interface PomodoroController {
 
     val restUiState: StateFlow<RestUiState>
 
-
     fun setDurationMinutes(minutes: Int)
     fun setRestDurationMinutes(minutes: Int)
 
