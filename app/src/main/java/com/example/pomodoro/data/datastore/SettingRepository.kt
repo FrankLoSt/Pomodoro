@@ -37,14 +37,10 @@ interface SettingsRepository {
 
 }
 
-sealed class GapResult {
-    object None : GapResult()                // no gap
-    data class Filled(val hours: Int) : GapResult()  // gap ≤ 7 days, filled with zeros
-    data class TooLong(val days: Long) : GapResult() // gap > 7 days, show message
-}
+
 
 data class ChartState (
-    val chartData: List<DataPoint> = emptyList(), //no update after created
+    val chartData: List<DataPoint> = emptyList(),
 )
 
 @Singleton
@@ -102,7 +98,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         val listTodayKey: MutableList<Preferences.Key<Int>> = mutableListOf()
         val listTodayDataPoint: MutableList<DataPoint> = mutableListOf()
         for ( key in keys) {
-
             listTodayKey.add(
                 intPreferencesKey(name = if(key < 10 ) todayKey + "T" + "0" + key else todayKey + "T" + key)
             )
@@ -123,5 +118,4 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         }
         Log.d("DEBUG", "create24hoursKeys: ${chartState.value.chartData}")
     }
-
 }
