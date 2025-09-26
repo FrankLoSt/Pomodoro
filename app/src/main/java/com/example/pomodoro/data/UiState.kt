@@ -1,30 +1,45 @@
 package com.example.pomodoro.data
 
 // --- UiState.kt ---
+// Shared constants for defaults
+object PomodoroDefaults {
+    val focusDurations = (5..180 step 5).toList() // in minutes
+    val restDurations = listOf(1) + (5..30 step 5).toList()
+    val sessions = (1..30).toList()
+    const val defaultFocusSeconds = 10
+    const val defaultRestSeconds = 5
+}
+
+// Explicit session state instead of bool soup
+enum class PomodoroPhase { IDLE, FOCUS, REST, FINISHED }
+enum class TimerStatus { RUNNING, PAUSED, STOPPED }
+
 data class FocusUiState(
-    // Study
-    val listFocusDuration: List<Int> = (5..180 step 5).toList(),
-    val listSessions: List<Int> = (1..30 step 1).toList(),
-    val duration: Int = 10, //test with 10s = > duration is calculated in seconds, not in minutes.
-    val initialDuration: Int = 10,//test with 10
-    val isRunning: Boolean = true,
-    val sessions: Int = 1,
-    val totalSessions: Int = 1, //test with 1
-    val isPause: Boolean = false,
-    val isFinished: Boolean  = false,
+    val availableDurations: List<Int> = PomodoroDefaults.focusDurations,
+    val availableSessions: List<Int> = PomodoroDefaults.sessions,
+    val duration: Int = PomodoroDefaults.defaultFocusSeconds,
+    val initialDuration: Int = PomodoroDefaults.defaultFocusSeconds,
+
+    val currentSession: Int = 1,
+    val totalSessions: Int = 1,
+    val focusTimerStatus: TimerStatus = TimerStatus.STOPPED,
+    val focusPhase: PomodoroPhase = PomodoroPhase.IDLE,
 ) {
-    // Helpers
-    fun studyProgress(): Float =
-        if (initialDuration > 0) 1f - duration.toFloat() / initialDuration else 0f
+    val progress: Float
+        get() = if (initialDuration > 0) {
+            1f - duration.toFloat() / initialDuration
+        } else 0f
 }
 
 data class RestUiState(
-    val listRestDuration: List<Int> = listOf(1) + (5..30 step 5).toList(),
-    val restDuration: Int = 5, //test with 30
-    val initialRestDuration: Int = 5,//test with 30
-    val isStudying: Boolean = true,
-    val isShowingMenu: Boolean =  true
+    val availableDurations: List<Int> = PomodoroDefaults.restDurations,
+    val duration: Int = PomodoroDefaults.defaultRestSeconds,
+    val initialDuration: Int = PomodoroDefaults.defaultRestSeconds,
+    val restTimerStatus: TimerStatus = TimerStatus.STOPPED,
+    val restPhase: PomodoroPhase = PomodoroPhase.IDLE,
 ) {
-    fun restProgress(): Float =
-        if (initialRestDuration > 0) 1f - restDuration.toFloat() / initialRestDuration else 0f
+    val progress: Float
+        get() = if (initialDuration > 0) {
+            1f - duration.toFloat() / initialDuration
+        } else 0f
 }

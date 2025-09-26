@@ -18,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
+import com.example.pomodoro.data.PomodoroPhase
 import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.data.TimerStatus
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import com.google.apps.card.v1.Columns
 import com.google.apps.card.v1.Image
@@ -35,9 +37,11 @@ fun CircularProgressBar (
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = if (restUiState.isStudying && focusUiState.isRunning) stringResource(R.string.Studying) else stringResource(
-                R.string.Taking_a_break
-            ),
+            text =
+                if (focusUiState.focusPhase == PomodoroPhase.FOCUS && restUiState.restPhase == PomodoroPhase.IDLE) stringResource(R.string.Studying)
+                else if (restUiState.restPhase == PomodoroPhase.REST && focusUiState.focusPhase == PomodoroPhase.IDLE) stringResource(R.string.Taking_a_break)
+                else ""
+            ,
             style = MaterialTheme.typography.titleLarge
         )
         Box(
@@ -45,21 +49,21 @@ fun CircularProgressBar (
             modifier = Modifier.wrapContentSize(),
         ) {
             //rest countdown Screen
-            if (restUiState.isStudying && focusUiState.isRunning) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
-                val progress = focusUiState.studyProgress()
-                CustomCircularProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.size(300.dp),
-                )
-            }
-            //progress focus time
-            else {
-                val progress = restUiState.restProgress()
-                CustomCircularProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.size(300.dp),
-                )
-            }
+            if (focusUiState.focusTimerStatus == TimerStatus.RUNNING || focusUiState.focusTimerStatus == TimerStatus.PAUSED) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
+            val progress = focusUiState.progress
+            CustomCircularProgressIndicator(
+                progress = progress,
+                modifier = Modifier.size(300.dp),
+            )
+        }
+        //progress focus time=
+            else if (restUiState.restTimerStatus == TimerStatus.RUNNING || restUiState.restTimerStatus == TimerStatus.PAUSED) {
+            val progress = restUiState.progress
+            CustomCircularProgressIndicator(
+                progress = progress,
+                modifier = Modifier.size(300.dp),
+            )
+        }
             Image(
                 painter = painterResource(R.drawable._07_1),
                 contentDescription = null,

@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
+import com.example.pomodoro.data.TimerStatus
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
@@ -45,7 +46,6 @@ fun BreakButton (
     Button(
         onClick = {
             isSure = true
-            breakFunDialog()
         },
         //modifier = Modifier.width(150.dp),
         colors = ButtonDefaults.buttonColors(Color.Transparent)
@@ -65,8 +65,7 @@ fun BreakButton (
     if(isSure == true) {
         BreakAlertDialog(
             onDismissRequest = {
-                isSure = false
-                breakFunDialog() },
+                isSure = false },
             confirmButton = breakFun,
         )
     }
@@ -111,7 +110,7 @@ fun PauseButton (
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = if (focusUiState.isPause) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
+                painter = if (focusUiState.focusTimerStatus == TimerStatus.PAUSED) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
                 contentDescription = null,
                 modifier = Modifier.size(width = 100.dp, height = 50.dp)
             )

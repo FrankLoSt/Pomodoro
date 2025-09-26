@@ -20,8 +20,15 @@ import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
 
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // ✅
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.navigation.NavHostController
+import com.example.pomodoro.data.PomodoroDefaults
+import com.example.pomodoro.data.PomodoroPhase
+import com.example.pomodoro.data.TimerStatus
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -33,7 +40,6 @@ fun Screen1 (
     setRestDurationMinutes : (Int) -> Unit = {},
     setSessions : (Int) -> Unit = {},
     formatter: (Int) ->  String = { minutes -> "$minutes min"},
-    toggleisFinished: () -> Unit,
     startCountDown: () -> Unit,
     breakFun: () -> Unit,
     togglePauseResume: () -> Unit,
@@ -48,35 +54,12 @@ fun Screen1 (
             .padding(top = 100.dp)
     ) {
         //session title
-        if(!restUiState.isShowingMenu) {
+        if(focusUiState.focusPhase == PomodoroPhase.FOCUS || focusUiState.focusPhase == PomodoroPhase.REST || restUiState.restTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.PAUSED || focusUiState.focusTimerStatus == TimerStatus.STOPPED || restUiState.restTimerStatus == TimerStatus.STOPPED) {
             CircularProgressBar(
                 focusUiState = focusUiState,
                 restUiState = restUiState,
                 formatter = formatter
             )
-        }
-
-        if(restUiState.isShowingMenu) {
-            DropDown(
-                listSessions = focusUiState.listSessions,
-                listFocusDuration = focusUiState.listFocusDuration,
-                listRestDuration = restUiState.listRestDuration,
-                setDurationMinutes = setDurationMinutes,
-                setRestDurationMinutes = setRestDurationMinutes,
-                setSessions = setSessions,
-            )
-        }
-        if(focusUiState.isFinished) {
-            AlertDialog1(
-                onDismiss = toggleisFinished,
-                duration = focusUiState.duration
-            )
-        }
-        if(restUiState.isShowingMenu) {
-            CountDownButton(
-                startCountDown = startCountDown,
-            )
-        } else {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -91,6 +74,29 @@ fun Screen1 (
                 )
             }
         }
+
+        if(restUiState.restPhase == PomodoroPhase.IDLE && focusUiState.focusPhase == PomodoroPhase.IDLE) {
+            DropDown(
+                listSessions = focusUiState.availableSessions,
+                listFocusDuration = focusUiState.availableDurations,
+                listRestDuration = restUiState.availableDurations,
+                setDurationMinutes = setDurationMinutes,
+                setRestDurationMinutes = setRestDurationMinutes,
+                setSessions = setSessions,
+            )
+            CountDownButton(
+                startCountDown = startCountDown,
+            )
+        }
+
+        if( focusUiState.focusPhase == PomodoroPhase.FINISHED ) {
+            var toggleDialog by rememberSaveable { mutableStateOf(false) }
+            AlertDialog1(
+                onDismiss = { toggleDialog = !toggleDialog },
+                duration = focusUiState.duration
+            )
+        }
+
     }
 }
 

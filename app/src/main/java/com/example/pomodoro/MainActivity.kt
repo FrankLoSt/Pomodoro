@@ -163,7 +163,6 @@ fun ScreenNavigation (
                 focusUiState = focusUiState,
                 restUiState = restUiState,
                 togglePauseResume = {viewModel.togglePauseResume()},
-                toggleisFinished = {viewModel.toggleisFinished()},
                 formatter = {viewModel.formatter(it)},
                 breakFun = {viewModel.breakFun()},
                 setDurationMinutes = {viewModel.setDurationMinutes(it)},
