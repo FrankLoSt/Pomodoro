@@ -47,16 +47,13 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.androidx.benchmark.traceprocessor)
     implementation(libs.androidx.core.i18n)
+    implementation(libs.androidx.room.ktx)
     kapt(libs.hilt.compiler)
 //navigation
     implementation(libs.androidx.navigation.compose)
 
     implementation(libs.plot)
 
-    //Vico
-    implementation(libs.core)
-    implementation(libs.compose)
-    implementation(libs.compose.m3) // Optional
 
 
     implementation(libs.androidx.core.ktx)
