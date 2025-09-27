@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.core.i18n)
     implementation(libs.androidx.room.ktx)
     kapt(libs.hilt.compiler)
+    implementation(libs.kotlin.stdlib)
 //navigation
     implementation(libs.androidx.navigation.compose)
 

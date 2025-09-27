@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Year
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
@@ -49,7 +50,7 @@ data class ChartState (
     val chartDataYear: List<DataPoint> = emptyList(),
     val chartDataWeek: List<DataPoint> = emptyList(),
     val chartDataMonth: List<DataPoint> = emptyList(),
-    val chartDataDay: List<DataPoint> = emptyList(),
+    val chartDataDay: List<DataPoint> =
 )
 
 @Singleton
@@ -58,7 +59,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     private val dataStore: DataStore<Preferences>,
     private val scope: CoroutineScope
 ) : SettingsRepository {
-
     private val LAST_FOCUS_KEY = stringPreferencesKey("last_active_time")
     private val formatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
     private val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
@@ -187,7 +187,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             }
         }
 
-        val ChartDataYear = buildList {
+        val chartDataYear = buildList {
             yearsList.forEachIndexed { index, hour ->
                 val hourKey = createHourKey(yearKey.name, hour)
                 val value = preferences[hourKey]?.toFloat() ?: 0f
@@ -198,7 +198,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
              chartDataDay =  chartDataDay,
             chartDataWeek = chartDataWeek,
             chartDataMonth = chartDataMonth,
-            chartDataYear = ChartDataYear
+            chartDataYear = chartDataYear
         )
     }
 
@@ -249,6 +249,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
 
 
+
 @Singleton
 @RequiresApi(Build.VERSION_CODES.O)
 class SettingsRepositoryImpl2 @Inject constructor(
@@ -272,21 +273,22 @@ class SettingsRepositoryImpl2 @Inject constructor(
     private fun now() = LocalDateTime.now()
 
     private fun createWeekKey(): Preferences.Key<Int> {
-        val key = "${now().year}-${now().get(WeekFields.ISO.weekOfYear())}"
+        val key = "${now().year}-${now().get(WeekFields.ISO.weekOfYear()).toString().padStart(2, '0')}"
         return intPreferencesKey(key)
     }
+    //createWeekKey: 2025-39
 
     private fun createMonthKey(): Preferences.Key<Int> {
-        val key = "${now().year}-${now().monthValue}"
+        val key = "${now().year}-${now().monthValue.toString().padStart(2, '0')}"
         return intPreferencesKey(key)
     }
-
+   //createMonthKey: 2025-9
     private fun createYearKey(): Preferences.Key<Int> {
         val year = now().year
         yearsList.add(year)
         return intPreferencesKey(year.toString())
     }
-
+   //createYearKey: 2025
     override suspend fun createHourlyFocusKey(): Preferences.Key<Int> {
         val key = now().format(formatter)
         Log.d("DEBUG", "createHourlyFocusKey: $key")
@@ -331,14 +333,9 @@ class SettingsRepositoryImpl2 @Inject constructor(
         val old = preferences[key] ?: 0
         dataStore.edit { it[key] = old + duration }
     }
-
-    // Chart Data
     suspend fun create24HoursKeys() {
         val preferences = dataStore.data.first()
         val todayKey = getTodayFormattedKey()
-        val weekKey = createWeekKey().name
-        val monthKey = createMonthKey().name
-        val yearKey = createYearKey().name
 
         val chartDataDay = hourList.mapIndexed { index, hour ->
             val key = createHourKey(todayKey, hour)
@@ -346,22 +343,27 @@ class SettingsRepositoryImpl2 @Inject constructor(
         }
 
         val chartDataWeek = weeksList.mapIndexed { index, week ->
-            val key = createHourKey(weekKey, week)
+            val key = createWeekKey()
             DataPoint(index.toFloat(), preferences[key]?.toFloat() ?: 0f)
         }
+        Log.d("DEBUG", "Weeks: $chartDataWeek")
 
         val chartDataMonth = monthsList.mapIndexed { index, month ->
-            val key = createHourKey(monthKey, month)
+            val key = createMonthKey()
+            Log.d("DEBUG", "Months: $key")
             DataPoint(index.toFloat(), preferences[key]?.toFloat() ?: 0f)
         }
 
         val chartDataYear = yearsList.mapIndexed { index, year ->
-            val key = createHourKey(yearKey, year)
+            val key = createYearKey()
+
             DataPoint(index.toFloat(), preferences[key]?.toFloat() ?: 0f)
-        }
+        } //return a list of DataPoint
 
         updateChartState(chartDataDay, chartDataWeek, chartDataMonth, chartDataYear)
     }
+
+    // Chart Data
 
     private fun getTodayFormattedKey(): String = LocalDate.now().format(formatterDay)
 
@@ -401,3 +403,161 @@ class SettingsRepositoryImpl2 @Inject constructor(
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+enum class ViewMode {
+    YearMonth,
+    YearWeek,
+    YearDay,
+    MonthDay,
+    WeekDay,
+    DayHour
+}
+
+data class DataPoint(val x: Float, val y: Float)
+
+
+
+
+
+@Singleton
+@RequiresApi(Build.VERSION_CODES.O)
+class FocusChartRepository3 @Inject constructor(
+    private val dataStore: DataStore<Preferences>,
+    private val scope: CoroutineScope
+) {
+
+    private val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
+    private val LAST_FOCUS_KEY = stringPreferencesKey("last_active_time")
+
+    private val _chartState = MutableStateFlow(ChartState())
+    val chartState: StateFlow<ChartState> = _chartState.asStateFlow()
+
+    private val hourList = (0..23).toList()
+    private val monthsList = (1..12).toList()
+    private val weeksList = (1..52).toList()
+
+    // Entry point for generating chart data
+    suspend fun generateChart(viewMode: ViewMode, weekStart: DayOfWeek = DayOfWeek.MONDAY) {
+        val preferences = dataStore.data.first()
+        val today = LocalDate.now()
+
+        val dailyTotals = generateDailyTotals(preferences, today.year)
+
+        when (viewMode) {
+            ViewMode.YearMonth -> {
+                val data = monthsList.mapIndexed { index, month ->
+                    val total = dailyTotals.filter { it.key.monthValue == month }
+                        .filter { it.value >= 300 }
+                        .map { it.value }
+                        .sum()
+                    DataPoint(index.toFloat(), total.toFloat())
+                }
+                updateChartState(chartDataMonth = data)
+            }
+
+            ViewMode.YearWeek -> {
+                val weekFields = WeekFields.of(weekStart, 1)
+                val data = weeksList.mapIndexed { index, week ->
+                    val total = dailyTotals.filter {
+                        it.key.get(weekFields.weekOfYear()) == week
+                    }.filter { it.value >= 300 }
+                        .map { it.value }
+                        .sum()
+                    DataPoint(index.toFloat(), total.toFloat())
+                }
+                updateChartState(chartDataWeek = data)
+            }
+
+            ViewMode.YearDay -> {
+                val daysInYear = if (today.isLeapYear) 366 else 365
+                val data = (0 until daysInYear).mapIndexed { index, offset ->
+                    val date = LocalDate.ofYearDay(today.year, offset + 1)
+                    val value = dailyTotals[date]?.toFloat() ?: 0f
+                    DataPoint(index.toFloat(), value)
+                }
+                updateChartState(chartDataDay = data)
+            }
+
+            ViewMode.MonthDay -> {
+                val daysInMonth = today.lengthOfMonth()
+                val data = (1..daysInMonth).mapIndexed { index, day ->
+                    val date = LocalDate.of(today.year, today.month, day)
+                    val value = dailyTotals[date]?.toFloat() ?: 0f
+                    DataPoint(index.toFloat(), value)
+                }
+                updateChartState(chartDataDay = data)
+            }
+
+            ViewMode.WeekDay -> {
+                val startOfWeek = today.with(WeekFields.of(weekStart, 1).dayOfWeek(), 1)
+                val data = (0..6).mapIndexed { index, offset ->
+                    val date = startOfWeek.plusDays(offset.toLong())
+                    val value = dailyTotals[date]?.toFloat() ?: 0f
+                    DataPoint(index.toFloat(), value)
+                }
+                updateChartState(chartDataDay = data)
+            }
+
+            ViewMode.DayHour -> {
+                val todayKey = today.format(formatterDay)
+                val totalFocus = preferences[intPreferencesKey(todayKey)] ?: 0
+
+                if (totalFocus < 300) {
+                    updateChartState(chartDataDay = emptyList())
+                    Log.d("DEBUG", "No focus data recorded for ${todayKey}")
+                    return
+                }
+
+                val data = hourList.mapIndexed { index, hour ->
+                    val hourKey = intPreferencesKey("${todayKey}T${hour.toString().padStart(2, '0')}")
+                    DataPoint(index.toFloat(), preferences[hourKey]?.toFloat() ?: 0f)
+                }
+                updateChartState(chartDataDay = data)
+            }
+        }
+    }
+
+    // Helper to aggregate daily totals
+    private fun generateDailyTotals(preferences: Preferences, year: Int): Map<LocalDate, Int> {
+        val daysInYear = if (Year.of(year).isLeap) 366 else 365
+        return (0 until daysInYear).associate { offset ->
+            val date = LocalDate.ofYearDay(year, offset + 1)
+            val key = intPreferencesKey(date.format(formatterDay))
+            date to (preferences[key] ?: 0)
+        }
+    }
+
+    private fun updateChartState(
+        chartDataDay: List<DataPoint> = emptyList(),
+        chartDataWeek: List<DataPoint> = emptyList(),
+        chartDataMonth: List<DataPoint> = emptyList(),
+        chartDataYear: List<DataPoint> = emptyList()
+    ) {
+        _chartState.update {
+            it.copy(
+                chartDataDay = chartDataDay,
+                chartDataWeek = chartDataWeek,
+                chartDataMonth = chartDataMonth,
+                chartDataYear = chartDataYear
+            )
+        }
+        Log.d("DEBUG", "Chart updated: Day=${chartDataDay.size}, Week=${chartDataWeek.size}, Month=${chartDataMonth.size}, Year=${chartDataYear.size}")
+    }
+
+    fun getLastDayActive(): StateFlow<String?> {
+        return dataStore.data.map { it[LAST_FOCUS_KEY] }
+            .stateIn(scope, SharingStarted.WhileSubscribed(), null)
+    }
+}
