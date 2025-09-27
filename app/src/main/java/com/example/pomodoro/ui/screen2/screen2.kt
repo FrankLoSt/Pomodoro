@@ -121,7 +121,7 @@ fun ChartTest (
                     highlight = LinePlot.Highlight(color = Color.Yellow)
                 )
             ),
-            grid = LinePlot.Grid(Color.LightGray, steps = 6)
+            grid = LinePlot.Grid(Color.LightGray, steps = 1)
         ),
         modifier = Modifier
             .fillMaxWidth()

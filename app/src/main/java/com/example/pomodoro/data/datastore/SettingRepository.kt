@@ -50,7 +50,32 @@ data class ChartState (
     val chartDataYear: List<DataPoint> = emptyList(),
     val chartDataWeek: List<DataPoint> = emptyList(),
     val chartDataMonth: List<DataPoint> = emptyList(),
-    val chartDataDay: List<DataPoint> =
+    val chartDataDay: List<DataPoint> = listOf(
+        DataPoint(x = 0f, y = 0f),
+        DataPoint(x = 1f, y = 0f),
+        DataPoint(x = 2f, y = 0f),
+        DataPoint(x = 3f, y = 0f),
+        DataPoint(x = 4f, y = 0f),
+        DataPoint(x = 5f, y = 0f),
+        DataPoint(x = 6f, y = 600f),    // 10 mins
+        DataPoint(x = 7f, y = 1800f),   // 30 mins
+        DataPoint(x = 8f, y = 1200f),   // 20 mins
+        DataPoint(x = 9f, y = 2400f),   // 40 mins
+        DataPoint(x = 10f, y = 3600f),  // 1 hour
+        DataPoint(x = 11f, y = 1800f),  // 30 mins
+        DataPoint(x = 12f, y = 900f),   // 15 mins
+        DataPoint(x = 13f, y = 0f),
+        DataPoint(x = 14f, y = 1500f),  // 25 mins
+        DataPoint(x = 15f, y = 2700f),  // 45 mins
+        DataPoint(x = 16f, y = 0f),
+        DataPoint(x = 17f, y = 3000f),  // 50 mins
+        DataPoint(x = 18f, y = 600f),   // 10 mins
+        DataPoint(x = 19f, y = 1800f),  // 30 mins
+        DataPoint(x = 20f, y = 1200f),  // 20 mins
+        DataPoint(x = 21f, y = 900f),   // 15 mins
+        DataPoint(x = 22f, y = 0f),
+        DataPoint(x = 23f, y = 0f)
+    )
 )
 
 @Singleton

@@ -70,9 +70,6 @@ fun ChartScreen(
     val lastActive by viewModel.lastActiveDay.collectAsState()
 
     // Example: Load when screen starts
-    LaunchedEffect(Unit) {
-        viewModel.loadChart(ViewMode.WeekDay) // default mode
-    }
 
     Column {
         Text("Last active: ${lastActive ?: "N/A"}")
