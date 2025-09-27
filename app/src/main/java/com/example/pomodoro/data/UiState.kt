@@ -6,8 +6,8 @@ object PomodoroDefaults {
     val focusDurations = (5..180 step 5).toList() // in minutes
     val restDurations = listOf(1) + (5..30 step 5).toList()
     val sessions = (1..30).toList()
-    const val defaultFocusSeconds = 10
-    const val defaultRestSeconds = 5
+    const val defaultFocusSeconds = 5 //you can use const val in object
+    const val defaultRestSeconds = 2
 }
 
 // Explicit session state instead of bool soup

@@ -46,6 +46,8 @@ fun Screen1 (
     breakFun: () -> Unit,
     togglePauseResume: () -> Unit,
     breakFunDialog: () -> Unit,
+    toggleFinished: () -> Unit,
+    resume: () -> Unit,
     navHostController: NavHostController
 ) {
     Column(
@@ -68,7 +70,8 @@ fun Screen1 (
             ) {
                 BreakButton(
                     breakFun = breakFun,
-                    breakFunDialog = breakFunDialog
+                    breakFunDialog = breakFunDialog,
+                    resume = resume
                 )
                 PauseButton(
                     togglePauseResume = togglePauseResume,
@@ -81,7 +84,7 @@ fun Screen1 (
             Text("it is not running idiot")
         }
 
-        if( (restUiState.restPhase == PomodoroPhase.IDLE && focusUiState.focusPhase == PomodoroPhase.IDLE) && (focusUiState.focusTimerStatus != TimerStatus.RUNNING && restUiState.restTimerStatus != TimerStatus.RUNNING) ) {
+        if( (restUiState.restPhase == PomodoroPhase.IDLE && focusUiState.focusPhase == PomodoroPhase.IDLE) && (focusUiState.focusTimerStatus != TimerStatus.RUNNING && restUiState.restTimerStatus != TimerStatus.RUNNING) || focusUiState.focusPhase == PomodoroPhase.FINISHED) {
             DropDown(
                 listSessions = focusUiState.availableSessions,
                 listFocusDuration = focusUiState.availableDurations,
@@ -90,20 +93,23 @@ fun Screen1 (
                 setRestDurationMinutes = setRestDurationMinutes,
                 setSessions = setSessions,
             )
-            Log.d("DEBUG", "Screen1:  \n focus timer status: ${focusUiState.focusTimerStatus} and rest timer status: ${restUiState.restTimerStatus} \n focus phase: ${focusUiState.focusPhase} and rest phase: ${restUiState.restPhase}")
+           // Log.d("DEBUG", "Screen1:  \n focus timer status: ${focusUiState.focusTimerStatus} and rest timer status: ${restUiState.restTimerStatus} \n focus phase: ${focusUiState.focusPhase} and rest phase: ${restUiState.restPhase}")
             CountDownButton(
                 startCountDown = startCountDown,
             )
         }
 
         if( focusUiState.focusPhase == PomodoroPhase.FINISHED ) {
+
             var toggleDialog by rememberSaveable { mutableStateOf(false) }
             AlertDialog1(
-                onDismiss = { toggleDialog = !toggleDialog },
+                onDismiss = {
+                    toggleDialog = !toggleDialog
+                    toggleFinished()
+                            },
                 duration = focusUiState.duration
             )
         }
-
     }
 }
 

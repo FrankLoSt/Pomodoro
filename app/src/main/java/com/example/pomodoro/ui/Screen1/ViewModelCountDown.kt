@@ -56,14 +56,15 @@ class ViewModelCountDown @Inject constructor(
     }
 
     fun breakFunDialog() {
-        if (
-            (focusUiState.value.focusTimerStatus != TimerStatus.PAUSED && restUiState.value.restTimerStatus != TimerStatus.PAUSED)
-
-            ) {
+        if (focusUiState.value.focusTimerStatus == TimerStatus.RUNNING || restUiState.value.restTimerStatus == TimerStatus.RUNNING) {
             //if isPause = true -> nothing happens, if false -> pause()
+            Log.d("DEBUG", "breakFunDialog: called")
+
             togglePauseResume()
         }
     }
+
+    fun toggleFinished() = controller.toggleFinished()
 
     // --- Configuration ---
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)

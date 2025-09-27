@@ -40,13 +40,15 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun BreakButton (
-    breakFun: () -> Unit = {},
-    breakFunDialog: () -> Unit = {},
+    breakFun: () -> Unit ,
+    breakFunDialog: () -> Unit ,
+    resume: () -> Unit
 ) {
     var isSure: Boolean? by rememberSaveable { mutableStateOf(null) }
     Button(
         onClick = {
             isSure = true
+            breakFunDialog()
         },
         //modifier = Modifier.width(150.dp),
         colors = ButtonDefaults.buttonColors(Color.Transparent)
@@ -66,7 +68,9 @@ fun BreakButton (
     if(isSure == true) {
         BreakAlertDialog(
             onDismissRequest = {
-                isSure = false },
+                isSure = false
+                resume()
+                               },
             confirmButton = breakFun,
         )
     }
@@ -125,7 +129,11 @@ fun PauseButton (
 @Composable
 fun BreakPauseButtonsPreview () {
     PomodoroTheme {
-        BreakButton()
+        BreakButton(
+            breakFun = {},
+            breakFunDialog = {},
+            resume = {}
+        )
     }
 }
 

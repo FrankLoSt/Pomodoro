@@ -1,6 +1,7 @@
 package com.example.pomodoro.ui.Screen1
 
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -117,19 +118,22 @@ fun DropDown (
                     itemLists = listFocusDuration,
                     onItemSelected = { minutes ->
                        setDurationMinutes(minutes)
-                    }
+                    },
+                    type = "duration"
                 )
                 DropdownFun(
                     itemLists = listRestDuration,
                     onItemSelected = { minutes ->
                         setRestDurationMinutes(minutes)
-                    }
+                    },
+                    type = "rest"
                 )
-                DropdownSessionFun(
+                DropdownFun(
                     itemLists = listSessions,
                     onItemSelected = { sessions ->
                         setSessions(sessions)
-                    }
+                    },
+                    type = "session"
                 )
                 DropdownMonsterFun(
                     itemLists = listMonsters,
@@ -144,40 +148,14 @@ fun DropDown (
 
 
 
-@Preview(
-    name = "Expanded Landscape",
-    widthDp = 800,
-    heightDp = 400,
-    showBackground = true
-)
-@Composable
-fun DropDownPreview () {
-    DropDown(
-        setDurationMinutes = {},
-        setRestDurationMinutes = {},
-        setSessions = {},
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DropDownPreview2 () {
-    DropDown(
-        setDurationMinutes = {},
-        setRestDurationMinutes = {},
-        setSessions = {},
-    )
-}
-
-
-
 @Composable
 fun DropdownFun (
     itemLists: List<Int>,
     onItemSelected: (Int) -> Unit,
+    type: String = "duration"
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedDuration by rememberSaveable { mutableIntStateOf(itemLists[0]) }
+    var selectedItem by rememberSaveable { mutableIntStateOf(itemLists[0]) }
 
     Box(
         modifier = Modifier
@@ -192,7 +170,12 @@ fun DropdownFun (
             horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
             Text(
-                text = if (selectedDuration == 1) "$selectedDuration min" else "$selectedDuration mins",
+                text = when (type) {
+                   "session" -> if (selectedItem == 1) "$selectedItem session" else "$selectedItem sessions"
+
+                    else -> if (selectedItem == 1) "$selectedItem min" else "$selectedItem mins"
+
+                },
                 modifier = Modifier
                     .padding(8.dp),
                 style = MaterialTheme.typography.titleSmall
@@ -208,76 +191,20 @@ fun DropdownFun (
             onDismissRequest = { expanded = false },
             modifier = Modifier.heightIn(max = 200.dp) // limit height
         ) {
-            itemLists.forEach { duration ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "$duration mins")
-                    },
-                    onClick = {
-                        onItemSelected(duration)
-                        selectedDuration = duration
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-@Composable
-fun DropdownSessionFun(
-    itemLists: List<Int>,
-    onItemSelected: (Int) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedItem by rememberSaveable { mutableIntStateOf(itemLists[0]) }
-
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .background(Color.LightGray),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .width(150.dp)
-                .align(Alignment.Center),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Text(
-                text = if (selectedItem == 1) "$selectedItem session" else "$selectedItem sessions",
-                modifier = Modifier.padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-        // ⬇️ Important: DropdownMenu is OUTSIDE Row but still inside Box
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp)
-        ) {
-            itemLists.forEach { session ->
+            itemLists.forEach { item ->
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = if (session == 1) "$session session" else "$session sessions",
+                            text =
+                                when (type ) {
+                                    "session" -> if (item == 1) "$item session" else "$item sessions"
+                                    else -> if (item == 1) "$item min" else "$item mins"
+                                }
                         )
-                           },
+                    },
                     onClick = {
-                        onItemSelected(session)
-                        selectedItem = session
+                        onItemSelected(item)
+                        selectedItem = item
                         expanded = false
                     }
                 )
@@ -285,7 +212,6 @@ fun DropdownSessionFun(
         }
     }
 }
-
 
 
 @Composable
@@ -355,6 +281,7 @@ fun AlertDialog1 (
     @DrawableRes image: Int = R.drawable.amor,
     duration: Int = 1
     ) {
+
     Dialog(
         onDismissRequest = onDismiss,
     ) {

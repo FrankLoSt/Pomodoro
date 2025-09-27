@@ -167,10 +167,12 @@ fun ScreenNavigation (
                 breakFun = {viewModel.breakFun()},
                 setDurationMinutes = {viewModel.setDurationMinutes(it)},
                 setRestDurationMinutes = {viewModel.setRestDurationMinutes(it)},
-                setSessions = {viewModel.setSessions(it)},
+                setSessions = {viewModel.setSessions(it)}, 
                 startCountDown = {viewModel.startCountDown()},
                 navHostController = navHostController,
-                breakFunDialog = {viewModel.breakFunDialog()}
+                breakFunDialog = {viewModel.breakFunDialog()},
+                resume = {viewModel.resume()},
+                toggleFinished = {viewModel.toggleFinished()}
             )
         }
         composable(EnumScreenClass.screen2.name) {

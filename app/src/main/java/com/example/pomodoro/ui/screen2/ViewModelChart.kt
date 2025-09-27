@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
+import com.example.pomodoro.data.datastore.SettingsRepositoryImpl2
 import com.madrapps.plot.line.DataPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -32,22 +33,22 @@ import javax.inject.Inject
 @HiltViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 class ViewModelChart @Inject constructor (
-    private val settingsRepository: SettingsRepositoryImpl,
+    private val settingsRepository: SettingsRepositoryImpl2,
 ): ViewModel() {
     init {
         viewModelScope.launch {
             create24hoursKeys()
         }
-        trackweekYear()
+        trackWeekYear()
     }
 
-    fun trackweekYear () = settingsRepository.trackweekYear()
+    fun trackWeekYear () = settingsRepository.trackWeekYear()
 
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
     val chartState = settingsRepository.chartState
     suspend fun create24hoursKeys () {
-            settingsRepository.create24hoursKeys()
+            settingsRepository.create24HoursKeys()
     }
 
 }

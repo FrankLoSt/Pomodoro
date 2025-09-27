@@ -83,7 +83,11 @@ class PomodoroControllerImpl @Inject constructor(
                     it.copy(currentSession = it.currentSession + 1)
                 }
             }
-            _focusUiState.update { it.copy(focusPhase = PomodoroPhase.FINISHED) }
+            _focusUiState.update {
+                it.copy(focusPhase = PomodoroPhase.FINISHED)
+            }
+           // Log.d("DEBUG", "focus phase: ${focusUiState.value.focusPhase}")
+           // Log.d("DEBUG", "Start(): Finished")
             reset()
         }
     }
@@ -94,16 +98,16 @@ class PomodoroControllerImpl @Inject constructor(
         while (focusUiState.value.duration > 0  && focusUiState.value.focusPhase == PomodoroPhase.FOCUS) {
             while (focusUiState.value.focusTimerStatus == TimerStatus.PAUSED) {
                 delay(100L)
-                Log.d("DEBUG", "Focus duration: PAUSED")
+               // Log.d("DEBUG", "Focus duration: PAUSED")
                 continue
             }
-
             delay(1000L)
 
             _focusUiState.update { it.copy(duration = if(focusUiState.value.focusTimerStatus == TimerStatus.PAUSED) (it.duration) else (it.duration - 1).coerceAtLeast(0)) }
-            settingsRepository.saveHourlyFocusDuration(1)
+             settingsRepository.saveAllFocusDurationData()
+            //Log.d("DEBUG", "Focus duration: ${focusUiState.value.duration}")
         }
-        Log.d("DEBUG", "Focus duration: DONE!")
+
     }
 
     private suspend fun runRestPhase() {
@@ -119,7 +123,7 @@ class PomodoroControllerImpl @Inject constructor(
 
             while (restUiState.value.restTimerStatus == TimerStatus.PAUSED) {
                 delay(100L)
-                Log.d("DEBUG", "Rest duration: PAUSED")
+               // Log.d("DEBUG", "Rest duration: PAUSED")
                 continue
             }
 
@@ -138,33 +142,39 @@ class PomodoroControllerImpl @Inject constructor(
     }
 
     override fun pause() {
+        Log.d("DEBUG", "Pause(): Pause called ")
+
         if (focusUiState.value.focusPhase == PomodoroPhase.FOCUS) {
+
             _focusUiState.update { it.copy(focusTimerStatus = TimerStatus.PAUSED) }
-            Log.d("DEBUG", "Pause(): Pause focus ")
+           // Log.d("DEBUG", "Pause(): Pause focus ")
+
         } else if (restUiState.value.restPhase == PomodoroPhase.REST) {
+
             _restUiState.update { it.copy(restTimerStatus = TimerStatus.PAUSED) }
-            Log.d("DEBUG", "Pause(): Pause rest ")
+           // Log.d("DEBUG", "Pause(): Pause rest ")
         }
     }
 
     override fun resume() {
+        Log.d("DEBUG", "Resume(): Resume called ")
         if (focusUiState.value.focusPhase == PomodoroPhase.FOCUS) {
             _focusUiState.update { it.copy(focusTimerStatus = TimerStatus.RUNNING) }
-            Log.d("DEBUG", "Resume(): Resume focus ")
+         //
         } else if (restUiState.value.restPhase == PomodoroPhase.REST) {
             _restUiState.update { it.copy(restTimerStatus = TimerStatus.RUNNING) }
-            Log.d("DEBUG", "Resume(): Resume rest ")
+          //  Log.d("DEBUG", "Resume(): Resume rest ")
         }
     }
 
     override fun reset() {
+        //Log.d("DEBUG", "Reset(): Reset")
         sessionJob?.cancel()
         _focusUiState.update {
             it.copy(
                 duration = it.initialDuration,
                 currentSession = 1,
                 focusTimerStatus = TimerStatus.STOPPED,
-                focusPhase = PomodoroPhase.IDLE
             )
         }
         _restUiState.update {
@@ -176,8 +186,14 @@ class PomodoroControllerImpl @Inject constructor(
         }
     }
 
+
     override fun breakFun() {
         reset()
+    }
+    fun toggleFinished () {
+        _focusUiState.update {
+            it.copy(focusPhase = PomodoroPhase.IDLE)
+        }
     }
 
     override fun formatter(durationSeconds: Int): String {
