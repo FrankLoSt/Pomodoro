@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
+import com.example.pomodoro.data.datastore.ViewMode
 import com.madrapps.plot.line.DataPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.prefs.Preferences
@@ -35,10 +37,8 @@ class ViewModelChart @Inject constructor (
     private val settingsRepository: SettingsRepositoryImpl,
 ): ViewModel() {
     init {
-        viewModelScope.launch {
-            create24hoursKeys()
-        }
         trackweekYear()
+        generateChart()
     }
 
     fun trackweekYear () = settingsRepository.trackweekYear()
@@ -46,8 +46,10 @@ class ViewModelChart @Inject constructor (
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
     val chartState = settingsRepository.chartState
-    suspend fun create24hoursKeys () {
-            settingsRepository.create24hoursKeys()
+
+    fun generateChart (viewMode: ViewMode = ViewMode.DayHour, weekStart: DayOfWeek = DayOfWeek.MONDAY) = viewModelScope.launch {
+        settingsRepository.generateChart(viewMode, weekStart)
     }
+
 
 }

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import kotlinx.coroutines.flow.first
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.example.pomodoro.data.datastore.zeroDayHoursDataPoints
 import com.madrapps.plot.line.DataPoint
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Year
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
@@ -31,6 +33,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.collections.*
+
 
 
 interface SettingsRepository {
@@ -39,13 +43,44 @@ interface SettingsRepository {
 
 }
 
+enum class ViewMode {
+    YearMonth,
+    YearWeek,
+    YearDay,
+    MonthDay,
+    WeekDay,
+    DayHour,
+}
+
+
+val zeroDayHoursDataPoints: List<DataPoint> = List(24) { index ->
+    DataPoint(index.toFloat(), 0f)
+}
+val zeroYearWeeksDataPoints: List<DataPoint> = List(52) { index ->
+    DataPoint(index.toFloat(), 0f)
+}
+val zeroYearMonthsDataPoints: List<DataPoint> = List(12) { index ->
+    DataPoint(index.toFloat(), 0f)
+}
+val zeroYearDaysDataPoints: List<DataPoint> = List(365) { index ->
+    DataPoint(index.toFloat(), 0f)
+}
+
+val zeroMonthDaysDataPoints: List<DataPoint> = List(31) { index ->
+    DataPoint(index.toFloat(), 0f)
+}
+val zeroWeekDaysDataPoints: List<DataPoint> = List(7) { index ->
+    DataPoint(index.toFloat(), 0f)
+}
 
 
 data class ChartState (
-    val chartDataYear: List<DataPoint> = emptyList(),
-    val chartDataWeek: List<DataPoint> = emptyList(),
-    val chartDataMonth: List<DataPoint> = emptyList(),
-    val chartDataDay: List<DataPoint> = emptyList(),
+    val chartDataYearMonths: List<DataPoint> = zeroYearMonthsDataPoints,
+    val chartDataYearWeeks: List<DataPoint> = zeroYearWeeksDataPoints,
+    val chartDataYearDays: List<DataPoint> = zeroYearDaysDataPoints,
+    val chartDataWeekDays: List<DataPoint> = zeroWeekDaysDataPoints,
+    val chartDataMonthDays: List<DataPoint> = zeroMonthDaysDataPoints,
+    val chartDataDayHours: List<List<DataPoint>> = zeroDayHoursDataPoints,
 )
 
 @Singleton
@@ -59,6 +94,11 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     private val formatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
     private val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
 
+    val hourKeys = (0..23).toList()
+    val weekKeys = (1..52).toList()
+    val monthKeys = (1..12).toList()
+
+    val viewModeList = listOf("YearMonth", "YearWeek", "YearDay", "MonthDay", "WeekDay", "DayHour")
     private val _chartState = MutableStateFlow(ChartState())
     val chartState: StateFlow<ChartState> = _chartState.asStateFlow()
 
@@ -67,6 +107,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         Log.d("DEBUG", "createHourlyFocusKey: $hourKey")
         return intPreferencesKey(hourKey)
     }
+
     //a helper function to create a key for each hour.
 
     override suspend fun saveHourlyFocusDuration(duration: Int) {
@@ -95,38 +136,143 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         ) //this only pull data, not affect anything
     }
 
-    val keys = (0..23).toList()
 
 
-    suspend fun create24hoursKeys() {
-        val todayKey = getTodayFormattedKey()
-        val preferences = dataStore.data.first()
 
-        val chartDataDay = buildList {
-            keys.forEachIndexed { index, hour ->
-                val hourKey = createHourKey(todayKey, hour)
-                val value = preferences[hourKey]?.toFloat() ?: 0f
+    private fun generateDaysData(preferences: Preferences): Map<LocalDate, Int> {
+        val daysData = preferences.asMap()
+            .filterKeys { it.name.matches(Regex("""\d{2} \d{2} \d{4}T\d{2}""")) } // Only keys like "26 09 2025T15"
+            //filter out keys that do not match the pattern, return a new map that contains only key-value pairs that has keys match the given rule
+            //mapNotNull{} only works with non-null values, automatically skip null values -> safe
+            .mapNotNull { (key, value) ->
+                val name = key.name //turn it from Preferences.Key<String> to String
+                val datePart = name.substringBefore("T") //only get the date part, e.g. "26 09 2025"
+                val date = try {
+                    LocalDate.parse(datePart, DateTimeFormatter.ofPattern("dd MM yyyy"))
+                } catch (e: Exception) {
+                    null
+                }
+                //these lines are meant to transform keys from string to LocalDate object
+                date?.let { it to (value as? Int ?: 0) }
+                    //this returns a Pair<LocalDate, Int>  if date is not null, else null -> then skip
+            }
+            .groupBy({ it.first }, { it.second })
+            //groupBy returns a Map<LocalDate, List<Int>>
+            .mapValues { (_, values) -> values.sum() }
+            //mapValues transform values from List<Int> to Int
+        Log.d("DEBUG", "generateDaysData: $daysData")
+        return daysData
+    }
 
-                add(DataPoint(index.toFloat(), value))
+    //create a map of focus time for 365 or 366 days of the year
+    //MONDAY by default
+    suspend fun generateChart (viewMode: ViewMode = ViewMode.DayHour, weekStart: DayOfWeek = DayOfWeek.MONDAY) {
+        val preferencesObj = dataStore.data.first()
+        Log.d("DEBUG", "generateChart: $preferencesObj")
+        val today = LocalDate.now()
+        val daysData = generateDaysData(preferencesObj)
+
+        val threshold = 10
+
+        when (viewMode) {
+            ViewMode.YearMonth -> {
+                val data = monthKeys.mapIndexed{ index, month ->
+                    val sameMonthData = daysData.filter{it.key.monthValue == month}//filter days in the same month
+                        .filter{it.value > threshold} //only days that have focus time > 300s or 5 min is displayed, else = 0
+                    val totalFocusTime = sameMonthData.values.sum()
+                    DataPoint((index+1).toFloat(), totalFocusTime.toFloat())
+                }
+                updateChartState(chartDataYearMonths = data)
+            }
+
+            ViewMode.YearWeek -> {
+                val weekFields = WeekFields.of(weekStart, 1)
+                val data = weekKeys.mapIndexed { index, week ->
+                    val sameWeekData =
+                        daysData.filter { it.key.get(weekFields.weekOfYear()) == week }//filter days in the same week
+                            .filter { it.value > threshold } //only days that have focus time > 300s or 5 min is displayed, else = 0
+                    val totalFocusTime = sameWeekData.values.sum()
+                    DataPoint((index+1).toFloat(), totalFocusTime.toFloat())
+                }
+                updateChartState(chartDataYearWeeks = data)
+            }
+
+            ViewMode.YearDay ->  {
+                val daysInYear = if (today.isLeapYear) 366 else 365
+                val data = (0 until daysInYear).mapIndexed { index, offset ->
+                    val date = LocalDate.ofYearDay(today.year, offset + 1)
+                    val value = daysData[date]?.toFloat() ?: 0f
+                    DataPoint((index + 1).toFloat(), value)
+                }
+                updateChartState(chartDataYearDays = data)
+            }
+            ViewMode.MonthDay -> {
+                val daysInMonth = today.lengthOfMonth()
+                val data = (1..daysInMonth).mapIndexed { index, day ->
+                    val date = LocalDate.of(today.year, today.month, day)
+                    val value = daysData[date]?.toFloat() ?: 0f
+                    DataPoint(index.toFloat(), value)
+                }
+                updateChartState(chartDataMonthDays = data)
+            }
+            ViewMode.WeekDay -> {
+                val startOfWeek = today.with(WeekFields.of(weekStart, 1).dayOfWeek(), 1)
+                val data = (0..6).mapIndexed { index, offset ->
+                    val date = startOfWeek.plusDays(offset.toLong())
+                    val value = daysData[date]?.toFloat() ?: 0f
+                    DataPoint(index.toFloat(), value)
+                }
+                updateChartState(chartDataWeekDays = data)
+            }
+
+            ViewMode.DayHour -> {
+                val todayKey = today.format(formatterDay) //string
+                //todayKey: 06 10 2025
+                val converter = DateTimeFormatter.ofPattern("dd MM yyyy")
+                val todayDate = LocalDate.parse(todayKey, converter)
+                val totalFocus = daysData[todayDate] ?: 0
+
+
+                if (totalFocus < threshold) { // <10s → no data ONLY FOR TESTING
+                    updateChartState(chartDataDayHours = emptyList())
+                    Log.d("DEBUG", "No focus data recorded for $todayKey")
+                    return
+                }
+
+                val data = hourKeys.mapIndexed { index, hour ->
+                    val hourKey = intPreferencesKey("${todayKey}T${hour.toString().padStart(2, '0')}")
+                    DataPoint(index.toFloat(), preferencesObj[hourKey]?.toFloat() ?: 0f)
+                }
+                updateChartState(chartDataDayHours = data)
             }
         }
-
-        updateChartState(chartDataDay)
     }
+
+
 
     // Helper functions for better organization
-    private fun getTodayFormattedKey(): String {
-        return LocalDate.now().format(formatterDay)
-    }
 
-    private fun createHourKey(todayKey: String, hour: Int): Preferences.Key<Int> {
-        val hourString = hour.toString().padStart(2, '0')
-        return intPreferencesKey("${todayKey}T$hourString")
-    }
 
-    private fun updateChartState(chartData: List<DataPoint>) {
-        _chartState.update { it.copy(chartDataDay = chartData) }
-        Log.d("DEBUG", "Chart data updated: ${chartData.size} points")
+    private fun updateChartState(
+        chartDataYearMonths: List<DataPoint> = emptyList(),
+        chartDataYearWeeks: List<DataPoint> = emptyList(),
+        chartDataYearDays: List<DataPoint> = emptyList(),
+        chartDataWeekDays: List<List<DataPoint>> = emptyList(),
+        chartDataMonthDays: List<DataPoint> = emptyList(),
+        chartDataDayHours: List<List<DataPoint>> = emptyList(),
+      //this will not work because line graph does not take empty list. It needs at least one data point
+    ) {
+        _chartState.update {
+            it.copy(
+                chartDataYearMonths = chartDataYearMonths,
+                chartDataYearWeeks = chartDataYearWeeks,
+                chartDataYearDays = chartDataYearDays,
+                chartDataWeekDays = chartDataWeekDays,
+                chartDataMonthDays = chartDataMonthDays,
+                chartDataDayHours = chartDataDayHours,
+            )
+        }
+        Log.d("DEBUG", "Chart updated: Day=${chartDataDayHours.size}, Week=${chartDataWeekDays.size}, Month=${chartDataMonthDays.size}")
     }
 
     fun trackweekYear () {
@@ -137,8 +283,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         val weekOfYear = today.get(WeekFields.ISO.weekOfYear())  // e.g., 39
         Log.d("DEBUG", "trackweekYear: $dayName, $dayIndex, $weekOfYear")
     } //this is only for testing
-
-
 
 
 }

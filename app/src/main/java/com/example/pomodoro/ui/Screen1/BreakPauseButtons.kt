@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
 import com.example.pomodoro.data.FocusUiState
+import com.example.pomodoro.data.TimerState
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
@@ -111,7 +112,7 @@ fun PauseButton (
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = if (focusUiState.isPause) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
+                painter = if (focusUiState.timerState == TimerState.PAUSED) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
                 contentDescription = null,
                 modifier = Modifier.size(width = 100.dp, height = 50.dp)
             )

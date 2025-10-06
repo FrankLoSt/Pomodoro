@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
+import com.example.pomodoro.data.AppPhase
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
 import com.example.pomodoro.ui.theme.PomodoroTheme
@@ -35,9 +36,11 @@ fun CircularProgressBar (
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = if (restUiState.isStudying && focusUiState.isRunning) stringResource(R.string.Studying) else stringResource(
-                R.string.Taking_a_break
-            ),
+            text = if (focusUiState.appPhrase == AppPhase.FOCUSING)
+                stringResource(R.string.Studying)
+            else if (focusUiState.appPhrase == AppPhase.RESTING)
+                stringResource(R.string.Taking_a_break)
+            else "",
             style = MaterialTheme.typography.titleLarge
         )
         Box(
@@ -45,7 +48,7 @@ fun CircularProgressBar (
             modifier = Modifier.wrapContentSize(),
         ) {
             //rest countdown Screen
-            if (restUiState.isStudying && focusUiState.isRunning) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
+            if (focusUiState.appPhrase == AppPhase.FOCUSING) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
                 val progress = focusUiState.studyProgress()
                 CustomCircularProgressIndicator(
                     progress = progress,
@@ -53,10 +56,15 @@ fun CircularProgressBar (
                 )
             }
             //progress focus time
-            else {
+            else if(focusUiState.appPhrase == AppPhase.RESTING){
                 val progress = restUiState.restProgress()
                 CustomCircularProgressIndicator(
                     progress = progress,
+                    modifier = Modifier.size(300.dp),
+                )
+            } else if (focusUiState.appPhrase == AppPhase.FINISHED) {
+                CustomCircularProgressIndicator(
+                    progress = 0f,
                     modifier = Modifier.size(300.dp),
                 )
             }

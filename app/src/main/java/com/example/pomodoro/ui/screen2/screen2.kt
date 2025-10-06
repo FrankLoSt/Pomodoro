@@ -64,6 +64,8 @@ fun Screen2LineChart(
         ?.format(formatterUI)
 //to convert from string with custom format to LocalDate or LocalDateTime Object,
 // you need to make sure the format used to transform them match the current format of the string, or else -> crash
+
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -74,7 +76,7 @@ fun Screen2LineChart(
             text = "Last time fighting: $parsedDate"
         )
         ChartTest(
-            listData = chartState.chartDataDay
+            listData = chartState.chartDataYearWeeks
         )
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }

@@ -38,6 +38,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.Screen1.Screen1
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
@@ -46,6 +47,7 @@ import com.example.pomodoro.ui.screen2.ViewModelChart
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -83,10 +85,7 @@ class MainActivity : ComponentActivity() {
                                     selected = false,
                                     onClick = {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
-                                        scope.launch {
-                                            drawerState.close()
-                                            viewModelChart.create24hoursKeys()
-                                        }
+                                        viewModelChart.generateChart(ViewMode.YearWeek)
                                     }
                                 )
                             NavigationDrawerItem(
@@ -94,7 +93,9 @@ class MainActivity : ComponentActivity() {
                                 selected = false,
                                 onClick = {
                                     navHostController.navigate(EnumScreenClass.screen1.name)
-                                    scope.launch { drawerState.close() }
+                                    scope.launch {
+                                        drawerState.close()
+                                    }
                                 }
                             )
                             NavigationDrawerItem(

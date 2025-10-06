@@ -22,6 +22,8 @@ import com.example.pomodoro.data.RestUiState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass // ✅
 import androidx.compose.ui.unit.DpSize
 import androidx.navigation.NavHostController
+import com.example.pomodoro.data.AppPhase
+import com.example.pomodoro.data.TimerState
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -48,15 +50,8 @@ fun Screen1 (
             .padding(top = 100.dp)
     ) {
         //session title
-        if(!restUiState.isShowingMenu) {
-            CircularProgressBar(
-                focusUiState = focusUiState,
-                restUiState = restUiState,
-                formatter = formatter
-            )
-        }
 
-        if(restUiState.isShowingMenu) {
+        if(focusUiState.appPhrase == AppPhase.IDLE  && focusUiState.timerState == TimerState.STOPPED) {
             DropDown(
                 listSessions = focusUiState.listSessions,
                 listFocusDuration = focusUiState.listFocusDuration,
@@ -65,18 +60,16 @@ fun Screen1 (
                 setRestDurationMinutes = setRestDurationMinutes,
                 setSessions = setSessions,
             )
-        }
-        if(focusUiState.isFinished) {
-            AlertDialog1(
-                onDismiss = toggleisFinished,
-                duration = focusUiState.duration
-            )
-        }
-        if(restUiState.isShowingMenu) {
             CountDownButton(
                 startCountDown = startCountDown,
             )
-        } else {
+        }
+        else  {
+            CircularProgressBar(
+                focusUiState = focusUiState,
+                restUiState = restUiState,
+                formatter = formatter
+            )
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -91,6 +84,14 @@ fun Screen1 (
                 )
             }
         }
+
+        if(focusUiState.appPhrase == AppPhase.FINISHED) {
+            AlertDialog1(
+                onDismiss = toggleisFinished,
+                duration = focusUiState.duration
+            )
+        }
+
     }
 }
 

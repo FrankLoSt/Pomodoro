@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
 import com.example.pomodoro.data.PomodoroControllerImpl
+import com.example.pomodoro.data.TimerState
 import com.example.pomodoro.data.datastore.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -33,7 +34,7 @@ class ViewModelCountDown @Inject constructor(
     fun breakFun() = controller.breakFun()
     //only turns on pause when users want to break if it is not already paused
     fun breakFunDialog() {
-        if(!focusUiState.value.isPause) { //if isPause = true -> nothing happens, if false -> pause()
+        if(focusUiState.value.timerState != TimerState.PAUSED) { //if isPause = true -> nothing happens, if false -> pause()
             togglePauseResume()
         } 
     }
@@ -42,13 +43,13 @@ class ViewModelCountDown @Inject constructor(
     fun resume() = controller.resume()
 
     fun togglePauseResume () {
-        if(focusUiState.value.isPause) {
+        if(focusUiState.value.timerState == TimerState.PAUSED) {
             resume()
         } else {
             pause()
         }
     }
-    fun toggleisFinished() = controller.toggleisFinished()
+    fun toggleisFinished() = controller.toggleFinished()
 
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)
     fun setRestDurationMinutes(minutes: Int) = controller.setRestDurationMinutes(minutes)

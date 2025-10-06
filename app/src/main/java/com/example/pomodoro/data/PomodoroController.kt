@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import javax.inject.Inject
+import kotlin.concurrent.timer
 
 interface PomodoroController {
     val focusUiState: StateFlow<FocusUiState>
@@ -52,7 +53,7 @@ class PomodoroControllerImpl @Inject constructor(
     //Create job controllers for 2 countdown
     private var studyJob: Job? = null
 
-
+    //--------SET UP ---------
     override fun setDurationMinutes(minutes: Int) {
         val seconds = minutes   //remove  * 60 for testing  - minutes * 60
         _focusUiState.update { it.copy(duration = seconds, initialDuration = seconds) }
@@ -71,25 +72,41 @@ class PomodoroControllerImpl @Inject constructor(
     }
 
 
-
+    //------------- Count down Logic-------------
     private suspend fun countdownStudy() = coroutineScope {
+        //set up
+        val timerState = _focusUiState.value.timerState
+        Log.d("DEBUG", "countdownStudy: timerState = $timerState")
+        val appPhrase = _focusUiState.value.appPhrase
+        Log.d("DEBUG", "countdownStudy: appPhrase = $appPhrase")
+
+        _focusUiState.update{
+            it.copy(
+                timerState = TimerState.RUNNING,
+                appPhrase = AppPhase.FOCUSING
+            )
+        }
+
         while (isActive) {
-            while (focusUiState.value.isPause) {
+            while (focusUiState.value.timerState == TimerState.PAUSED) {
                 Log.d("DEBUG", "countdownStudy: pausing")
                 delay(100L)
             }
             val current = focusUiState.value
 
-            if (!current.isRunning || current.duration <= 0) break //if isRunning = false or duration <= 0 then break
+            if (current.timerState == TimerState.STOPPED||
+                current.appPhrase == AppPhase.FINISHED ||
+                current.appPhrase == AppPhase.IDLE ||
+                current.appPhrase == AppPhase.RESTING ||
+                current.duration <= 0) break //if isRunning = false or duration <= 0 then break
             delay(1000L)
 
-            if(!focusUiState.value.isPause && focusUiState.value.isRunning && restUiState.value.isStudying)
+            if(timerState == TimerState.RUNNING && appPhrase == AppPhase.FOCUSING)
             {settingsRepository.saveHourlyFocusDuration(1)}
             //only save when isPause = false, app is running and users are studying
 
-            //save one second
 
-            _focusUiState.update { it.copy(duration = if (focusUiState.value.isPause) it.duration else (it.duration - 1).coerceAtLeast(0)) }
+            _focusUiState.update { it.copy(duration = if (timerState == TimerState.PAUSED) it.duration else (it.duration - 1).coerceAtLeast(0)) }
 
             Log.d("DEBUG", "countdownStudy: ${current.duration}")
         }
@@ -98,40 +115,58 @@ class PomodoroControllerImpl @Inject constructor(
 
 
     private suspend fun countdownRest() = coroutineScope {
+        val timerState = _focusUiState.value.timerState
+        Log.d("DEBUG", "countdownStudy: timerState = $timerState")
+        val appPhrase = _focusUiState.value.appPhrase
+        Log.d("DEBUG", "countdownStudy: appPhrase = $appPhrase")
+
+        _focusUiState.update{
+            it.copy(
+                appPhrase = AppPhase.RESTING,
+                timerState = TimerState.RUNNING
+            )
+        }
+
         while (isActive) {
-            while (focusUiState.value.isPause) {
+            while (timerState == TimerState.PAUSED) {
                 Log.d("DEBUG", "countdownRest: pausing")
                 delay(100L)
             }
 
-            val currentRest = _restUiState.value
-            if (currentRest.isStudying || currentRest.restDuration <= 0) break // if isRunning = true or isStudying = true or restDuration <= 0 then break
+            if (
+                timerState == TimerState.STOPPED ||
+                restUiState.value.restDuration <= 0 ||
+                appPhrase == AppPhase.FINISHED ||
+                appPhrase == AppPhase.FOCUSING ||
+                appPhrase == AppPhase.IDLE
+                ) break
+
             delay(1000L)
 
-            _restUiState.update { it.copy(restDuration = if (focusUiState.value.isPause) it.restDuration else (it.restDuration - 1).coerceAtLeast(0)) }
+            _restUiState.update { it.copy(restDuration = if (timerState == TimerState.PAUSED) it.restDuration else (it.restDuration - 1).coerceAtLeast(0)) }
                                                        //if isPause -> no update
-            Log.d("DEBUG", "countdownRest: ${currentRest.restDuration}")
+            Log.d("DEBUG", "countdownRest: ${restUiState.value.restDuration}")
         }
         Log.d("DEBUG", "countdownRest: break finished")
     } //countdown for rest session
 
     override fun start () {
         studyJob?.cancel()
-
         Log.d("DEBUG", "start: start() runs")
-        _restUiState.update { it.copy(isShowingMenu = false)}
+
+        _focusUiState.update { it.copy(
+            timerState = TimerState.RUNNING,
+            appPhrase = AppPhase.FOCUSING,
+        ) }
+
         studyJob = scope.launch {
             delay(100L)
-            while (
-               focusUiState.value.sessions <= focusUiState.value.totalSessions
-            ) {
-                _focusUiState.update{ it.copy(isRunning = true, duration = it.initialDuration) }
-                _restUiState.update { it.copy(isStudying = true) }
+            while (focusUiState.value.sessions <= focusUiState.value.totalSessions) {
+
                 countdownStudy() //before running countdown, make sure isRunning = true, duration > 0, and isStudying = true.
 
                 if(focusUiState.value.sessions == focusUiState.value.totalSessions) break // at the last session, break
 
-                _restUiState.update { it.copy(isStudying = false, restDuration = it.initialRestDuration) } //not studying anymore
                 countdownRest() // isStudying = false because users are not studying, they are taking a break.
 
                 _focusUiState.update {
@@ -143,9 +178,7 @@ class PomodoroControllerImpl @Inject constructor(
                 Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.totalSessions}")
             }
 
-            _focusUiState.update { it.copy(isFinished = true) } //isFinished = true => display alert dialog, users have to click Ok to call toggleisFinished() to close it.
-
-            reset()
+            _focusUiState.update { it.copy(appPhrase = AppPhase.FINISHED) } // if appPhase == FINISHED ->
             Log.d("DEBUG", "start: start() ends")
         }
     }
@@ -155,28 +188,27 @@ class PomodoroControllerImpl @Inject constructor(
 
         _focusUiState.update {
             it.copy(
-                isRunning = false,
+                appPhrase = AppPhase.IDLE,
+                timerState =  TimerState.STOPPED,
                 duration = it.initialDuration,
                 sessions = 1,
-                isPause = false,
             )
         }
         _restUiState.update {
             it.copy(
-                isStudying = false,
                 restDuration = it.initialRestDuration,
-                isShowingMenu = true
             )
         }
         Log.d("reset", "reset: reset done!")
     }
-    fun toggleisFinished () {
-        _focusUiState.update { it.copy(isFinished = false) }
+    fun toggleFinished () {
+        reset()
     }
 
-    
-    // still need breakFun because when my app scale, I need to save users data
+
     //Before cancell everything -> save users focus time.
+
+    //----BREAK - PAUSE - RESUME LOGIC -----
     override fun breakFun () {
         Log.d("DEBUG", "breakFun: breakFun() runs")
         reset() //cancel all jobs
@@ -184,13 +216,12 @@ class PomodoroControllerImpl @Inject constructor(
 
     override fun pause() {
         Log.d("DEBUG", "pause: pause() runs")
-        _focusUiState.update { it.copy(isPause = true) }
-
+        _focusUiState.update { it.copy(timerState = TimerState.PAUSED) }
     }
     override fun resume () {
         Log.d("DEBUG", "resume: resume() runs")
 
-        _focusUiState.update { it.copy(isPause = false) }
+        _focusUiState.update { it.copy(timerState = TimerState.RUNNING) }
     }
 
 
