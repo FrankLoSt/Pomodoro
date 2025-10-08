@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.pomodoro.data.datastore.ChartState
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import com.google.apps.card.v1.Button
@@ -55,13 +59,10 @@ fun Screen2LineChart(
     viewModelChart: ViewModelChart,
     navHostController: NavHostController
 ) {
-    val chartState by viewModelChart.chartState.collectAsState()
-    val lastDayActive by viewModelChart.lastDayActive.collectAsState() //String?
-    val formatterUI = DateTimeFormatter.ofPattern("dd MM yyyy")
-    val storageFormatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
-    val parsedDate = lastDayActive
-        ?.let { LocalDate.parse(it, storageFormatter) }
-        ?.format(formatterUI)
+    val chartState: ChartState by viewModelChart.chartState.collectAsState()
+    val lastDayActive: String? by viewModelChart.lastDayActive.collectAsState() //String?
+
+    val parsedDate: String? = lastDayActive
 //to convert from string with custom format to LocalDate or LocalDateTime Object,
 // you need to make sure the format used to transform them match the current format of the string, or else -> crash
 
@@ -73,8 +74,9 @@ fun Screen2LineChart(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Last time fighting: $parsedDate"
+            text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
+
         ChartTest(
             listData = chartState.chartDataYearDays
         )
@@ -88,7 +90,12 @@ fun Screen2LineChart(
 
 
 
-
+@Composable
+fun DropDownViewMode () {
+    var expanded: Boolean by remember { mutableStateOf(false) }
+    val options: List<String> = listOf("Option 1", "Option 2", "Option 3")
+    var selectedOption: String by remember { mutableStateOf(options[0]) }
+}
 
 
 

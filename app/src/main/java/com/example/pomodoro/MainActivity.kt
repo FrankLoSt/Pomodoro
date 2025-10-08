@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
                                     selected = false,
                                     onClick = {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
-                                        viewModelChart.generateChart(ViewMode.YearDay)
+
                                     }
                                 )
                             NavigationDrawerItem(

@@ -41,15 +41,11 @@ class ViewModelChart @Inject constructor (
         generateChart()
     }
 
-    fun trackweekYear () = settingsRepository.trackweekYear()
+    fun trackweekYear () = viewModelScope.launch {settingsRepository.trackweekYear()}
 
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
     val chartState = settingsRepository.chartState
-
-    fun generateChart (viewMode: ViewMode = ViewMode.DayHour, weekStart: DayOfWeek = DayOfWeek.MONDAY) = viewModelScope.launch {
-        settingsRepository.generateChart(viewMode, weekStart)
-    }
-
+    fun generateChart() = viewModelScope.launch { settingsRepository.generateChart() }
 
 }

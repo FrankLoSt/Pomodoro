@@ -28,6 +28,5 @@ data class RestUiState(
     val restDuration: Int = 5, //test with 30
     val initialRestDuration: Int = 5,//test with 30
 ) {
-    fun restProgress(): Float =
-        if (initialRestDuration > 0) 1f - restDuration.toFloat() / initialRestDuration else 0f
+    fun restProgress(): Float = if (initialRestDuration > 0) 1f - restDuration.toFloat() / initialRestDuration else 0f
 }
