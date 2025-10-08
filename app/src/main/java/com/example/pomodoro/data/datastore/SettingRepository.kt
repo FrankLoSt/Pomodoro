@@ -153,8 +153,8 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             ViewMode.MonthDay -> TODO()
             ViewMode.WeekDay -> TODO()
             ViewMode.DayHour -> {
-                val hoursKey = hourList.mapIndexed{index, _  ->
-
+                val hoursKey: List<DataPoint> = hourList.mapIndexed{index, _  ->
+                    val key = today
                 }
 
                 val dayData = preferencesObject.asMap()
