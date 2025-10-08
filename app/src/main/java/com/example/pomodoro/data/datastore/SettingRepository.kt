@@ -139,6 +139,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         ) //this only pull data, not affect anything
     }
 
+    val hourList: List<Int> = List(24) { index -> index}
 
     suspend fun generateChart (viewMode: ViewMode = ViewMode.DayHour) {
         val today: LocalDate = LocalDate.now()
@@ -152,6 +153,10 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             ViewMode.MonthDay -> TODO()
             ViewMode.WeekDay -> TODO()
             ViewMode.DayHour -> {
+                val hoursKey = hourList.mapIndexed{index, _  ->
+
+                }
+
                 val dayData = preferencesObject.asMap()
                     .filterKeys{
                    regexDayHourKey.matches(it.name)

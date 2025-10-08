@@ -29,7 +29,10 @@ fun main () {
             //return a Map that only contains keys that matches the form : "29 09 2025T0"
         }.toList()
         .groupBy{it.first.name.substringBefore("T")}
-    println(dayData)
+
+    val hourList: List<Int> = List(24) { index -> index}
+    println(hourList)
+
 }
 
 
