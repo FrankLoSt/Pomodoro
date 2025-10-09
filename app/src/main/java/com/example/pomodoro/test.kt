@@ -1,7 +1,7 @@
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.core.i18n.DateTimeFormatter
+
 import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
@@ -14,20 +14,73 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun main () {
     val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
-    val dayData = preferencesObj.asMap()
+
+    val dayData:Map<String, List<Pair<Preferences.Key<*>, Any>>> = preferencesObj.asMap()
         .filterKeys{
             regexDayHourKey.matches(it.name)
             //return a Map that only contains keys that matches the form : "29 09 2025T0"
-        }
+        }.toList()
+        .groupBy{it.first.name.substringBefore("T")}
+
+    val totalFocusDayData: Map<String, Int> = dayData.mapValues{ values ->
+        values.value.sumOf { pair -> pair.second.toString().toIntOrNull()?: 0 }
+        //type Any -> to Int
+    }
+    println(totalFocusDayData)
+
+    val formatter = DateTimeFormatter.ofPattern("dd MM yyyy")
+
+
+    val listDays: List<LocalDate> = totalFocusDayData.map{LocalDate.parse(it.key, formatter)}
+    println(listDays)
+
+
+    val year = 2025
+    val weekFields = WeekFields.ISO // Monday-based weeks
+    val firstDayOfYear = LocalDate.of(year, 1, 1)
+    val listWeeks: Map<Int, List<LocalDate>> = buildMap {
+        listDays.map { it.get(WeekFields.ISO.weekOfYear()) }
+            .toSet()
+            .forEach { weekNumber ->
+                val firstWeekDate = firstDayOfYear.with(weekFields.weekOfYear(), weekNumber.toLong())
+                val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
+                val datesInWeek = (0..6).map { startOfWeek.plusDays(it.toLong()) }
+                put(weekNumber, datesInWeek)
+            }
+    }
+    println(listWeeks)
+
+
+
+
+
+
+
+
+
+    val weekNumber = 24.toLong()
+    val firstWeekDate = firstDayOfYear.with(weekFields.weekOfYear(), weekNumber)
+    val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
+    val datesInWeek = (0..6).map { startOfWeek.plusDays(it.toLong()) }
+    /*
+    * weekFields -> set rule of a week : ISO -> Monday-based, 4+ days -> counted as a week
+    * firstDayOfYear -> set the first day of the year
+    * firstWeekDate -> this is like a jump to a random day in the given week.
+    * */
+
+    //datesInWeek.forEach { println(it.format(java.time.format.DateTimeFormatter.ofPattern("dd MM yyyy"))) }
 
 }
 

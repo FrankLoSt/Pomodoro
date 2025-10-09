@@ -182,7 +182,23 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             ViewMode.YearMonth -> TODO()
             ViewMode.YearWeek -> TODO()
             ViewMode.MonthDay -> TODO()
-            ViewMode.WeekDay -> {}
+            ViewMode.WeekDay -> {
+                val totalFocusOfADay = preferencesObject.asMap()
+                    .filterKeys {
+                        regexDayHourKey.matches(it.name)
+                        //return a Map that only contains keys that matches the form : "29 09 2025T0"
+                    }.toList()
+                    .groupBy { it.first.name.substringBefore("T") }
+                    //this will just return an empty Map if preferencesObject is empty
+                    .mapValues { values ->
+                        values.value.sumOf{
+                            pair ->
+                            pair.second.toString().toIntOrNull() ?:0}
+                    }
+                //{26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
+
+
+            }
             ViewMode.DayHour -> {
 
                 val chartDataDayHours = preferencesObject.asMap()
@@ -260,6 +276,8 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         }
         return chartDataDay
     }
+
+    //private fun createAWeekKey(week: String, preferencesObject: Preferences): List<DataPoint> {}
 
 
     // Helper functions for better organization
