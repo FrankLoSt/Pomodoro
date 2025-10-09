@@ -100,7 +100,7 @@ fun Screen2LineChart(
 //to convert from string with custom format to LocalDate or LocalDateTime Object,
 // you need to make sure the format used to transform them match the current format of the string, or else -> crash
     val availableDaysList = chartUpdate.availableDays
-    Log.d("DEBUG", "Screen2LineChart: $availableDaysList")
+
 
     Column(
         modifier = Modifier

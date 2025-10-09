@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import kotlinx.coroutines.flow.first
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.pomodoro.data.datastore.zeroDayHoursDataPoints
 
@@ -47,6 +48,8 @@ import kotlin.collections.*
 interface SettingsRepository {
     suspend fun createHourlyFocusKey(): Preferences.Key<Int>
     suspend fun saveHourlyFocusDuration(duration: Int)
+
+    suspend fun generateChart(viewMode: ViewMode) {}
 
 }
 
@@ -94,103 +97,116 @@ val zeroDayHoursDataPoints: List<DataPoint> = buildList {
         val chartDataMonthDays: Map<String, List<DataPoint>>? = null,
         val chartDataDayHours: Map<String, List<DataPoint>>? = null,
     )
-data class ChartUpdate (
-    val availableDays: List<String> = listOf("06 10 2025"),
+    data class ChartUpdate (
+    val availableDays: List<String> = listOf("No Data"),
     val dateHourDataPoint: List<DataPoint> = zeroDayHoursDataPoints
 )
 
 
-    @Singleton
-    @RequiresApi(Build.VERSION_CODES.O)
-    class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need to inject this dependency in the constructor to build this class -> Hilt looks at it at compile time -> draw the graph -> then at run time -> it will inject the dependency
+@Singleton
+@RequiresApi(Build.VERSION_CODES.O)
+class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need to inject this dependency in the constructor to build this class -> Hilt looks at it at compile time -> draw the graph -> then at run time -> it will inject the dependency
         private val dataStore: DataStore<Preferences>,
         private val scope: CoroutineScope
     ) : SettingsRepository {
 
-        private val LAST_FOCUS_KEY: Preferences.Key<String> =
-            stringPreferencesKey("last_active_time")
-        private val formatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
-        private val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
+    private val LAST_FOCUS_KEY: Preferences.Key<String> =
+        stringPreferencesKey("last_active_time")
+    private val formatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
+    private val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
 
 
-        private val _chartState = MutableStateFlow(ChartState())
-        val chartState: StateFlow<ChartState> = _chartState.asStateFlow()
+    private val _chartState = MutableStateFlow(ChartState())
+    val chartState: StateFlow<ChartState> = _chartState.asStateFlow()
 
-        private val _chartUpdate = MutableStateFlow(ChartUpdate())
-        val chartUpdate: StateFlow<ChartUpdate> = _chartUpdate.asStateFlow()
+    private val _chartUpdate = MutableStateFlow(ChartUpdate())
+    val chartUpdate: StateFlow<ChartUpdate> = _chartUpdate.asStateFlow()
 
+    val todayTimeKey: LocalDateTime = LocalDateTime.now()
+    val todayKey: LocalDate = todayTimeKey.toLocalDate()
 
-        override suspend fun createHourlyFocusKey(): Preferences.Key<Int> {
-            val hourKey: String = LocalDateTime.now().format(formatter)
-            Log.d("DEBUG", "createHourlyFocusKey: $hourKey")
-            return intPreferencesKey(hourKey)
-        }
-        //a helper function to create a key for each hour.
+    override suspend fun createHourlyFocusKey(): Preferences.Key<Int> {
+        val hourKey: String = todayTimeKey.format(formatter)
+        Log.d("DEBUG", "createHourlyFocusKey: $hourKey")
+        return intPreferencesKey(hourKey)
+    }
+    //a helper function to create a key for each hour.
 
-        //everytime study countdown runs -> save 1 sec
-        override suspend fun saveHourlyFocusDuration(duration: Int) {
-            val hourKey: Preferences.Key<Int> = createHourlyFocusKey()
-            val old: Int = dataStore.data.first()[hourKey] ?: 0
+    //everytime study countdown runs -> save 1 sec
+    override suspend fun saveHourlyFocusDuration(duration: Int) {
+        val hourKey: Preferences.Key<Int> = createHourlyFocusKey()
+        dataStore.edit {
+            val old: Int = it[hourKey] ?: 0
             Log.d("DEBUG", "saveHourlyFocusDuration: $old")
-            dataStore.edit {
-                it[hourKey] = old + duration  //save in "29 09 2025T0"
-                it[hourKey]?.let { it1 -> //
-                    if (it1 >= 10) { //only save as last focus if it is more than 10 secs
-                        it[LAST_FOCUS_KEY] = LocalDate.now().format(formatterDay) // "26 09 2025"
-                    }
+            val newVal = old + duration
+
+            it[hourKey] = newVal //save in "29 09 2025T0"
+            it[hourKey]?.let { it1 -> //
+                if (it1 >= 10) { //only save as last focus if it is more than 10 secs - TESTING
+                    it[LAST_FOCUS_KEY] = LocalDate.now().format(formatterDay) // "26 09 2025"
                 }
             }
         }
+    }
 
-        fun getLastDayActive(): StateFlow<String?> {
-            return dataStore.data.map {
-                it[LAST_FOCUS_KEY]
-            }.stateIn(
-                scope = scope,
-                started = SharingStarted.WhileSubscribed(),
-                initialValue = null
-            ) //this only pull data, not affect anything
-        }
+    fun getLastDayActive(): StateFlow<String?> {
 
-        val hourList: List<Int> = List(24) { index -> index }
+        //dataStore.data returns a Flow<Preferences>
+        //dataStore.data.first() returns a Preferences object, which is always the latest value of the data store
 
-        var preferencesObj: Preferences? = null
-        suspend fun getPreferencesObj(): Preferences  {
-            preferencesObj = dataStore.data.first()
-            return dataStore.data.first()
-        }
+        return dataStore.data.map {
+            it[LAST_FOCUS_KEY]
+            //this transform the whole fucking Preferences object into a String?, also fetch data of last focus key
+        }.stateIn(
+            scope = scope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = null
+        ) //this only pull data, not affect anything
+    }
 
-        suspend fun generateChart(viewMode: ViewMode = ViewMode.DayHour) {
-            val today: LocalDate = LocalDate.now()
-            val preferencesObject: Preferences = getPreferencesObj()
-            val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+    val hourList: List<Int> = List(24) { index -> index }
 
-            when (viewMode) {
-                ViewMode.YearDay -> TODO()
-                ViewMode.YearMonth -> TODO()
-                ViewMode.YearWeek -> TODO()
-                ViewMode.MonthDay -> TODO()
-                ViewMode.WeekDay -> TODO()
-                ViewMode.DayHour -> {
 
-                    val chartDataDayHours = preferencesObject.asMap()
-                        .filterKeys {
-                            regexDayHourKey.matches(it.name)
-                            //return a Map that only contains keys that matches the form : "29 09 2025T0"
-                        }.toList()
-                        .groupBy { it.first.name.substringBefore("T") }
-                        .mapValues { create24HoursKey(it.key) }
+    suspend fun getPreferencesObj(): Preferences {
+        return dataStore.data.first()
+    }
 
-                    Log.d("DEBUG", "generateChart - DayData: $chartDataDayHours")
-                    //generateChart - DayData: {06 10 2025=[(06 10 2025T16, 10)], 08 10 2025=[(08 10 2025T20, 20), (08 10 2025T21, 10)]}
-                    updateChartState(chartDataDayHours = chartDataDayHours)
-                    Log.d(
-                        "DEBUG",
-                        "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}"
-                    )
-                    val availableDays = chartDataDayHours.keys.toList().reversed()
-                    //the latest focus day is at index 0
 
+    override suspend fun generateChart(viewMode: ViewMode) {
+        val todayKey: LocalDate = todayKey
+        val preferencesObject: Preferences = getPreferencesObj()
+        val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+
+        when (viewMode) {
+            ViewMode.YearDay -> TODO()
+            ViewMode.YearMonth -> TODO()
+            ViewMode.YearWeek -> TODO()
+            ViewMode.MonthDay -> TODO()
+            ViewMode.WeekDay -> {}
+            ViewMode.DayHour -> {
+
+                val chartDataDayHours = preferencesObject.asMap()
+                    .filterKeys {
+                        regexDayHourKey.matches(it.name)
+                        //return a Map that only contains keys that matches the form : "29 09 2025T0"
+                    }.toList()
+                    .groupBy { it.first.name.substringBefore("T") }
+                    //this will just return an empty Map if preferencesObject is empty
+                    .mapValues { create24HoursKey(it.key, preferencesObject) }
+
+
+                //generateChart - DayData: {06 10 2025=[(06 10 2025T16, 10)], 08 10 2025=[(08 10 2025T20, 20), (08 10 2025T21, 10)]}
+
+                updateChartState(chartDataDayHours = chartDataDayHours)
+
+                Log.d(
+                    "DEBUG",
+                    "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}"
+                )
+
+                val availableDays = chartDataDayHours.keys.toList().sortedDescending()
+                //the latest focus day is at index 0
+                if (availableDays.isNotEmpty()) {
                     _chartUpdate.update {
                         it.copy(
                             availableDays = availableDays,
@@ -200,54 +216,70 @@ data class ChartUpdate (
                     pickDay(availableDays.first()) //pick the first day
 
                     Log.d("DEBUG", "generateChart - availableDays: $availableDays")
+                } else {
+                    _chartUpdate.update {
+                        it.copy(
+                            availableDays = listOf("No data"),
+                            dateHourDataPoint = zeroDayHoursDataPoints
+                        )
+                    }
                 }
             }
         }
+    }
 
 
-        fun pickDay(date: String) {
-            _chartUpdate.update {
-                it.copy(
-                    dateHourDataPoint = chartState.value.chartDataDayHours?.get(date) //get the lastest focus day
-                        ?: zeroDayHoursDataPoints
-                )
-            }
-        }
-
-        private fun createHourKey(base: String, unit: Int): Preferences.Key<Int> {
-            val padded = unit.toString().padStart(2, '0')
-            return intPreferencesKey("${base}T$padded")
-        }
-
-        private  fun create24HoursKey(dateString: String): List<DataPoint> {
-            val preferencesObject: Preferences? = preferencesObj
-            val chartDataDay = hourList.mapIndexed { index, hour ->
-                val key = createHourKey(dateString.format(formatterDay), hour)
-                DataPoint(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f)
-            }
-            return chartDataDay
-        }
-
-
-        // Helper functions for better organization
-        private fun updateChartState(
-            chartDataYearMonths: List<DataPoint>? = null,
-            chartDataYearWeeks: List<DataPoint>? = null,
-            chartDataYearDays: List<DataPoint>? = null,
-            chartDataWeekDays: Map<String, List<DataPoint>>? = null,
-            chartDataMonthDays: Map<String, List<DataPoint>>? = null,
-            chartDataDayHours: Map<String, List<DataPoint>>? = null,
-
-            ) {
-            _chartState.update { old ->
-                old.copy(
-                    chartDataYearMonths = chartDataYearMonths ?: old.chartDataYearMonths,
-                    chartDataYearWeeks = chartDataYearWeeks ?: old.chartDataYearWeeks,
-                    chartDataYearDays = chartDataYearDays ?: old.chartDataYearDays,
-                    chartDataWeekDays = chartDataWeekDays ?: old.chartDataWeekDays,
-                    chartDataMonthDays = chartDataMonthDays ?: old.chartDataMonthDays,
-                    chartDataDayHours = chartDataDayHours ?: old.chartDataDayHours,
-                )
-            }
+    fun pickDay(date: String) {
+        _chartUpdate.update {
+            it.copy(
+                dateHourDataPoint = chartState.value.chartDataDayHours?.getOrDefault(
+                    date,
+                    zeroDayHoursDataPoints
+                ) ?: zeroDayHoursDataPoints
+            )
+            /*
+                * if chartDataDayHours is not null -> getOrDefault, if the date does not exist -> return zeroDayHoursDataPoints,
+                * if chartDataDayHours is null -> return zeroDayHoursDataPoints
+                * => Always return a non-null, list of DataPoint.
+                * */
         }
     }
+
+    private fun createHourKey(base: String, unit: Int): Preferences.Key<Int> {
+        val padded = unit.toString().padStart(2, '0')
+        return intPreferencesKey("${base}T$padded")
+    }
+
+    private fun create24HoursKey(
+        dateString: String,
+        preferencesObject: Preferences? = null
+    ): List<DataPoint> {
+        val chartDataDay = hourList.mapIndexed { index, hour ->
+            val key = createHourKey(dateString.format(formatterDay), hour)
+            DataPoint(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f)
+        }
+        return chartDataDay
+    }
+
+
+    // Helper functions for better organization
+    private fun updateChartState(
+        chartDataYearMonths: List<DataPoint>? = null,
+        chartDataYearWeeks: List<DataPoint>? = null,
+        chartDataYearDays: List<DataPoint>? = null,
+        chartDataWeekDays: Map<String, List<DataPoint>>? = null,
+        chartDataMonthDays: Map<String, List<DataPoint>>? = null,
+        chartDataDayHours: Map<String, List<DataPoint>>? = null,
+    ) {
+        _chartState.update { old ->
+            old.copy(
+                chartDataYearMonths = chartDataYearMonths ?: old.chartDataYearMonths,
+                chartDataYearWeeks = chartDataYearWeeks ?: old.chartDataYearWeeks,
+                chartDataYearDays = chartDataYearDays ?: old.chartDataYearDays,
+                chartDataWeekDays = chartDataWeekDays ?: old.chartDataWeekDays,
+                chartDataMonthDays = chartDataMonthDays ?: old.chartDataMonthDays,
+                chartDataDayHours = chartDataDayHours ?: old.chartDataDayHours,
+            )
+        }
+    }
+}

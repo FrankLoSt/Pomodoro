@@ -40,11 +40,10 @@ class ViewModelChart @Inject constructor (
     private val settingsRepository: SettingsRepositoryImpl,
 ): ViewModel() {
     init {
-        trackweekYear()
         generateChart(ViewMode.DayHour)
     }
 
-    fun trackweekYear () = viewModelScope.launch {settingsRepository.trackweekYear()}
+
 
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()

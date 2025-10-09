@@ -75,10 +75,7 @@ class PomodoroControllerImpl @Inject constructor(
     //------------- Count down Logic-------------
     private suspend fun countdownStudy() = coroutineScope {
         //set up
-        val timerState = _focusUiState.value.timerState
-        Log.d("DEBUG", "countdownStudy: timerState = $timerState")
-        val appPhrase = _focusUiState.value.appPhrase
-        Log.d("DEBUG", "countdownStudy: appPhrase = $appPhrase")
+
 
         _focusUiState.update{
             it.copy(
@@ -92,33 +89,33 @@ class PomodoroControllerImpl @Inject constructor(
                 Log.d("DEBUG", "countdownStudy: pausing")
                 delay(100L)
             }
-            val current = focusUiState.value
 
-            if (current.timerState == TimerState.STOPPED||
-                current.appPhrase == AppPhase.FINISHED ||
-                current.appPhrase == AppPhase.IDLE ||
-                current.appPhrase == AppPhase.RESTING ||
-                current.duration <= 0) break //if isRunning = false or duration <= 0 then break
+            if (focusUiState.value.timerState == TimerState.STOPPED||
+                focusUiState.value.appPhrase == AppPhase.FINISHED ||
+                focusUiState.value.appPhrase == AppPhase.IDLE ||
+                focusUiState.value.appPhrase == AppPhase.RESTING ||
+                focusUiState.value.duration <= 0) break //if isRunning = false or duration <= 0 then break
             delay(1000L)
 
-            if(timerState == TimerState.RUNNING && appPhrase == AppPhase.FOCUSING)
+            if(focusUiState.value.timerState == TimerState.RUNNING && focusUiState.value.appPhrase == AppPhase.FOCUSING)
             {settingsRepository.saveHourlyFocusDuration(1)}
             //only save when isPause = false, app is running and users are studying
 
+            _focusUiState.update { it.copy(duration = if (focusUiState.value.timerState == TimerState.PAUSED) it.duration else (it.duration - 1).coerceAtLeast(0)) }
 
-            _focusUiState.update { it.copy(duration = if (timerState == TimerState.PAUSED) it.duration else (it.duration - 1).coerceAtLeast(0)) }
-
-            Log.d("DEBUG", "countdownStudy: ${current.duration}")
+            Log.d("DEBUG", "countdownStudy: ${focusUiState.value.duration}")
         }
         Log.d("DEBUG", "countdownStudy: study finished")
+        _focusUiState.update{
+            it.copy(
+                duration = it.initialDuration,
+            )
+        }
+        Log.d("DEBUG", "countdownStudy: duration reset")
     } //countdown for study session
 
 
     private suspend fun countdownRest() = coroutineScope {
-        val timerState = _focusUiState.value.timerState
-        Log.d("DEBUG", "countdownStudy: timerState = $timerState")
-        val appPhrase = _focusUiState.value.appPhrase
-        Log.d("DEBUG", "countdownStudy: appPhrase = $appPhrase")
 
         _focusUiState.update{
             it.copy(
@@ -127,27 +124,37 @@ class PomodoroControllerImpl @Inject constructor(
             )
         }
 
+
         while (isActive) {
-            while (timerState == TimerState.PAUSED) {
+            while (focusUiState.value.timerState == TimerState.PAUSED) {
                 Log.d("DEBUG", "countdownRest: pausing")
                 delay(100L)
             }
 
             if (
-                timerState == TimerState.STOPPED ||
+                focusUiState.value.timerState  == TimerState.STOPPED ||
                 restUiState.value.restDuration <= 0 ||
-                appPhrase == AppPhase.FINISHED ||
-                appPhrase == AppPhase.FOCUSING ||
-                appPhrase == AppPhase.IDLE
-                ) break
+                focusUiState.value.appPhrase  == AppPhase.FINISHED ||
+                focusUiState.value.appPhrase == AppPhase.FOCUSING ||
+                focusUiState.value.appPhrase == AppPhase.IDLE
+                ) {
+                Log.e("DEBUG", "countdownRest: BREAK \n timerState = ${focusUiState.value.timerState} \n restDuration = ${restUiState.value.restDuration} \n appPhrase = ${focusUiState.value.appPhrase}")
+                break
+            }
 
             delay(1000L)
 
-            _restUiState.update { it.copy(restDuration = if (timerState == TimerState.PAUSED) it.restDuration else (it.restDuration - 1).coerceAtLeast(0)) }
+            _restUiState.update { it.copy(restDuration = if (focusUiState.value.timerState == TimerState.PAUSED) it.restDuration else (it.restDuration - 1).coerceAtLeast(0)) }
                                                        //if isPause -> no update
             Log.d("DEBUG", "countdownRest: ${restUiState.value.restDuration}")
         }
         Log.d("DEBUG", "countdownRest: break finished")
+        _restUiState.update{
+            it.copy(
+                restDuration = it.initialRestDuration,
+            )
+        }
+        Log.d("DEBUG", "countdownRest: restDuration reset")
     } //countdown for rest session
 
     override fun start () {
@@ -174,7 +181,6 @@ class PomodoroControllerImpl @Inject constructor(
                         sessions = it.sessions + 1, //
                     )
                 } // after finish studying and resting => session + 1 and start studying again
-
                 Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.totalSessions}")
             }
 
@@ -204,8 +210,6 @@ class PomodoroControllerImpl @Inject constructor(
     fun toggleFinished () {
         reset()
     }
-
-
     //Before cancell everything -> save users focus time.
 
     //----BREAK - PAUSE - RESUME LOGIC -----
