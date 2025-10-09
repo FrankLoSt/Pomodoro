@@ -69,6 +69,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.example.pomodoro.data.datastore.ChartUpdate
+import com.example.pomodoro.data.datastore.ViewMode
 
 
 @Composable
@@ -100,7 +101,7 @@ fun Screen2LineChart(
 //to convert from string with custom format to LocalDate or LocalDateTime Object,
 // you need to make sure the format used to transform them match the current format of the string, or else -> crash
     val availableDaysList = chartUpdate.availableDays
-
+    val availableWeeksList = chartUpdate.availableWeeks
 
     Column(
         modifier = Modifier
@@ -111,14 +112,25 @@ fun Screen2LineChart(
         Text(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
-        DropdownFun(
-            itemLists = availableDaysList,
-            onItemSelected = { viewModelChart.pickDay(it) }
-        )
-
-        ChartTest(
-            listData = chartUpdate.dateHourDataPoint
-        )
+        Column() {
+            DropdownFunViewMode(
+                itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour),
+                onItemSelected = {viewModelChart.generateChart(it)}
+            )
+            DropdownFunWeek(
+                itemLists = availableWeeksList,
+                onItemSelected = { viewModelChart.pickWeek(it) }
+            )
+            DropdownFunDay(
+                itemLists = availableDaysList,
+                onItemSelected = { viewModelChart.pickDay(it) }
+            )
+        }
+        if(chartUpdate.viewMode == ViewMode.DayHour) {
+            ChartTest(listData = chartUpdate.dateHourDataPoint)
+        } else {
+            ChartTest(listData = chartUpdate.weekDayDataPoints)
+        }
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
         ) {
@@ -148,7 +160,7 @@ fun ChartTest (
                     highlight = LinePlot.Highlight(color = Color.Yellow)
                 )
             ),
-            grid = LinePlot.Grid(Color.LightGray, steps = 6)
+            grid = LinePlot.Grid(Color.LightGray, steps = 7)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -177,7 +189,7 @@ fun Scrollable () {
 
 
 @Composable
-fun DropdownFun (
+fun DropdownFunDay (
     itemLists: List<String>?,
     onItemSelected: (String) -> Unit,
 ) {
@@ -228,6 +240,129 @@ fun DropdownFun (
         }
     }
 }
+
+
+
+@Composable
+fun DropdownFunWeek (
+    itemLists: List<String>?,
+    onItemSelected: (String) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var week by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.LightGray),
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .width(150.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Text(
+                text = "Week $week",
+                modifier = Modifier
+                    .padding(8.dp),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = null,
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 200.dp) // limit height
+        ) {
+            itemLists?.forEach { date ->
+                DropdownMenuItem(
+                    text = {
+                        Text(text = date)
+                    },
+                    onClick = {
+                        onItemSelected(date)
+                        week = date
+                        expanded = false
+                    }
+                )
+            }?: Text(text = "No Data")
+        }
+    }
+}
+
+
+@Composable
+fun DropdownFunViewMode (
+    itemLists: List<ViewMode>?,
+    onItemSelected: (ViewMode) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var viewMode1 by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.LightGray),
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .width(150.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Text(
+                text = "ViewMode: $viewMode1",
+                modifier = Modifier
+                    .padding(8.dp),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = null,
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 200.dp) // limit height
+        ) {
+            itemLists?.forEach { viewMode ->
+                DropdownMenuItem(
+                    text = {
+                        Text(text = "$viewMode")
+                    },
+                    onClick = {
+                        onItemSelected(viewMode)
+                        viewMode1 = viewMode
+                        expanded = false
+                    }
+                )
+            }?: Text(text = "No Data")
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @Composable

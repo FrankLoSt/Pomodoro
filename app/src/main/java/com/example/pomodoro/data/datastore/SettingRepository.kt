@@ -42,14 +42,14 @@ import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.collections.*
-
+import kotlin.collections.map
 
 
 interface SettingsRepository {
     suspend fun createHourlyFocusKey(): Preferences.Key<Int>
     suspend fun saveHourlyFocusDuration(duration: Int)
 
-    suspend fun generateChart(viewMode: ViewMode) {}
+    suspend fun generateChart(viewMode: ViewMode,weekStart: DayOfWeek) {}
 
 }
 
@@ -78,11 +78,12 @@ val zeroMonthDaysDataPoints: List<List<DataPoint>> = buildList{
         add(List(31) { DataPoint(it.toFloat(), 0f) })
     }
 }
-val zeroWeekDaysDataPoints: List<List<DataPoint>> = buildList{
-    repeat(10) {
-        add(List(7) { DataPoint(it.toFloat(), 0f) })
+val zeroWeekDaysDataPoints: List<DataPoint> = buildList{
+    repeat(7) {
+        add(DataPoint(it.toFloat(), 0f))
     }
 }
+
 val zeroDayHoursDataPoints: List<DataPoint> = buildList {
     repeat(24) {
         add(DataPoint(it.toFloat(), 0f))
@@ -97,9 +98,14 @@ val zeroDayHoursDataPoints: List<DataPoint> = buildList {
         val chartDataMonthDays: Map<String, List<DataPoint>>? = null,
         val chartDataDayHours: Map<String, List<DataPoint>>? = null,
     )
-    data class ChartUpdate (
+
+
+data class ChartUpdate (
+    val viewMode: ViewMode = ViewMode.DayHour,
     val availableDays: List<String> = listOf("No Data"),
-    val dateHourDataPoint: List<DataPoint> = zeroDayHoursDataPoints
+    val dateHourDataPoint: List<DataPoint> = zeroDayHoursDataPoints,
+    val availableWeeks: List<String> = listOf("No Data"),
+    val weekDayDataPoints: List<DataPoint> = zeroWeekDaysDataPoints
 )
 
 
@@ -172,10 +178,14 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     }
 
 
-    override suspend fun generateChart(viewMode: ViewMode) {
+    override suspend fun generateChart(viewMode: ViewMode, weekStart: DayOfWeek) {
+
+        _chartUpdate.update { it.copy(viewMode = viewMode) }
+
         val todayKey: LocalDate = todayKey
         val preferencesObject: Preferences = getPreferencesObj()
         val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+        val weekFields: WeekFields = WeekFields.of(weekStart, 1)
 
         when (viewMode) {
             ViewMode.YearDay -> TODO()
@@ -197,8 +207,53 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     }
                 //{26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
 
+                val listDays: List<LocalDate> = totalFocusOfADay.map{LocalDate.parse(it.key, formatterDay)}
 
+                val firstDayOfYear = LocalDate.of(todayKey.year, 1, 1)
+
+                val listWeeks: Map<String, List<DataPoint>> = buildMap {
+                    listDays.map { it.get(weekFields.weekOfYear()) }
+                        .toSet()
+                        .forEach { weekNumber ->
+                            val firstWeekDate = firstDayOfYear.with(weekFields.weekOfYear(), weekNumber.toLong())
+
+                            val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
+
+                            val datesInWeek: List<String> = (0..6).map { startOfWeek.plusDays(it.toLong()).format(formatterDay) }
+
+                            Log.e("DEBUG", "generateChart - datesInWeek: $datesInWeek")
+
+                            put(weekNumber.toString(), datesInWeek)
+                        }//this returns Map<String, List<String>>
+                }.mapValues { entry ->
+                    entry.value.mapIndexed { index, date ->
+                        Log.e("DEBUG", "generateChart - index: $index")
+                        DataPoint(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+                    }
+                }//transform string -> DataPoint
+
+                updateChartState(chartDataWeekDays = listWeeks)
+                Log.d("DEBUG", "generateChart - chartDataWeekDays: ${chartState.value.chartDataWeekDays}")
+                val availableWeek = listWeeks.keys.toList().sortedDescending()
+                Log.d("DEBUG", "generateChart - availableWeek: $availableWeek")
+
+                if(availableWeek.isNotEmpty()) {
+                    _chartUpdate.update {
+                        it.copy(
+                            availableWeeks = availableWeek,
+                            weekDayDataPoints = listWeeks.values.first()
+                        )
+                    }
+                    Log.e("DEBUG", "generateChart - weekDayDataPoints: ${chartUpdate.value.weekDayDataPoints}")
+                    pickWeek(availableWeek.first())
+                } else { _chartUpdate.update {
+                        it.copy(
+                            availableWeeks = listOf("No data"),
+                            weekDayDataPoints = zeroWeekDaysDataPoints
+                        )
+                    } }
             }
+
             ViewMode.DayHour -> {
 
                 val chartDataDayHours = preferencesObject.asMap()
@@ -251,13 +306,23 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                 dateHourDataPoint = chartState.value.chartDataDayHours?.getOrDefault(
                     date,
                     zeroDayHoursDataPoints
-                ) ?: zeroDayHoursDataPoints
+                ) ?: zeroDayHoursDataPoints,
             )
             /*
                 * if chartDataDayHours is not null -> getOrDefault, if the date does not exist -> return zeroDayHoursDataPoints,
                 * if chartDataDayHours is null -> return zeroDayHoursDataPoints
                 * => Always return a non-null, list of DataPoint.
                 * */
+        }
+    }
+    fun pickWeek(week: String = "No Data") {
+        _chartUpdate.update {
+            it.copy(
+                weekDayDataPoints = chartState.value.chartDataWeekDays?.getOrDefault(
+                    week,
+                    zeroWeekDaysDataPoints
+                ) ?: zeroWeekDaysDataPoints,
+            )
         }
     }
 

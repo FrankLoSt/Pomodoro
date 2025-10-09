@@ -22,6 +22,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import com.madrapps.plot.line.DataPoint
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun main () {
@@ -38,49 +39,30 @@ fun main () {
         values.value.sumOf { pair -> pair.second.toString().toIntOrNull()?: 0 }
         //type Any -> to Int
     }
-    println(totalFocusDayData)
-
     val formatter = DateTimeFormatter.ofPattern("dd MM yyyy")
-
-
     val listDays: List<LocalDate> = totalFocusDayData.map{LocalDate.parse(it.key, formatter)}
-    println(listDays)
-
 
     val year = 2025
     val weekFields = WeekFields.ISO // Monday-based weeks
     val firstDayOfYear = LocalDate.of(year, 1, 1)
-    val listWeeks: Map<Int, List<LocalDate>> = buildMap {
+    val listWeeks: Map<Int, List<DataPoint>> = buildMap {
         listDays.map { it.get(WeekFields.ISO.weekOfYear()) }
             .toSet()
             .forEach { weekNumber ->
-                val firstWeekDate = firstDayOfYear.with(weekFields.weekOfYear(), weekNumber.toLong())
+                val firstWeekDate =
+                    firstDayOfYear.with(weekFields.weekOfYear(), weekNumber.toLong())
                 val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
-                val datesInWeek = (0..6).map { startOfWeek.plusDays(it.toLong()) }
+                val datesInWeek = (0..6).map { startOfWeek.plusDays(it.toLong()).format(formatter) }
                 put(weekNumber, datesInWeek)
             }
+    }.mapValues { entry ->
+        entry.value.mapIndexed { index, date ->
+            println("date: $date")
+            DataPoint(index.toFloat(), totalFocusDayData[date]?.toFloat() ?: 0f
+            )
+        }
     }
     println(listWeeks)
-
-
-
-
-
-
-
-
-
-    val weekNumber = 24.toLong()
-    val firstWeekDate = firstDayOfYear.with(weekFields.weekOfYear(), weekNumber)
-    val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
-    val datesInWeek = (0..6).map { startOfWeek.plusDays(it.toLong()) }
-    /*
-    * weekFields -> set rule of a week : ISO -> Monday-based, 4+ days -> counted as a week
-    * firstDayOfYear -> set the first day of the year
-    * firstWeekDate -> this is like a jump to a random day in the given week.
-    * */
-
-    //datesInWeek.forEach { println(it.format(java.time.format.DateTimeFormatter.ofPattern("dd MM yyyy"))) }
 
 }
 
