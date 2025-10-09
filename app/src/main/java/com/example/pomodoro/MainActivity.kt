@@ -85,7 +85,10 @@ class MainActivity : ComponentActivity() {
                                     selected = false,
                                     onClick = {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
-
+                                        scope.launch {
+                                            drawerState.close()
+                                            viewModelChart.generateChart(ViewMode.DayHour)
+                                        }
                                     }
                                 )
                             NavigationDrawerItem(

@@ -2,6 +2,9 @@ package com.example.pomodoro.ui.screen2
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -38,7 +41,7 @@ class ViewModelChart @Inject constructor (
 ): ViewModel() {
     init {
         trackweekYear()
-        generateChart()
+        generateChart(ViewMode.DayHour)
     }
 
     fun trackweekYear () = viewModelScope.launch {settingsRepository.trackweekYear()}
@@ -46,6 +49,16 @@ class ViewModelChart @Inject constructor (
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
     val chartState = settingsRepository.chartState
-    fun generateChart() = viewModelScope.launch { settingsRepository.generateChart() }
+    val chartUpdate = settingsRepository.chartUpdate
+    fun generateChart(viewMode: ViewMode = ViewMode.DayHour) = viewModelScope.launch { settingsRepository.generateChart(viewMode) }
+
+
+
+
+
+    fun pickDay (day: String) {
+        settingsRepository.pickDay(day)
+    }
+
 
 }
