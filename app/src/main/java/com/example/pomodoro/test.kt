@@ -1,68 +1,40 @@
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.runtime.Composable
-
-import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pomodoro.ui.screen2.ViewModelChart
-import com.google.api.Context
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import co.yml.charts.common.model.Point
 import java.time.DayOfWeek
-import java.time.LocalDateTime
-import java.time.temporal.ChronoField
-import java.time.temporal.ChronoUnit
-import java.time.temporal.WeekFields
 import java.time.LocalDate
+import java.time.Month
 import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
-import com.madrapps.plot.line.DataPoint
+import java.time.temporal.WeekFields
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun main () {
-    val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+    val regexDayHourKey = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+    val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
+    val todayKey: LocalDate = LocalDate.now()
 
-    val dayData:Map<String, List<Pair<Preferences.Key<*>, Any>>> = preferencesObj.asMap()
-        .filterKeys{
+    val totalFocusOfADay = preferencesObj.asMap()
+        .filterKeys {
             regexDayHourKey.matches(it.name)
             //return a Map that only contains keys that matches the form : "29 09 2025T0"
         }.toList()
-        .groupBy{it.first.name.substringBefore("T")}
-
-    val totalFocusDayData: Map<String, Int> = dayData.mapValues{ values ->
-        values.value.sumOf { pair -> pair.second.toString().toIntOrNull()?: 0 }
-        //type Any -> to Int
-    }
-    val formatter = DateTimeFormatter.ofPattern("dd MM yyyy")
-    val listDays: List<LocalDate> = totalFocusDayData.map{LocalDate.parse(it.key, formatter)}
-
-    val year = 2025
-    val weekFields = WeekFields.ISO // Monday-based weeks
-    val firstDayOfYear = LocalDate.of(year, 1, 1)
-    val listWeeks: Map<Int, List<DataPoint>> = buildMap {
-        listDays.map { it.get(WeekFields.ISO.weekOfYear()) }
-            .toSet()
-            .forEach { weekNumber ->
-                val firstWeekDate =
-                    firstDayOfYear.with(weekFields.weekOfYear(), weekNumber.toLong())
-                val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
-                val datesInWeek = (0..6).map { startOfWeek.plusDays(it.toLong()).format(formatter) }
-                put(weekNumber, datesInWeek)
-            }
-    }.mapValues { entry ->
-        entry.value.mapIndexed { index, date ->
-            println("date: $date")
-            DataPoint(index.toFloat(), totalFocusDayData[date]?.toFloat() ?: 0f
-            )
+        .groupBy { it.first.name.substringBefore("T") }
+        //this will just return an empty Map if preferencesObject is empty
+        .mapValues { values ->
+            values.value.sumOf{
+                    pair ->
+                pair.second.toString().toIntOrNull() ?:0}
         }
-    }
-    println(listWeeks)
+
+
+    val listDays: List<LocalDate> = totalFocusOfADay.map{LocalDate.parse(it.key, formatterDay)}
+    println(listDays)
+
+    val firstDayOfYear = LocalDate.of(todayKey.year, 1, 1)
+
+    val listMonths = listDays.map { it.monthValue }.toSet().toList().map{ Month.of(it)}
+    println(listMonths)
 
 }
 

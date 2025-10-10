@@ -1,13 +1,10 @@
 package com.example.pomodoro.ui.screen2
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,26 +18,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,63 +38,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathSegment
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import co.yml.charts.axis.AxisData
-import co.yml.charts.common.model.AccessibilityConfig
-import co.yml.charts.common.model.PlotType
-import co.yml.charts.common.model.Point
-import co.yml.charts.ui.linechart.LineChart
-import co.yml.charts.ui.linechart.model.GridLines
-import co.yml.charts.ui.linechart.model.LineChartData
-import co.yml.charts.ui.linechart.model.LinePlotData
-import com.example.pomodoro.ChartTestWeek
-import com.example.pomodoro.LineGraphTest
-import com.example.pomodoro.data.datastore.ChartState
-import com.example.pomodoro.ui.EnumScreenClass
-import com.example.pomodoro.ui.theme.PomodoroTheme
-import com.google.apps.card.v1.Button
-import com.google.apps.card.v1.Columns
-import com.madrapps.plot.line.DataPoint
-import com.madrapps.plot.line.LineGraph
-import com.madrapps.plot.line.LinePlot
-import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import com.example.pomodoro.ChartDayHour
+import com.example.pomodoro.ChartWeekDay
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
-
-
-@Composable
-fun Screen2Test(
-    text: String,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text)
-    }
-}
+import com.example.pomodoro.ui.EnumScreenClass
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
+
+
+
 @Composable
 fun Screen2LineChart(
     viewModelChart: ViewModelChart,
     navHostController: NavHostController
 ) {
-    val chartState: ChartState by viewModelChart.chartState.collectAsState()
     val lastDayActive: String? by viewModelChart.lastDayActive.collectAsState() //String?
     val chartUpdate: ChartUpdate by viewModelChart.chartUpdate.collectAsState()
 
@@ -138,9 +93,9 @@ fun Screen2LineChart(
             )
         }
         if(chartUpdate.viewMode == ViewMode.DayHour) {
-            ChartTestWeek(pointsData = chartUpdate.dateHourDataPoint)
+            ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
         } else {
-            ChartTestWeek(pointsData = chartUpdate.weekDayDataPoints)
+            ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
         }
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
@@ -154,49 +109,6 @@ fun Screen2LineChart(
 
 
 
-
-
-
-@Composable
-fun ChartTest (
-    listData: List<DataPoint>
-) {
-    LineGraph(
-        plot = LinePlot(
-            lines = listOf(
-                LinePlot.Line(
-                    dataPoints = listData,
-                    connection = LinePlot.Connection(color = Color.Blue),
-                    intersection = LinePlot.Intersection(color = Color.Magenta),
-                    highlight = LinePlot.Highlight(color = Color.Yellow)
-                )
-            ),
-            grid = LinePlot.Grid(Color.Black, steps = 1)
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        onSelection = { xLine, points ->
-            // Optional: handle user tap on a point
-        }
-    )
-}
-
-
-
-
-@Preview
-@Composable
-fun ChartPreview () {
-    PomodoroTheme {
-    }
-}
-
-@Preview
-@Composable
-fun Scrollable () {
-    ScrollableDropdownMenuDemo()
-}
 
 
 @Composable

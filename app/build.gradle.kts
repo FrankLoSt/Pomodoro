@@ -52,7 +52,7 @@ dependencies {
 //navigation
     implementation(libs.androidx.navigation.compose)
 
-    implementation(libs.plot)
+
 
     implementation(libs.ycharts)
 

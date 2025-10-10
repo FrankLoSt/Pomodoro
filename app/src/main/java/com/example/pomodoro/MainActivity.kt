@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
                                         scope.launch {
                                             drawerState.close()
-                                            viewModelChart.generateChart(ViewMode.DayHour)
+                                            viewModelChart.generateChart(ViewMode.WeekDay)
                                         }
                                     }
                                 )
@@ -131,9 +131,9 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            ScreenNavigation(
-                                navHostController = navHostController,
-                                viewModelChart = viewModelChart
+                            Screen2LineChart(
+                                viewModelChart = viewModelChart,
+                                navHostController = navHostController
                             )
                         }
                     }
@@ -148,8 +148,6 @@ class MainActivity : ComponentActivity() {
 
 
 
-//haven't done screen 2 yet
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScreenNavigation (
     navHostController: NavHostController,
