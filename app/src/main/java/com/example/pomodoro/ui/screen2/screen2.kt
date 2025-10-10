@@ -129,7 +129,7 @@ fun Screen2LineChart(
         if(chartUpdate.viewMode == ViewMode.DayHour) {
             ChartTest(listData = chartUpdate.dateHourDataPoint)
         } else {
-            ChartTest(listData = chartUpdate.weekDayDataPoints)
+            ChartTestWeek(listData = chartUpdate.weekDayDataPoints)
         }
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
@@ -140,7 +140,30 @@ fun Screen2LineChart(
 }
 
 
-
+@Composable
+fun ChartTestWeek (
+    listData: List<DataPoint>
+) {
+    LineGraph(
+        plot = LinePlot(
+            lines = listOf(
+                LinePlot.Line(
+                    dataPoints = listData,
+                    connection = LinePlot.Connection(color = Color.Blue),
+                    intersection = LinePlot.Intersection(color = Color.Magenta),
+                    highlight = LinePlot.Highlight(color = Color.Yellow)
+                )
+            ),
+            grid = LinePlot.Grid(Color.LightGray, steps = 2)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        onSelection = { xLine, points ->
+            // Optional: handle user tap on a point
+        }
+    )
+}
 
 
 
@@ -160,7 +183,7 @@ fun ChartTest (
                     highlight = LinePlot.Highlight(color = Color.Yellow)
                 )
             ),
-            grid = LinePlot.Grid(Color.LightGray, steps = 7)
+            grid = LinePlot.Grid(Color.Black, steps = 1)
         ),
         modifier = Modifier
             .fillMaxWidth()
