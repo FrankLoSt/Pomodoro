@@ -131,7 +131,10 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            ChartTestWeek()
+                            ScreenNavigation(
+                                navHostController = navHostController,
+                                viewModelChart = viewModelChart
+                            )
                         }
                     }
                 }

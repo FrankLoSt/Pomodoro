@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
+import co.yml.charts.common.model.Point
 import com.example.pomodoro.data.datastore.zeroDayHoursDataPoints
 
 import com.madrapps.plot.line.DataPoint
@@ -63,49 +64,49 @@ enum class ViewMode {
 }
 
 
-val zeroYearWeeksDataPoints: List<DataPoint> = List(52) { index ->
-    DataPoint(index.toFloat(), 0f)
+val zeroYearWeeksDataPoints: List<Point> = List(52) { index ->
+    Point(index.toFloat(), 0f)
 }
-val zeroYearMonthsDataPoints: List<DataPoint> = List(12) { index ->
-    DataPoint(index.toFloat(), 0f)
+val zeroYearMonthsDataPoints: List<Point> = List(12) { index ->
+    Point(index.toFloat(), 0f)
 }
-val zeroYearDaysDataPoints: List<DataPoint> = List(365) { index ->
-    DataPoint(index.toFloat(), 0f)
+val zeroYearDaysDataPoints: List<Point> = List(365) { index ->
+    Point(index.toFloat(), 0f)
 }
 
-val zeroMonthDaysDataPoints: List<List<DataPoint>> = buildList{
+val zeroMonthDaysDataPoints: List<List<Point>> = buildList{
     repeat(12) {
-        add(List(31) { DataPoint(it.toFloat(), 0f) })
+        add(List(31) { Point(it.toFloat(), 0f) })
     }
 }
-val zeroWeekDaysDataPoints: List<DataPoint> = buildList{
+val zeroWeekDaysDataPoints: List<Point> = buildList{
     repeat(7) {
-        add(DataPoint(it.toFloat(), 0f))
+        add(Point(it.toFloat(), 0f))
     }
 }
 
-val zeroDayHoursDataPoints: List<DataPoint> = buildList {
+val zeroDayHoursDataPoints: List<Point> = buildList {
     repeat(24) {
-        add(DataPoint(it.toFloat(), 0f))
+        add(Point(it.toFloat(), 0f))
     }
 }
     @RequiresApi(Build.VERSION_CODES.O)
     data class ChartState  (
-        val chartDataYearMonths: List<DataPoint> = zeroYearMonthsDataPoints,
-        val chartDataYearWeeks: List<DataPoint> = zeroYearWeeksDataPoints,
-        val chartDataYearDays: List<DataPoint> = zeroYearDaysDataPoints,
-        val chartDataWeekDays: Map<String, List<DataPoint>>? = null,
-        val chartDataMonthDays: Map<String, List<DataPoint>>? = null,
-        val chartDataDayHours: Map<String, List<DataPoint>>? = null,
+        val chartDataYearMonths: List<Point> = zeroYearMonthsDataPoints,
+        val chartDataYearWeeks: List<Point> = zeroYearWeeksDataPoints,
+        val chartDataYearDays: List<Point> = zeroYearDaysDataPoints,
+        val chartDataWeekDays: Map<String, List<Point>>? = null,
+        val chartDataMonthDays: Map<String, List<Point>>? = null,
+        val chartDataDayHours: Map<String, List<Point>>? = null,
     )
 
 
 data class ChartUpdate (
     val viewMode: ViewMode = ViewMode.DayHour,
     val availableDays: List<String> = listOf("No Data"),
-    val dateHourDataPoint: List<DataPoint> = zeroDayHoursDataPoints,
+    val dateHourDataPoint: List<Point> = zeroDayHoursDataPoints,
     val availableWeeks: List<String> = listOf("No Data"),
-    val weekDayDataPoints: List<DataPoint> = zeroWeekDaysDataPoints
+    val weekDayDataPoints: List<Point> = zeroWeekDaysDataPoints
 )
 
 
@@ -211,7 +212,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 val firstDayOfYear = LocalDate.of(todayKey.year, 1, 1)
 
-                val listWeeks: Map<String, List<DataPoint>> = buildMap {
+                val listWeeks: Map<String, List<Point>> = buildMap {
                     listDays.map { it.get(weekFields.weekOfYear()) }
                         .toSet()
                         .forEach { weekNumber ->
@@ -228,7 +229,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                 }.mapValues { entry ->
                     entry.value.mapIndexed { index, date ->
                         Log.e("DEBUG", "generateChart - index: $index")
-                        DataPoint(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+                        Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
                     }
                 }//transform string -> DataPoint
 
@@ -256,7 +257,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
             ViewMode.DayHour -> {
 
-                val chartDataDayHours = preferencesObject.asMap()
+                val chartDataDayHours: Map<String, List<Point>> = preferencesObject.asMap()
                     .filterKeys {
                         regexDayHourKey.matches(it.name)
                         //return a Map that only contains keys that matches the form : "29 09 2025T0"
@@ -334,10 +335,10 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     private fun create24HoursKey(
         dateString: String,
         preferencesObject: Preferences? = null
-    ): List<DataPoint> {
+    ): List<Point> {
         val chartDataDay = hourList.mapIndexed { index, hour ->
             val key = createHourKey(dateString.format(formatterDay), hour)
-            DataPoint(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f)
+            Point(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f)
         }
         return chartDataDay
     }
@@ -347,12 +348,12 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
     // Helper functions for better organization
     private fun updateChartState(
-        chartDataYearMonths: List<DataPoint>? = null,
-        chartDataYearWeeks: List<DataPoint>? = null,
-        chartDataYearDays: List<DataPoint>? = null,
-        chartDataWeekDays: Map<String, List<DataPoint>>? = null,
-        chartDataMonthDays: Map<String, List<DataPoint>>? = null,
-        chartDataDayHours: Map<String, List<DataPoint>>? = null,
+        chartDataYearMonths: List<Point>? = null,
+        chartDataYearWeeks: List<Point>? = null,
+        chartDataYearDays: List<Point>? = null,
+        chartDataWeekDays: Map<String, List<Point>>? = null,
+        chartDataMonthDays: Map<String, List<Point>>? = null,
+        chartDataDayHours: Map<String, List<Point>>? = null,
     ) {
         _chartState.update { old ->
             old.copy(

@@ -65,6 +65,7 @@ import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.GridLines
 import co.yml.charts.ui.linechart.model.LineChartData
 import co.yml.charts.ui.linechart.model.LinePlotData
+import com.example.pomodoro.ChartTestWeek
 import com.example.pomodoro.LineGraphTest
 import com.example.pomodoro.data.datastore.ChartState
 import com.example.pomodoro.ui.EnumScreenClass
@@ -137,9 +138,9 @@ fun Screen2LineChart(
             )
         }
         if(chartUpdate.viewMode == ViewMode.DayHour) {
-            ChartTest(listData = chartUpdate.dateHourDataPoint)
+            ChartTestWeek(pointsData = chartUpdate.dateHourDataPoint)
         } else {
-            ChartTestWeek(listData = chartUpdate.weekDayDataPoints)
+            ChartTestWeek(pointsData = chartUpdate.weekDayDataPoints)
         }
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
@@ -150,32 +151,7 @@ fun Screen2LineChart(
 }
 
 
-@Composable
-fun ChartTestWeek (
-    listData: List<DataPoint>
-) {
-    val pointsData = listOf(
-        Point(0f, 40f),
-        Point(1f, 90f),
-        Point(2f, 0f),
-        Point(3f, 60f),
-        Point(4f, 10f)
-    )
-    val xAxisData = AxisData.Builder()
-        .axisStepSize(100.dp)
-        .steps(pointsData.size - 1)
-        .labelData { i -> "Day $i" }
-        .build()
 
-    val yAxisData = AxisData.Builder()
-        .steps(5)
-        .labelData { i -> "${i * 50}" }
-        .build()
-
-
-
-
-}
 
 
 
