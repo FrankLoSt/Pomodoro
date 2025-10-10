@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -5,6 +6,7 @@ import co.yml.charts.common.model.Point
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
+import java.time.Year
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 
@@ -22,22 +24,46 @@ fun main () {
         .groupBy { it.first.name.substringBefore("T") }
         //this will just return an empty Map if preferencesObject is empty
         .mapValues { values ->
-            values.value.sumOf{
-                    pair ->
-                pair.second.toString().toIntOrNull() ?:0}
+            values.value.sumOf { pair ->
+                pair.second.toString().toIntOrNull() ?: 0
+            }
         }
 
-
-    val listDays: List<LocalDate> = totalFocusOfADay.map{LocalDate.parse(it.key, formatterDay)}
+    val year = 2025
+    val listDays: List<Month> = totalFocusOfADay.map { LocalDate.parse(it.key, formatterDay) }.map { it.monthValue }.toSet().toList().map { Month.of(it) }
     println(listDays)
 
-    val firstDayOfYear = LocalDate.of(todayKey.year, 1, 1)
 
-    val listMonths = listDays.map { it.monthValue }.toSet().toList().map{ Month.of(it)}
-    println(listMonths)
+    val listMonths = listDays
+
+    val monthData = buildMap {
+        listMonths.map { month ->
+
+            val dayNum = month.length(isLeapYear(todayKey.year))//this returns Int
+
+            val listDays: List<String> = buildList {
+                repeat(dayNum) {
+                    add(LocalDate.of(year, month, it + 1).format(formatterDay))
+                }
+            }
+            put(month.toString(), listDays)
+        }
+    }.mapValues { entry ->
+        entry.value.mapIndexed { index, date ->
+
+            Point((index + 1).toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+        }
+    }
+
+    val month = Month.of(4)
+    println(month)
+
 
 }
 
+fun isLeapYear(year: Int): Boolean {
+    return java.time.Year.of(year).isLeap
+}
 
 val preferencesObj = mutablePreferencesOf(
     stringPreferencesKey("26 09 2025T15") to "10",

@@ -20,6 +20,7 @@ import com.example.pomodoro.data.datastore.zeroDayHoursDataPoints
 
 
 import dagger.Provides
+import isLeapYear
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.Month
 import java.time.Year
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -51,7 +53,7 @@ interface SettingsRepository {
     suspend fun createHourlyFocusKey(): Preferences.Key<Int>
     suspend fun saveHourlyFocusDuration(duration: Int)
 
-    suspend fun generateChart(viewMode: ViewMode,weekStart: DayOfWeek) {}
+    suspend fun generateChart(viewMode: ViewMode = ViewMode.DayHour,weekStart: DayOfWeek = DayOfWeek.MONDAY, year: Int = 2025) {}
 
 }
 
@@ -73,9 +75,9 @@ val zeroYearDaysDataPoints: List<Point> = List(365) { index ->
     Point(index.toFloat(), 0f)
 }
 
-val zeroMonthDaysDataPoints: List<List<Point>> = buildList{
-    repeat(12) {
-        add(List(31) { Point(it.toFloat(), 0f) })
+val zeroMonthDaysDataPoints: List<Point> = buildList{
+    repeat(30) {
+        add( Point(it.toFloat(), 0f))
     }
 }
 val zeroWeekDaysDataPoints: List<Point> = buildList{
@@ -95,6 +97,7 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
         val chartDataYearMonths: List<Point> = zeroYearMonthsDataPoints,
         val chartDataYearWeeks: List<Point> = zeroYearWeeksDataPoints,
         val chartDataYearDays: List<Point> = zeroYearDaysDataPoints,
+
         val chartDataWeekDays: Map<String, List<Point>>? = null,
         val chartDataMonthDays: Map<String, List<Point>>? = null,
         val chartDataDayHours: Map<String, List<Point>>? = null,
@@ -103,10 +106,15 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
 
 data class ChartUpdate (
     val viewMode: ViewMode = ViewMode.DayHour,
+
     val availableDays: List<String> = listOf("No Data"),
     val dateHourDataPoint: List<Point> = zeroDayHoursDataPoints,
+
     val availableWeeks: List<String> = listOf("No Data"),
-    val weekDayDataPoints: List<Point> = zeroWeekDaysDataPoints
+    val weekDayDataPoints: List<Point> = zeroWeekDaysDataPoints,
+
+    val availableMonths : List<String> = listOf("No Data"),
+    val monthDayDataPoints: List<Point> = zeroMonthDaysDataPoints
 )
 
 
@@ -178,7 +186,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         return dataStore.data.first()
     }
 
-    val preferencesObj = preferencesOf(
+    val preferencesObj: Preferences = preferencesOf(
         intPreferencesKey("26 09 2025T15") to 10,
         stringPreferencesKey("last_active_time") to "06 10 2025T08",
         intPreferencesKey("26 09 2025T16") to 30,
@@ -188,57 +196,206 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         intPreferencesKey("26 09 2025T21") to 62,
         intPreferencesKey("27 09 2025T00") to 110,
         intPreferencesKey("27 09 2025T01") to 65,
-        intPreferencesKey("2025-39") to 57,
-        intPreferencesKey("2025-9") to 57,
-        intPreferencesKey("2025") to 67,
         intPreferencesKey("27 09 2025T02") to 10,
         intPreferencesKey("27 09 2025T03") to 16,
         intPreferencesKey("27 09 2025T13") to 11,
         intPreferencesKey("27 09 2025T14") to 10,
         intPreferencesKey("04 10 2025T08") to 4,
-        intPreferencesKey("2025-40") to 10,
-        intPreferencesKey("2025-10") to 10,
         intPreferencesKey("04 10 2025T15") to 28,
         intPreferencesKey("04 10 2025T16") to 34,
         intPreferencesKey("04 10 2025T20") to 20,
         intPreferencesKey("05 10 2025T20") to 30,
-        intPreferencesKey("06 10 2025T08") to 10
-    ) //test only
+        intPreferencesKey("06 10 2025T08") to 10,
+
+        // October continued
+        intPreferencesKey("07 10 2025T09") to 45,
+        intPreferencesKey("08 10 2025T10") to 60,
+        intPreferencesKey("09 10 2025T11") to 75,
+        intPreferencesKey("10 10 2025T12") to 90,
+        intPreferencesKey("11 10 2025T13") to 105,
+        intPreferencesKey("12 10 2025T14") to 120,
+        intPreferencesKey("13 10 2025T15") to 135,
+        intPreferencesKey("14 10 2025T16") to 150,
+
+        // November
+        intPreferencesKey("01 11 2025T08") to 20,
+        intPreferencesKey("02 11 2025T09") to 25,
+        intPreferencesKey("03 11 2025T10") to 30,
+        intPreferencesKey("04 11 2025T11") to 35,
+        intPreferencesKey("05 11 2025T12") to 40,
+        intPreferencesKey("06 11 2025T13") to 45,
+        intPreferencesKey("07 11 2025T14") to 50,
+        intPreferencesKey("08 11 2025T15") to 55,
+
+        // December
+        intPreferencesKey("01 12 2025T08") to 60,
+        intPreferencesKey("02 12 2025T09") to 65,
+        intPreferencesKey("03 12 2025T10") to 70,
+        intPreferencesKey("04 12 2025T11") to 75,
+        intPreferencesKey("05 12 2025T12") to 80,
+        intPreferencesKey("06 12 2025T13") to 85,
+        intPreferencesKey("07 12 2025T14") to 90,
+        intPreferencesKey("08 12 2025T15") to 95,
+
+        // January
+        intPreferencesKey("10 01 2025T08") to 100,
+        intPreferencesKey("11 01 2025T09") to 105,
+        intPreferencesKey("12 01 2025T10") to 110,
+        intPreferencesKey("13 01 2025T11") to 115,
+        intPreferencesKey("14 01 2025T12") to 120,
+        intPreferencesKey("15 01 2025T13") to 125,
+        intPreferencesKey("16 01 2025T14") to 130,
+        intPreferencesKey("17 01 2025T15") to 135,
+        intPreferencesKey("18 01 2025T08") to 140,
+        intPreferencesKey("19 01 2025T09") to 145,
+        intPreferencesKey("20 01 2025T10") to 150,
+        intPreferencesKey("21 01 2025T11") to 155,
+        intPreferencesKey("22 01 2025T12") to 160,
+        intPreferencesKey("23 01 2025T13") to 165,
+        intPreferencesKey("24 01 2025T14") to 170,
+        intPreferencesKey("25 01 2025T15") to 175,
+
+        intPreferencesKey("01 02 2025T08") to 180,
+        intPreferencesKey("02 02 2025T09") to 185,
+        intPreferencesKey("03 02 2025T10") to 190,
+        intPreferencesKey("04 02 2025T11") to 195,
+        intPreferencesKey("05 02 2025T12") to 200,
+        intPreferencesKey("06 02 2025T13") to 205,
+        intPreferencesKey("07 02 2025T14") to 210,
+        intPreferencesKey("08 02 2025T15") to 215,
+
+        intPreferencesKey("15 03 2025T08") to 220,
+        intPreferencesKey("16 03 2025T09") to 225,
+        intPreferencesKey("17 03 2025T10") to 230,
+        intPreferencesKey("18 03 2025T11") to 235,
+        intPreferencesKey("19 03 2025T12") to 240,
+        intPreferencesKey("20 03 2025T13") to 245,
+        intPreferencesKey("21 03 2025T14") to 250,
+        intPreferencesKey("22 03 2025T15") to 240,
+
+        intPreferencesKey("01 04 2025T08") to 20,
+        intPreferencesKey("02 04 2025T09") to 25,
+        intPreferencesKey("03 04 2025T10") to 30,
+        intPreferencesKey("04 04 2025T11") to 35,
+        intPreferencesKey("05 04 2025T12") to 40,
+        intPreferencesKey("06 04 2025T13") to 45,
+        intPreferencesKey("07 04 2025T14") to 50,
+        intPreferencesKey("08 04 2025T15") to 55,
 
 
-    override suspend fun generateChart(viewMode: ViewMode, weekStart: DayOfWeek) {
+        intPreferencesKey("10 05 2025T08") to 60,
+        intPreferencesKey("11 05 2025T09") to 65,
+        intPreferencesKey("12 05 2025T10") to 70,
+        intPreferencesKey("13 05 2025T11") to 75,
+        intPreferencesKey("14 05 2025T12") to 80,
+        intPreferencesKey("15 05 2025T13") to 85,
+        intPreferencesKey("16 05 2025T14") to 90,
+        intPreferencesKey("17 05 2025T15") to 95,
+
+        intPreferencesKey("20 06 2025T08") to 100,
+        intPreferencesKey("21 06 2025T09") to 105,
+        intPreferencesKey("22 06 2025T10") to 110,
+        intPreferencesKey("23 06 2025T11") to 115,
+        intPreferencesKey("24 06 2025T12") to 120,
+        intPreferencesKey("25 06 2025T13") to 125,
+        intPreferencesKey("26 06 2025T14") to 130,
+        intPreferencesKey("27 06 2025T15") to 135,
+
+        )
+
+    fun isLeapYear(year: Int): Boolean {
+        return Year.of(year).isLeap
+    }
+
+    override suspend fun generateChart(viewMode: ViewMode, weekStart: DayOfWeek, year: Int) {
         _chartUpdate.update { it.copy(viewMode = viewMode) }
 
         val todayKey: LocalDate = todayKey
-        val preferencesObject: Preferences = getPreferencesObj()
+        val preferencesObject: Preferences = preferencesObj
         val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
         val weekFields: WeekFields = WeekFields.of(weekStart, 1)
 
         when (viewMode) {
             ViewMode.YearMonth -> TODO()
+
             ViewMode.MonthDay -> {
-                val totalFocusOfADay = preferencesObject.asMap()
+
+                val totalFocusOfADay: Map<String, Int> = preferencesObject.asMap()
                     .filterKeys {
                         regexDayHourKey.matches(it.name)
                         //return a Map that only contains keys that matches the form : "29 09 2025T0"
                     }.toList()
                     .groupBy { it.first.name.substringBefore("T") }
-                    //this will just return an empty Map if preferencesObject is empty
                     .mapValues { values ->
                         values.value.sumOf{
                                 pair ->
                             pair.second.toString().toIntOrNull() ?:0}
                     }
-                val listDays: List<LocalDate> = totalFocusOfADay.map{LocalDate.parse(it.key, formatterDay)}
+                //totalFocusOfADay = {26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
 
-                val firstDayOfYear = LocalDate.of(todayKey.year, 1, 1)
 
-                val listMonths: Map<String, List<Point>> = buildMap{
-                    listDays.map { it.get(weekFields.weekOfYear()) }
-                        .toSet()
+                val listAvailableMonths: List<Month> = totalFocusOfADay
+                    .map { LocalDate.parse(it.key, formatterDay) }
+                    .map { it.monthValue }
+                    .toSet()
+                    .toList()
+                    .map { Month.of(it) }
+                // listAvailableMonths = [SEPTEMBER, OCTOBER]
+
+                val listMonthDaysPoints: Map<String, List<Point>> = buildMap {
+                    listAvailableMonths.map { month ->
+
+                        val dayNum = month.length(isLeapYear(todayKey.year))//this returns Int
+
+                        val listDays: List<String> = buildList {
+                            repeat(dayNum) {
+                                add(LocalDate.of(year, month, it + 1).format(formatterDay))
+                            }
+                        }
+                        val monthLowerCase = month.toString().lowercase().replaceFirstChar { it.uppercase() }
+
+                        put(monthLowerCase, listDays)
+
+                    }
+                }.mapValues { entry ->
+                    entry.value.mapIndexed { index, date ->
+                        Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+                    }
                 }
+                // listMonthDaysPoints =
+                // {September=[Point(x=0.0, y=401.0), Point(x=1.0, y=222.0), Point(x=2.0, y = 86.0), ...],
+                // October=[Point(x=0.0, y=30.0), Point(x=1.0, y=10.0)]....}
 
+                updateChartState(chartDataMonthDays = listMonthDaysPoints)
+
+                Log.d("DEBUG", "generateChart - chartDataMonthDays: ${chartState.value.chartDataMonthDays}")
+
+                val availableMonths = listMonthDaysPoints.keys
+                    .toList()
+                    .sortedDescending()
+                //I'M GETTING STUCK RIGHT THERE/ I WANTED TO SWITCH FROM STRING/MONTH TO NUMBER
+
+                Log.d("DEBUG", "generateChart - availableMonths: $availableMonths")
+
+                if(availableMonths.isNotEmpty()) {
+                    _chartUpdate.update {
+                        it.copy(
+                            availableMonths = availableMonths,
+                            monthDayDataPoints = listMonthDaysPoints.values.first()
+                        )
+                    }
+                    pickMonth(availableMonths.first())
+                } else {
+                    _chartUpdate.update {
+                        it.copy(
+                            availableMonths = listOf("No data"),
+                            monthDayDataPoints = zeroMonthDaysDataPoints
+                        )
+                    }
+                }
             }
+
+
             ViewMode.WeekDay -> {
                 val totalFocusOfADay = preferencesObject.asMap()
                     .filterKeys {
@@ -256,9 +413,9 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 val listDays: List<LocalDate> = totalFocusOfADay.map{LocalDate.parse(it.key, formatterDay)}
 
-                val firstDayOfYear = LocalDate.of(todayKey.year, 1, 1)
+                val firstDayOfYear: LocalDate = LocalDate.of(todayKey.year, 1, 1)
 
-                val listWeeks: Map<String, List<Point>> = buildMap {
+                val chartDataWeekDays: Map<String, List<Point>> = buildMap {
                     listDays.map { it.get(weekFields.weekOfYear()) }
                         .toSet()
                         .forEach { weekNumber ->
@@ -270,28 +427,28 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                             val datesInWeek: List<String> = (1..7).map { startOfWeek.plusDays(it.toLong()).format(formatterDay) }
 
-                            Log.e("DEBUG", "generateChart - datesInWeek: $datesInWeek")
 
                             put(weekNumber.toString(), datesInWeek)
                         }//this returns Map<String, List<String>>
                 }.mapValues { entry ->
                     entry.value.mapIndexed { index, date ->
-                        Log.e("DEBUG", "generateChart - index: $index")
                         Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
                     }
                 }//transform string -> DataPoint
 
-                updateChartState(chartDataWeekDays = listWeeks)
+                updateChartState(chartDataWeekDays = chartDataWeekDays)
+
                 Log.d("DEBUG", "generateChart - chartDataWeekDays: ${chartState.value.chartDataWeekDays}")
 
-                val availableWeek = listWeeks.keys.toList().sortedDescending()
+                val availableWeek: List<String> = chartDataWeekDays.keys.toList().map{it.toInt()}.sortedDescending().map{it.toString()}
+
                 Log.d("DEBUG", "generateChart - availableWeek: $availableWeek")
 
                 if(availableWeek.isNotEmpty()) {
                     _chartUpdate.update {
                         it.copy(
                             availableWeeks = availableWeek,
-                            weekDayDataPoints = listWeeks.values.first()
+                            weekDayDataPoints = chartDataWeekDays.values.first()
                         )
                     }
                     Log.e("DEBUG", "generateChart - weekDayDataPoints: ${chartUpdate.value.weekDayDataPoints}")
@@ -370,6 +527,19 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     week,
                     zeroWeekDaysDataPoints
                 ) ?: zeroWeekDaysDataPoints,
+            )
+        }
+    }
+
+    fun pickMonth(month: String = "No Data") {
+        _chartUpdate.update {
+            it.copy(
+                monthDayDataPoints = chartState.value.chartDataMonthDays?.getOrDefault(
+                    month,
+                    zeroMonthDaysDataPoints
+                ) ?: zeroMonthDaysDataPoints,
+                // zeroMonthDaysDataPoints is a list of DataPoint with x=0 and y=0
+                //
             )
         }
     }

@@ -1,6 +1,7 @@
 package com.example.pomodoro.ui.screen2
 
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,20 +40,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.pomodoro.ChartDayHour
+import com.example.pomodoro.ChartMonthDay
 import com.example.pomodoro.ChartWeekDay
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
+import com.example.pomodoro.ui.theme.PomodoroTheme
 
 
-
-
-
+@Preview
+@Composable
+fun PreviewScreen2() {
+    PomodoroTheme {
+        Screen2LineChart(
+            viewModelChart = hiltViewModel(),
+            navHostController = NavHostController(LocalContext.current)
+        )
+    }
+}
 
 
 @Composable
@@ -68,6 +81,7 @@ fun Screen2LineChart(
 // you need to make sure the format used to transform them match the current format of the string, or else -> crash
     val availableDaysList = chartUpdate.availableDays
     val availableWeeksList = chartUpdate.availableWeeks
+    val availableMonthsList = chartUpdate.availableMonths
 
     Column(
         modifier = Modifier
@@ -75,28 +89,49 @@ fun Screen2LineChart(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
         Text(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
         Column() {
+
             DropdownFunViewMode(
-                itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour),
+                itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour, ViewMode.MonthDay),
                 onItemSelected = {viewModelChart.generateChart(it)}
             )
+
+            DropdownFunMonth(
+                itemLists = availableMonthsList,
+                onItemSelected = { viewModelChart.pickMonth(it) }
+            )
+
             DropdownFunWeek(
                 itemLists = availableWeeksList,
                 onItemSelected = { viewModelChart.pickWeek(it) }
             )
+
             DropdownFunDay(
                 itemLists = availableDaysList,
                 onItemSelected = { viewModelChart.pickDay(it) }
             )
+
         }
-        if(chartUpdate.viewMode == ViewMode.DayHour) {
-            ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
-        } else {
-            ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
+
+        when (chartUpdate.viewMode) {
+            ViewMode.MonthDay -> {
+                ChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
+            }
+            ViewMode.WeekDay -> {
+                ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
+            }
+            ViewMode.DayHour -> {
+                ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
+            }
+            else -> {
+                ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
+            }
         }
+
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.screen1.name) }
         ) {
@@ -219,6 +254,58 @@ fun DropdownFunWeek (
     }
 }
 
+@Composable
+fun DropdownFunMonth (
+    itemLists: List<String>?,
+    onItemSelected: (String) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var month by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.LightGray),
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .width(150.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Text(
+                text = "Month $month",
+                modifier = Modifier
+                    .padding(8.dp),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = null,
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 200.dp) // limit height
+        ) {
+            itemLists?.forEach { date ->
+                DropdownMenuItem(
+                    text = {
+                        Text(text = date)
+                    },
+                    onClick = {
+                        onItemSelected(date)
+                        month = date
+                        expanded = false
+                    }
+                )
+            }?: Text(text = "No Data")
+        }
+    }
+}
 
 @Composable
 fun DropdownFunViewMode (
@@ -264,6 +351,7 @@ fun DropdownFunViewMode (
                     },
                     onClick = {
                         onItemSelected(viewMode)
+                        Log.d("DEBUG", "DropdownFunViewMode: $viewMode")
                         viewMode1 = viewMode
                         expanded = false
                     }
