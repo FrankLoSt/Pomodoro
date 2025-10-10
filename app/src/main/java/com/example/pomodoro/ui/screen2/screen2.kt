@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathSegment
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +57,15 @@ import androidx.compose.ui.unit.times
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import co.yml.charts.axis.AxisData
+import co.yml.charts.common.model.AccessibilityConfig
+import co.yml.charts.common.model.PlotType
+import co.yml.charts.common.model.Point
+import co.yml.charts.ui.linechart.LineChart
+import co.yml.charts.ui.linechart.model.GridLines
+import co.yml.charts.ui.linechart.model.LineChartData
+import co.yml.charts.ui.linechart.model.LinePlotData
+import com.example.pomodoro.LineGraphTest
 import com.example.pomodoro.data.datastore.ChartState
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.theme.PomodoroTheme
@@ -144,25 +154,27 @@ fun Screen2LineChart(
 fun ChartTestWeek (
     listData: List<DataPoint>
 ) {
-    LineGraph(
-        plot = LinePlot(
-            lines = listOf(
-                LinePlot.Line(
-                    dataPoints = listData,
-                    connection = LinePlot.Connection(color = Color.Blue),
-                    intersection = LinePlot.Intersection(color = Color.Magenta),
-                    highlight = LinePlot.Highlight(color = Color.Yellow)
-                )
-            ),
-            grid = LinePlot.Grid(Color.LightGray, steps = 2)
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        onSelection = { xLine, points ->
-            // Optional: handle user tap on a point
-        }
+    val pointsData = listOf(
+        Point(0f, 40f),
+        Point(1f, 90f),
+        Point(2f, 0f),
+        Point(3f, 60f),
+        Point(4f, 10f)
     )
+    val xAxisData = AxisData.Builder()
+        .axisStepSize(100.dp)
+        .steps(pointsData.size - 1)
+        .labelData { i -> "Day $i" }
+        .build()
+
+    val yAxisData = AxisData.Builder()
+        .steps(5)
+        .labelData { i -> "${i * 50}" }
+        .build()
+
+
+
+
 }
 
 

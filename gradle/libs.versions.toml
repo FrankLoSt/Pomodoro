@@ -23,6 +23,7 @@ plot = "0.1.1"
 benchmarkTraceprocessor = "1.4.1"
 coreI18n = "1.0.0"
 roomKtx = "2.8.1"
+ycharts = "2.1.0"
 
 
 
@@ -61,6 +62,7 @@ plot = { module = "com.github.madrapps:plot", version.ref = "plot" }
 androidx-benchmark-traceprocessor = { group = "androidx.benchmark", name = "benchmark-traceprocessor", version.ref = "benchmarkTraceprocessor" }
 androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
+ycharts = { module = "co.yml:ycharts", version.ref = "ycharts" }
 
 
 [plugins]
