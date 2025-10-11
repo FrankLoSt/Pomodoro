@@ -34,12 +34,15 @@ class ViewModelChart @Inject constructor (
         settingsRepository.pickDay(day)
     }
 
-    fun pickWeek(week: String) {
+    fun pickWeek(week: Int) {
         settingsRepository.pickWeek(week)
     }
 
-    fun pickMonth(month: String) {
+    fun pickMonth(month: Int) {
         settingsRepository.pickMonth(month)
+    }
+    fun pickYear(year: Int) {
+        settingsRepository.pickYear(year)
     }
 
 }

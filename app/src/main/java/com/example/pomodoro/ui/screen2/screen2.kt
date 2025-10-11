@@ -82,6 +82,8 @@ fun Screen2LineChart(
     val availableDaysList = chartUpdate.availableDays
     val availableWeeksList = chartUpdate.availableWeeks
     val availableMonthsList = chartUpdate.availableMonths
+    val availableYearsList = chartUpdate.availableYears
+
 
     Column(
         modifier = Modifier
@@ -98,6 +100,10 @@ fun Screen2LineChart(
             DropdownFunViewMode(
                 itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour, ViewMode.MonthDay),
                 onItemSelected = {viewModelChart.generateChart(it)}
+            )
+            DropdownFunYear(
+                itemLists = chartUpdate.availableYears,
+                onItemSelected = { viewModelChart.pickYear(it) }
             )
 
             DropdownFunMonth(
@@ -203,8 +209,8 @@ fun DropdownFunDay (
 
 @Composable
 fun DropdownFunWeek (
-    itemLists: List<String>?,
-    onItemSelected: (String) -> Unit,
+    itemLists: List<Int>?,
+    onItemSelected: (Int) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var week by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
@@ -238,14 +244,14 @@ fun DropdownFunWeek (
             onDismissRequest = { expanded = false },
             modifier = Modifier.heightIn(max = 200.dp) // limit height
         ) {
-            itemLists?.forEach { date ->
+            itemLists?.forEach { weekNum ->
                 DropdownMenuItem(
                     text = {
-                        Text(text = date)
+                        Text(text = "$weekNum")
                     },
                     onClick = {
-                        onItemSelected(date)
-                        week = date
+                        onItemSelected(weekNum)
+                        week = weekNum
                         expanded = false
                     }
                 )
@@ -255,9 +261,65 @@ fun DropdownFunWeek (
 }
 
 @Composable
+fun DropdownFunYear (
+    itemLists: List<Int>?,
+    onItemSelected: (Int) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var year by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.LightGray),
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .width(150.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Text(
+                text = "Year: $year",
+                modifier = Modifier
+                    .padding(8.dp),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = null,
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 200.dp) // limit height
+        ) {
+            itemLists?.forEach { date ->
+                DropdownMenuItem(
+                    text = {
+                        Text(text = "$year")
+                    },
+                    onClick = {
+                        onItemSelected(date)
+                        year = date
+                        expanded = false
+                    }
+                )
+            }?: Text(text = "No Data")
+        }
+    }
+}
+
+
+
+
+@Composable
 fun DropdownFunMonth (
-    itemLists: List<String>?,
-    onItemSelected: (String) -> Unit,
+    itemLists: List<Int>?,
+    onItemSelected: (Int) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var month by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
@@ -294,7 +356,7 @@ fun DropdownFunMonth (
             itemLists?.forEach { date ->
                 DropdownMenuItem(
                     text = {
-                        Text(text = date)
+                        Text(text = "$date")
                     },
                     onClick = {
                         onItemSelected(date)

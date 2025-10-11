@@ -47,6 +47,8 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.collections.*
 import kotlin.collections.map
+import kotlin.time.Duration
+import kotlin.time.measureTime
 
 
 interface SettingsRepository {
@@ -94,12 +96,12 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
 
 
     data class ChartState  (
-        val chartDataYearMonths: List<Point> = zeroYearMonthsDataPoints,
+        val chartDataYearMonths: Map<Int, List<Point>>?  = null,
         val chartDataYearWeeks: List<Point> = zeroYearWeeksDataPoints,
         val chartDataYearDays: List<Point> = zeroYearDaysDataPoints,
 
-        val chartDataWeekDays: Map<String, List<Point>>? = null,
-        val chartDataMonthDays: Map<String, List<Point>>? = null,
+        val chartDataWeekDays: Map<Int, List<Point>>? = null,
+        val chartDataMonthDays: Map<Int, List<Point>>? = null,
         val chartDataDayHours: Map<String, List<Point>>? = null,
     )
 
@@ -110,11 +112,15 @@ data class ChartUpdate (
     val availableDays: List<String> = listOf("No Data"),
     val dateHourDataPoint: List<Point> = zeroDayHoursDataPoints,
 
-    val availableWeeks: List<String> = listOf("No Data"),
+    val availableWeeks: List<Int> = listOf(0),
     val weekDayDataPoints: List<Point> = zeroWeekDaysDataPoints,
 
-    val availableMonths : List<String> = listOf("No Data"),
-    val monthDayDataPoints: List<Point> = zeroMonthDaysDataPoints
+    val availableMonths : List<Int> = listOf(0),
+    val monthDayDataPoints: List<Point> = zeroMonthDaysDataPoints,
+
+    val availableYears: List<Int> = listOf(0),
+    val yearMonthDataPoints: List<Point> = zeroYearMonthsDataPoints,
+
 )
 
 
@@ -314,47 +320,101 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         val preferencesObject: Preferences = preferencesObj
         val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
         val weekFields: WeekFields = WeekFields.of(weekStart, 1)
+        val weekOfYearField = weekFields.weekOfYear()
+        val dayOfWeekField = weekFields.dayOfWeek()
+
+        val firstDayOfYear: LocalDate = LocalDate.of(todayKey.year, 1, 1)
+
+        val totalFocusOfADay = preferencesObject.asMap()
+            .filterKeys {
+                regexDayHourKey.matches(it.name)
+                //return a Map that only contains keys that matches the form : "29 09 2025T0"
+            }.toList()
+            .groupBy { it.first.name.substringBefore("T") }
+            //this will just return an empty Map if preferencesObject is empty
+            .mapValues { values ->
+                values.value.sumOf { pair ->
+                    pair.second.toString().toIntOrNull() ?: 0
+                }
+            }
+
+        val listDays: List<LocalDate> = totalFocusOfADay.mapNotNull { runCatching{LocalDate.parse(it.key, formatterDay) }.getOrNull() }
+
+
 
         when (viewMode) {
-            ViewMode.YearMonth -> TODO()
+
+            ViewMode.YearMonth -> {
+                val focusDataByYear: Map<Int, Int> = totalFocusOfADay
+                    .filterKeys{it.contains(year.toString())}
+                    //only date in the same year
+                    .keys
+                    .groupBy{day -> runCatching{LocalDate.parse(day, formatterDay)}.getOrNull()?.month ?: todayKey.month   }
+                    .mapKeys{entry -> entry.key.value}
+                    .mapValues { entry ->
+                        entry.value.sumOf { day ->
+                            totalFocusOfADay.getOrDefault(day, 0)
+                        }
+                    }
+                val yearMonthDataChart: Map<Int, List<Point>> = buildMap {
+                    val listMonths = (1..12).toList().mapIndexed { index, month ->
+                        val monthFocus = focusDataByYear.getOrDefault(month, 0)
+                        Point((index + 1).toFloat(), monthFocus.toFloat())
+                    }
+                    put(year, listMonths)
+                }
+
+                val availableYears = focusDataByYear.keys.toList().sortedDescending()
+
+                updateChartState(chartDataYearMonths = yearMonthDataChart)
+
+                _chartUpdate.update {
+                    it.copy(
+                        availableYears = availableYears.ifEmpty { listOf(0) },
+                        monthDayDataPoints = yearMonthDataChart[availableYears.firstOrNull()] ?: zeroMonthDaysDataPoints
+                    )
+                }
+
+                if(availableYears.isNotEmpty()) {
+                    pickYear(availableYears.first())
+                }
+
+            }
 
             ViewMode.MonthDay -> {
 
-                val totalFocusOfADay: Map<String, Int> = preferencesObject.asMap()
-                    .filterKeys {
-                        regexDayHourKey.matches(it.name)
-                        //return a Map that only contains keys that matches the form : "29 09 2025T0"
-                    }.toList()
-                    .groupBy { it.first.name.substringBefore("T") }
-                    .mapValues { values ->
-                        values.value.sumOf{
-                                pair ->
-                            pair.second.toString().toIntOrNull() ?:0}
-                    }
                 //totalFocusOfADay = {26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
 
 
                 val listAvailableMonths: List<Month> = totalFocusOfADay
-                    .map { LocalDate.parse(it.key, formatterDay) }
-                    .map { it.monthValue }
-                    .toSet()
-                    .toList()
-                    .map { Month.of(it) }
+                    .mapNotNull {
+                        runCatching {
+                            val parsedDate = LocalDate.parse(it.key, formatterDay)
+                            Month.of(parsedDate.monthValue)
+                        }.getOrNull()
+                    }
+                    .distinct()
+
                 // listAvailableMonths = [SEPTEMBER, OCTOBER]
 
-                val listMonthDaysPoints: Map<String, List<Point>> = buildMap {
-                    listAvailableMonths.map { month ->
+                val listMonthDaysPoints: Map<Int, List<Point>> = buildMap {
+                    listAvailableMonths.map { month: Month ->
 
                         val dayNum = month.length(isLeapYear(todayKey.year))//this returns Int
 
                         val listDays: List<String> = buildList {
                             repeat(dayNum) {
-                                add(LocalDate.of(year, month, it + 1).format(formatterDay))
+                                val dateStr = runCatching {
+                                    LocalDate.of(todayKey.year, month, it + 1).format(formatterDay)
+                                }.getOrNull()
+
+                                if (dateStr != null) add(dateStr)
                             }
                         }
-                        val monthLowerCase = month.toString().lowercase().replaceFirstChar { it.uppercase() }
 
-                        put(monthLowerCase, listDays)
+                        val monthIntValue = month.value
+
+                        put(monthIntValue, listDays)
 
                     }
                 }.mapValues { entry ->
@@ -370,97 +430,93 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 Log.d("DEBUG", "generateChart - chartDataMonthDays: ${chartState.value.chartDataMonthDays}")
 
-                val availableMonths = listMonthDaysPoints.keys
-                    .toList()
-                    .sortedDescending()
-                //I'M GETTING STUCK RIGHT THERE/ I WANTED TO SWITCH FROM STRING/MONTH TO NUMBER
+                val availableMonths = listMonthDaysPoints.keys.toList().sortedDescending()
 
                 Log.d("DEBUG", "generateChart - availableMonths: $availableMonths")
 
-                if(availableMonths.isNotEmpty()) {
-                    _chartUpdate.update {
-                        it.copy(
-                            availableMonths = availableMonths,
-                            monthDayDataPoints = listMonthDaysPoints.values.first()
-                        )
-                    }
+                _chartUpdate.update {
+                    it.copy(
+                        availableMonths = availableMonths.ifEmpty { listOf(0) },
+                        monthDayDataPoints = listMonthDaysPoints[availableMonths.firstOrNull()] ?: zeroMonthDaysDataPoints
+                    )
+                }
+
+                if (availableMonths.isNotEmpty()) {
                     pickMonth(availableMonths.first())
-                } else {
-                    _chartUpdate.update {
-                        it.copy(
-                            availableMonths = listOf("No data"),
-                            monthDayDataPoints = zeroMonthDaysDataPoints
-                        )
-                    }
                 }
             }
 
 
             ViewMode.WeekDay -> {
-                val totalFocusOfADay = preferencesObject.asMap()
-                    .filterKeys {
-                        regexDayHourKey.matches(it.name)
-                        //return a Map that only contains keys that matches the form : "29 09 2025T0"
-                    }.toList()
-                    .groupBy { it.first.name.substringBefore("T") }
-                    //this will just return an empty Map if preferencesObject is empty
-                    .mapValues { values ->
-                        values.value.sumOf{
-                            pair ->
-                            pair.second.toString().toIntOrNull() ?:0}
-                    }
+
                 //{26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
 
-                val listDays: List<LocalDate> = totalFocusOfADay.map{LocalDate.parse(it.key, formatterDay)}
+                val chartDataWeekDays = listDays
+                    .map { it.get(weekOfYearField) }
+                    .distinct()
+                    .associateWith { weekNumber ->
+                        val startOfWeek = firstDayOfYear.with(weekOfYearField, weekNumber.toLong())
+                            .with(dayOfWeekField, 1)
 
-                val firstDayOfYear: LocalDate = LocalDate.of(todayKey.year, 1, 1)
+                        val datesInWeek = List(7) { dayOffset ->
+                            startOfWeek.plusDays(dayOffset.toLong()).format(formatterDay)
+                        }
 
-                val chartDataWeekDays: Map<String, List<Point>> = buildMap {
-                    listDays.map { it.get(weekFields.weekOfYear()) }
-                        .toSet()
-                        .forEach { weekNumber ->
-                            val firstWeekDate = firstDayOfYear.with(weekFields.weekOfYear(), weekNumber.toLong())
-                            //create a random date in a certain week, based on the given rule
-
-                            val startOfWeek = firstWeekDate.with(weekFields.dayOfWeek(), 1) // Monday
-                            //from that, find the first day of the week based on the given week rule
-
-                            val datesInWeek: List<String> = (1..7).map { startOfWeek.plusDays(it.toLong()).format(formatterDay) }
-
-
-                            put(weekNumber.toString(), datesInWeek)
-                        }//this returns Map<String, List<String>>
-                }.mapValues { entry ->
-                    entry.value.mapIndexed { index, date ->
-                        Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+                        datesInWeek.mapIndexed { index, date ->
+                            Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+                        }
                     }
-                }//transform string -> DataPoint
+
+                /*
+                val duration: Duration = measureTime {
+                    // Your code here
+                    val chartDataWeekDays: Map<String, List<Point>> = buildMap {
+                        listDays.map { it.get(weekOfYearField) }
+                            .toSet()
+                            .forEach { weekNumber ->
+                                val firstWeekDate =
+                                    firstDayOfYear.with(weekOfYearField, weekNumber.toLong())
+                                //create a random date in a certain week, based on the given rule
+
+                                val startOfWeek = firstWeekDate.with(dayOfWeekField, 1) // Monday
+                                //from that, find the first day of the week based on the given week rule
+
+                                val datesInWeek: List<String> = (1..7).map {
+                                    startOfWeek.plusDays(it.toLong()).format(formatterDay)
+                                }
+
+
+                                put(weekNumber.toString(), datesInWeek)
+                            }//this returns Map<String, List<String>>
+                    }.mapValues { entry ->
+                        entry.value.mapIndexed { index, date ->
+                            Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
+                        }
+                    }//transform string -> DataPoint
+                }
+
+                Log.d("DEBUG", "generateChart - chartDataWeekDays duration : $duration")
+                */  // ~3ms
+
 
                 updateChartState(chartDataWeekDays = chartDataWeekDays)
 
                 Log.d("DEBUG", "generateChart - chartDataWeekDays: ${chartState.value.chartDataWeekDays}")
 
-                val availableWeek: List<String> = chartDataWeekDays.keys.toList().map{it.toInt()}.sortedDescending().map{it.toString()}
+                val availableWeek: List<Int> = chartDataWeekDays.keys.toList().sortedDescending()
 
                 Log.d("DEBUG", "generateChart - availableWeek: $availableWeek")
-
-                if(availableWeek.isNotEmpty()) {
-                    _chartUpdate.update {
-                        it.copy(
-                            availableWeeks = availableWeek,
-                            weekDayDataPoints = chartDataWeekDays.values.first()
-                        )
-                    }
-                    Log.e("DEBUG", "generateChart - weekDayDataPoints: ${chartUpdate.value.weekDayDataPoints}")
-                    pickWeek(availableWeek.first())
-                } else { _chartUpdate.update {
-                        it.copy(
-                            availableWeeks = listOf("No data"),
-                            weekDayDataPoints = zeroWeekDaysDataPoints
-                        )
-                    }
+                _chartUpdate.update {
+                    it.copy(
+                        availableWeeks = availableWeek.ifEmpty { listOf(0) },
+                        weekDayDataPoints = chartDataWeekDays[availableWeek.firstOrNull()] ?: zeroWeekDaysDataPoints
+                    )
                 }
+
+                if (availableWeek.isNotEmpty()) pickWeek(availableWeek.first())
             }
+
+
             ViewMode.DayHour -> {
 
                 val chartDataDayHours: Map<String, List<Point>> = preferencesObject.asMap()
@@ -480,7 +536,14 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}"
                 )
 
-                val availableDays = chartDataDayHours.keys.toList().sortedDescending()
+                val availableDays = chartDataDayHours.keys.toList()
+                    .map{LocalDate.parse(it, formatterDay)}
+                    .sortedDescending()
+                    .map{
+                        it.format(formatterDay)
+                    }
+                Log.d("DEBUG", "generateChart - availableDays: $availableDays")
+
                 //the latest focus day is at index 0
                 if (availableDays.isNotEmpty()) {
                     _chartUpdate.update {
@@ -491,7 +554,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     }
                     pickDay(availableDays.first()) //pick the first day
 
-                    Log.d("DEBUG", "generateChart - availableDays: $availableDays")
                 } else {
                     _chartUpdate.update {
                         it.copy(
@@ -501,6 +563,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     }
                 }
             }
+
         }
     }
 
@@ -520,7 +583,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                 * */
         }
     }
-    fun pickWeek(week: String = "No Data") {
+    fun pickWeek(week: Int = 0) {
         _chartUpdate.update {
             it.copy(
                 weekDayDataPoints = chartState.value.chartDataWeekDays?.getOrDefault(
@@ -531,7 +594,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         }
     }
 
-    fun pickMonth(month: String = "No Data") {
+    fun pickMonth(month: Int = 0) {
         _chartUpdate.update {
             it.copy(
                 monthDayDataPoints = chartState.value.chartDataMonthDays?.getOrDefault(
@@ -540,6 +603,17 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                 ) ?: zeroMonthDaysDataPoints,
                 // zeroMonthDaysDataPoints is a list of DataPoint with x=0 and y=0
                 //
+            )
+        }
+    }
+
+    fun pickYear(year: Int = 0) {
+        _chartUpdate.update {
+            it.copy(
+                monthDayDataPoints = chartState.value.chartDataYearMonths?.getOrDefault(
+                    year,
+                    zeroMonthDaysDataPoints
+                ) ?: zeroMonthDaysDataPoints,
             )
         }
     }
@@ -555,7 +629,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     ): List<Point> {
         val chartDataDay = hourList.mapIndexed { index, hour ->
             val key = createHourKey(dateString.format(formatterDay), hour)
-            Point(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f)
+            Point(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f) //Look up and get
         }
         return chartDataDay
     }
@@ -564,11 +638,11 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
     // Helper functions for better organization
     private fun updateChartState(
-        chartDataYearMonths: List<Point>? = null,
+        chartDataYearMonths: Map<Int, List<Point>>? = null,
         chartDataYearWeeks: List<Point>? = null,
         chartDataYearDays: List<Point>? = null,
-        chartDataWeekDays: Map<String, List<Point>>? = null,
-        chartDataMonthDays: Map<String, List<Point>>? = null,
+        chartDataWeekDays: Map<Int, List<Point>>? = null,
+        chartDataMonthDays: Map<Int, List<Point>>? = null,
         chartDataDayHours: Map<String, List<Point>>? = null,
     ) {
         _chartState.update { old ->
