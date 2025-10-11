@@ -96,10 +96,11 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
 
 
     data class ChartState  (
-        val chartDataYearMonths: Map<Int, List<Point>>?  = null,
         val chartDataYearWeeks: List<Point> = zeroYearWeeksDataPoints,
         val chartDataYearDays: List<Point> = zeroYearDaysDataPoints,
 
+
+        val chartDataYearMonths: Map<Int, List<Point>>?  = null,
         val chartDataWeekDays: Map<Int, List<Point>>? = null,
         val chartDataMonthDays: Map<Int, List<Point>>? = null,
         val chartDataDayHours: Map<String, List<Point>>? = null,
@@ -345,7 +346,8 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         when (viewMode) {
 
             ViewMode.YearMonth -> {
-                val focusDataByYear: Map<Int, Int> = totalFocusOfADay
+
+                val dayFocusDataByACertainYear: Map<Int, Int> = totalFocusOfADay
                     .filterKeys{it.contains(year.toString())}
                     //only date in the same year
                     .keys
@@ -358,20 +360,24 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     }
                 val yearMonthDataChart: Map<Int, List<Point>> = buildMap {
                     val listMonths = (1..12).toList().mapIndexed { index, month ->
-                        val monthFocus = focusDataByYear.getOrDefault(month, 0)
+                        val monthFocus = dayFocusDataByACertainYear.getOrDefault(month, 0)
                         Point((index + 1).toFloat(), monthFocus.toFloat())
                     }
                     put(year, listMonths)
                 }
 
-                val availableYears = focusDataByYear.keys.toList().sortedDescending()
+                val availableYears = yearMonthDataChart.keys.toList().sortedDescending()
+
+                Log.d("DEBUG", "generateChart - availableYears: $availableYears")
 
                 updateChartState(chartDataYearMonths = yearMonthDataChart)
+
+                Log.d("DEBUG", "generateChart - chartDataYearMonths: ${chartState.value.chartDataYearMonths}")
 
                 _chartUpdate.update {
                     it.copy(
                         availableYears = availableYears.ifEmpty { listOf(0) },
-                        monthDayDataPoints = yearMonthDataChart[availableYears.firstOrNull()] ?: zeroMonthDaysDataPoints
+                        yearMonthDataPoints = yearMonthDataChart[availableYears.firstOrNull()] ?: zeroYearMonthsDataPoints
                     )
                 }
 
@@ -610,10 +616,10 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     fun pickYear(year: Int = 0) {
         _chartUpdate.update {
             it.copy(
-                monthDayDataPoints = chartState.value.chartDataYearMonths?.getOrDefault(
+                yearMonthDataPoints = chartState.value.chartDataYearMonths?.getOrDefault(
                     year,
-                    zeroMonthDaysDataPoints
-                ) ?: zeroMonthDaysDataPoints,
+                    zeroYearMonthsDataPoints
+                ) ?: zeroYearMonthsDataPoints,
             )
         }
     }

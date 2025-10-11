@@ -50,6 +50,7 @@ import androidx.navigation.NavHostController
 import com.example.pomodoro.ChartDayHour
 import com.example.pomodoro.ChartMonthDay
 import com.example.pomodoro.ChartWeekDay
+import com.example.pomodoro.ChartYearMonth
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
@@ -98,11 +99,11 @@ fun Screen2LineChart(
         Column() {
 
             DropdownFunViewMode(
-                itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour, ViewMode.MonthDay),
+                itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour, ViewMode.MonthDay,  ViewMode.YearMonth),
                 onItemSelected = {viewModelChart.generateChart(it)}
             )
             DropdownFunYear(
-                itemLists = chartUpdate.availableYears,
+                itemLists = availableYearsList,
                 onItemSelected = { viewModelChart.pickYear(it) }
             )
 
@@ -134,7 +135,7 @@ fun Screen2LineChart(
                 ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
             }
             else -> {
-                ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
+                ChartYearMonth(pointsData = chartUpdate.yearMonthDataPoints)
             }
         }
 

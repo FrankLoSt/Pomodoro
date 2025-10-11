@@ -39,13 +39,38 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
 fun ChartDayHour (
-    pointsData: List<Point>
+    pointsData: List<Point> =  listOf(
+        Point(0f, 30f),
+        Point(1f, 45f),
+        Point(2f, 60f),
+        Point(3f, 30f),
+        Point(4f, 90f),
+        Point(5f, 20f),
+        Point(6f, 75f),
+        Point(7f, 50f),
+        Point(8f, 65f),
+        Point(9f, 80f),
+        Point(10f, 40f),
+        Point(11f, 55f),
+        Point(12f, 70f),
+        Point(13f, 35f),
+        Point(14f, 60f),
+        Point(15f, 85f),
+        Point(16f, 25f),
+        Point(17f, 95f),
+        Point(18f, 50f),
+        Point(19f, 40f),
+        Point(20f, 70f),
+        Point(21f, 65f),
+        Point(22f, 30f),
+        Point(23f, 55f),
+    )
 ) {
     val steps = 5
     val pointsData = pointsData
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(14.dp)
+        .axisStepSize(15.3.dp)
         .backgroundColor(Color.Transparent)
         .steps(23)
         .labelData { i ->
@@ -54,7 +79,7 @@ fun ChartDayHour (
                 6 -> "6"
                 12 -> "12"
                 18 -> "18"
-                23 -> "23"
+                23 -> "23  "
                 else -> ""
             }
         }
@@ -72,7 +97,7 @@ fun ChartDayHour (
         .steps(5)
         .backgroundColor(Color.Transparent)
         .labelData { i -> (i * yScale).toInt().toString() }
-        .labelAndAxisLinePadding(15.dp)
+        .labelAndAxisLinePadding(20.dp)
         .axisLineColor(Color.Black)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary)
         .build()
@@ -133,18 +158,34 @@ fun ChartDayHour (
     }
 }
 
+@Preview
+@Composable
+fun ChartDayHourReview () {
+    PomodoroTheme {
+        ChartDayHour()
+    }
+}
+
+
 @Composable
 fun ChartWeekDay (
-    pointsData: List<Point>
+    pointsData: List<Point> =  listOf(
+        Point(0f, 30f),
+        Point(1f, 45f),
+        Point(2f, 60f),
+        Point(3f, 30f),
+        Point(4f, 90f),
+        Point(5f, 20f),
+        Point(6f, 75f),
+    )
 ) {
     val steps = 5
     val pointsData = pointsData
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(55.dp)
+        .axisStepSize(58.dp)
         .backgroundColor(Color.Transparent)
         .steps(7)
-        .axisOffset(20.dp)
         .labelData { i ->  when (i) {
             0 -> "        Mon"
             1 -> "Tue"
@@ -206,6 +247,12 @@ fun ChartWeekDay (
         backgroundColor = MaterialTheme.colorScheme.surface,
         xAxisData = xAxisData,
         yAxisData = yAxisData,
+        gridLines = GridLines(
+            color = Color.LightGray,
+            lineWidth = 1.dp,
+            enableHorizontalLines = true,
+            enableVerticalLines = false,
+        )
     )
     Card(
         modifier = Modifier
@@ -225,14 +272,16 @@ fun ChartWeekDay (
 
 }
 
-
 @Preview
-@Composable
-fun CharReview () {
+@Composable 
+fun ChartWeekDayReview () {
     PomodoroTheme {
-        ChartMonthDay()
+        ChartWeekDay()
     }
 }
+
+
+
 
 @Composable
 fun ChartMonthDay (
@@ -270,16 +319,14 @@ fun ChartMonthDay (
         //Point(31f, 700f)
     )
 ) {
-
     val steps = 5
 
     val pointsData = pointsData
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(11.dp)
+        .axisStepSize(11.64.dp)
         .backgroundColor(Color.Transparent)
         .steps(pointsData.size - 1)
-        .axisOffset(20.dp)
         .labelData { i ->
             when (pointsData.size) {
                 30 -> {
@@ -382,6 +429,12 @@ fun ChartMonthDay (
         backgroundColor = MaterialTheme.colorScheme.surface,
         xAxisData = xAxisData,
         yAxisData = yAxisData,
+        gridLines = GridLines(
+            color = Color.LightGray,
+            lineWidth = 1.dp,
+            enableHorizontalLines = true,
+            enableVerticalLines = false,
+        )
     )
     Card(
         modifier = Modifier
@@ -399,4 +452,138 @@ fun ChartMonthDay (
     }
 
 
+}
+
+@Preview
+@Composable
+fun ChartMonthReview () {
+    PomodoroTheme {
+        ChartMonthDay()
+    }
+}
+
+@Composable
+fun ChartYearMonth(
+    pointsData: List<Point> =  listOf(
+        Point(1f, 45f),
+        Point(2f, 60f),
+        Point(3f, 30f),
+        Point(4f, 90f),
+        Point(5f, 20f),
+        Point(6f, 75f),
+        Point(7f, 50f),
+        Point(8f, 65f),
+        Point(9f, 80f),
+        Point(10f, 40f),
+        Point(11f, 55f),
+        Point(12f, 70f)
+        //Point(31f, 700f)
+    )
+) {
+
+    val steps = 5
+
+    val pointsData = pointsData
+
+    val xAxisData = AxisData.Builder()
+        .axisStepSize(34.dp)
+        .backgroundColor(Color.Transparent)
+        .steps(pointsData.size - 1)
+        .startPadding(25.dp)
+        .labelData { i -> when (i + 1) {
+            1 -> "   1"
+            2 -> "2"
+            3 -> "3"
+            4 -> "4"
+            5 -> "5"
+            6 -> "6"
+            7 -> "7"
+            8 -> "8"
+            9 -> "9"
+            10 -> "10"
+            11 -> "11"
+            12 -> "12"
+            else -> ""
+        }
+        }
+        .labelAndAxisLinePadding(12.dp)
+        .axisLineColor(MaterialTheme.colorScheme.tertiary)
+        .axisLabelColor(MaterialTheme.colorScheme.tertiary)
+        .build()
+
+    val yMax = pointsData.maxOf { it.y }
+    val yScale = yMax / steps
+
+    val yAxisData = AxisData.Builder()
+        .axisStepSize(100.dp)
+        .steps(5)
+        .backgroundColor(Color.Transparent)
+        .labelData { i -> (i * yScale).toInt().toString() }
+        .labelAndAxisLinePadding(35.dp)
+        .axisLineColor(Color.Transparent)
+        .axisLabelColor(MaterialTheme.colorScheme.tertiary)
+
+        .build()
+
+    val lineChartData = LineChartData(
+        linePlotData = LinePlotData(
+            lines = listOf(
+                Line(
+                    dataPoints = pointsData,
+                    LineStyle(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        lineType = LineType.SmoothCurve(isDotted = false)
+                    ),
+                    IntersectionPoint(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        radius = 3.dp
+                    ),
+                    SelectionHighlightPoint(
+                        color = MaterialTheme.colorScheme.tertiary,
+                    ),
+                    ShadowUnderLine(
+                        alpha = 0.5f,
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.tertiary,
+                                Color.Transparent
+                            )
+                        )
+                    ),
+                    SelectionHighlightPopUp()
+                )
+            ),
+        ),
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        xAxisData = xAxisData,
+        yAxisData = yAxisData,
+        gridLines = GridLines(
+            color = Color.LightGray,
+            lineWidth = 1.dp,
+            enableHorizontalLines = true,
+            enableVerticalLines = false,
+        )
+    )
+    Card(
+        modifier = Modifier
+            .height(300.dp)
+            .fillMaxWidth()
+            .clipToBounds(), // prevents overflow
+        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+    ) {
+        LineChart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
+            lineChartData = lineChartData,
+        )
+    }
+}
+
+@Preview
+@Composable
+fun CharYearReview () {
+    PomodoroTheme {
+        ChartYearMonth()
+    }
 }
