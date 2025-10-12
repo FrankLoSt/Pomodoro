@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -96,42 +97,50 @@ fun Screen2LineChart(
         Text(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
-        Column() {
+        Row() {
+            Column(
+            ) {
+                Button(
+                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Day,) }
+                    ) {
+                    Text("Day")
+                }
 
-            DropdownFunViewMode(
-                itemLists = listOf(ViewMode.WeekDay, ViewMode.DayHour, ViewMode.MonthDay,  ViewMode.YearMonth),
-                onItemSelected = {viewModelChart.generateChart(it)}
-            )
-            DropdownFunYear(
-                itemLists = availableYearsList,
-                onItemSelected = { viewModelChart.pickYear(it) }
-            )
+            }
+            Column() {
+                    Button(
+                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Week,) }
+                    ) {
+                        Text("Week")
+                    }
 
-            DropdownFunMonth(
-                itemLists = availableMonthsList,
-                onItemSelected = { viewModelChart.pickMonth(it) }
-            )
+                }
+            Column() {
+                    Button(
+                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Month,) }
+                    ) {
+                        Text("Month")
+                    }
 
-            DropdownFunWeek(
-                itemLists = availableWeeksList,
-                onItemSelected = { viewModelChart.pickWeek(it) }
-            )
-
-            DropdownFunDay(
-                itemLists = availableDaysList,
-                onItemSelected = { viewModelChart.pickDay(it) }
-            )
-
+                }
+            Column() {
+                    Button(
+                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Year,) }
+                    ) {
+                        Text("Year")
+                    }
+                }
         }
 
+
         when (chartUpdate.viewMode) {
-            ViewMode.MonthDay -> {
+            ViewMode.Month -> {
                 ChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
             }
-            ViewMode.WeekDay -> {
+            ViewMode.Week -> {
                 ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
             }
-            ViewMode.DayHour -> {
+            ViewMode.Day -> {
                 ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
             }
             else -> {
@@ -163,18 +172,18 @@ fun DropdownFunDay (
 
     Box(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(8.dp)
             .background(Color.LightGray),
     ) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .width(150.dp),
+                .wrapContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             Text(
-                text = "Date: $day",
+                text = "${day?.substring(0, 5)}",
                 modifier = Modifier
                     .padding(8.dp),
                 style = MaterialTheme.typography.titleSmall
@@ -218,18 +227,18 @@ fun DropdownFunWeek (
 
     Box(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(8.dp)
             .background(Color.LightGray),
     ) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .width(150.dp),
+                .wrapContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             Text(
-                text = "Week $week",
+                text = "$week",
                 modifier = Modifier
                     .padding(8.dp),
                 style = MaterialTheme.typography.titleSmall
@@ -256,7 +265,7 @@ fun DropdownFunWeek (
                         expanded = false
                     }
                 )
-            }?: Text(text = "No Data")
+            }
         }
     }
 }
@@ -271,18 +280,18 @@ fun DropdownFunYear (
 
     Box(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(8.dp)
             .background(Color.LightGray),
     ) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .width(150.dp),
+                .wrapContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             Text(
-                text = "Year: $year",
+                text = "$year",
                 modifier = Modifier
                     .padding(8.dp),
                 style = MaterialTheme.typography.titleSmall
@@ -327,18 +336,18 @@ fun DropdownFunMonth (
 
     Box(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(8.dp)
             .background(Color.LightGray),
     ) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .width(150.dp),
+                .wrapContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             Text(
-                text = "Month $month",
+                text = "$month",
                 modifier = Modifier
                     .padding(8.dp),
                 style = MaterialTheme.typography.titleSmall
@@ -447,7 +456,9 @@ fun ScrollableDropdownMenuDemo() {
     val items = List(50) { "Item ${it + 1}" } // Simulate a long list
     val listState = rememberLazyListState()
 
-    Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
         OutlinedTextField(
             value = selectedItem ?: "Select an item",
             onValueChange = {},
@@ -494,7 +505,9 @@ fun ScrollableDropdownMenuWithScrollbar() {
     val listState = rememberLazyListState()
     val dropdownHeight = 200.dp
 
-    Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
         var textFieldHeight by remember { mutableStateOf(0) }
 
         Column {

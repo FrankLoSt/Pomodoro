@@ -55,15 +55,15 @@ interface SettingsRepository {
     suspend fun createHourlyFocusKey(): Preferences.Key<Int>
     suspend fun saveHourlyFocusDuration(duration: Int)
 
-    suspend fun generateChart(viewMode: ViewMode = ViewMode.DayHour,weekStart: DayOfWeek = DayOfWeek.MONDAY, year: Int = 2025) {}
+    suspend fun generateChart(viewMode: ViewMode = ViewMode.Day,weekStart: DayOfWeek = DayOfWeek.MONDAY, year: Int = 2025) {}
 
 }
 
 enum class ViewMode {
-    YearMonth,
-    MonthDay,
-    WeekDay,
-    DayHour,
+    Year,
+    Month,
+    Week,
+    Day,
 }
 
 
@@ -108,7 +108,7 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
 
 
 data class ChartUpdate (
-    val viewMode: ViewMode = ViewMode.DayHour,
+    val viewMode: ViewMode = ViewMode.Day,
 
     val availableDays: List<String> = listOf("No Data"),
     val dateHourDataPoint: List<Point> = zeroDayHoursDataPoints,
@@ -345,7 +345,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
         when (viewMode) {
 
-            ViewMode.YearMonth -> {
+            ViewMode.Year -> {
 
                 val dayFocusDataByACertainYear: Map<Int, Int> = totalFocusOfADay
                     .filterKeys{it.contains(year.toString())}
@@ -387,7 +387,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
             }
 
-            ViewMode.MonthDay -> {
+            ViewMode.Month-> {
 
                 //totalFocusOfADay = {26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
 
@@ -453,7 +453,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             }
 
 
-            ViewMode.WeekDay -> {
+            ViewMode.Week -> {
 
                 //{26 09 2025=401, 27 09 2025=222, 04 10 2025=86, 05 10 2025=30, 06 10 2025=10}
 
@@ -523,7 +523,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             }
 
 
-            ViewMode.DayHour -> {
+            ViewMode.Day -> {
 
                 val chartDataDayHours: Map<String, List<Point>> = preferencesObject.asMap()
                     .filterKeys {

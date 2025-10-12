@@ -17,7 +17,7 @@ class ViewModelChart @Inject constructor (
     private val settingsRepository: SettingsRepositoryImpl,
 ): ViewModel() {
     init {
-        generateChart(ViewMode.DayHour)
+        generateChart(ViewMode.Day)
     }
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
@@ -25,7 +25,7 @@ class ViewModelChart @Inject constructor (
     val chartUpdate = settingsRepository.chartUpdate
 
     fun generateChart(
-        viewMode: ViewMode = ViewMode.DayHour,
+        viewMode: ViewMode = ViewMode.Day,
         weekStart: DayOfWeek = DayOfWeek.MONDAY
     ) = viewModelScope.launch { settingsRepository.generateChart(viewMode, weekStart) }
 

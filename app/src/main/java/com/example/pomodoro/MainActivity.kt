@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                                         navHostController.navigate(EnumScreenClass.screen2.name)
                                         scope.launch {
                                             drawerState.close()
-                                            viewModelChart.generateChart(ViewMode.WeekDay)
+                                            viewModelChart.generateChart(ViewMode.Day)
                                         }
                                     }
                                 )
