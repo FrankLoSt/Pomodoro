@@ -21,12 +21,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -98,40 +103,31 @@ fun Screen2LineChart(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
         Row() {
-            Column(
-            ) {
-                Button(
+            Button(
                         onClick = { viewModelChart.generateChart(viewMode = ViewMode.Day,) }
                     ) {
-                    Text("Day")
-                }
-
+                Text("Day")
             }
-            Column() {
-                    Button(
+            Button(
                         onClick = { viewModelChart.generateChart(viewMode = ViewMode.Week,) }
                     ) {
-                        Text("Week")
-                    }
-
-                }
-            Column() {
-                    Button(
+                Text("Week")
+            }
+            Button(
                         onClick = { viewModelChart.generateChart(viewMode = ViewMode.Month,) }
                     ) {
-                        Text("Month")
-                    }
-
-                }
-            Column() {
-                    Button(
+                Text("Month")
+            }
+            Button(
                         onClick = { viewModelChart.generateChart(viewMode = ViewMode.Year,) }
                     ) {
-                        Text("Year")
-                    }
-                }
-        }
+                Text("Year")
+            }
 
+        } //ViewMode
+        ButtonViewChart(
+
+        )
 
         when (chartUpdate.viewMode) {
             ViewMode.Month -> {
@@ -155,6 +151,50 @@ fun Screen2LineChart(
         }
     }
 }
+
+
+
+
+
+@Composable
+fun ButtonViewChart (
+    onClickLeft: () -> Unit = {},
+    onClickRight: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = { onClickLeft }
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = null
+            )
+        }
+        IconButton(
+            onClick = { onClickRight}
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
