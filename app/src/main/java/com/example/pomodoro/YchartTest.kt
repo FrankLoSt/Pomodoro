@@ -149,15 +149,6 @@ fun ChartDayHour (
 }
 
 
-@Preview
-@Composable
-fun ChartDayHourReview () {
-    PomodoroTheme {
-        ChartDayHour()
-    }
-}
-
-
 
 @Composable
 fun ChartWeekDay (
@@ -263,16 +254,6 @@ fun ChartWeekDay (
 
 
 }
-
-
-@Preview
-@Composable 
-fun ChartWeekDayReview () {
-    PomodoroTheme {
-        ChartWeekDay()
-    }
-}
-
 
 
 
@@ -448,14 +429,6 @@ fun ChartMonthDay (
 }
 
 
-@Preview
-@Composable
-fun ChartMonthReview () {
-    PomodoroTheme {
-        ChartMonthDay()
-    }
-}
-
 
 @Composable
 fun ChartYearMonth(
@@ -576,10 +549,3 @@ fun ChartYearMonth(
 }
 
 
-@Preview
-@Composable
-fun CharYearReview () {
-    PomodoroTheme {
-        ChartYearMonth()
-    }
-}

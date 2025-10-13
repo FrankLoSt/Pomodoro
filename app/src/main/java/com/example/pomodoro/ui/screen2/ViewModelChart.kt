@@ -20,7 +20,7 @@ class ViewModelChart @Inject constructor (
     }
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
-    val chartState = settingsRepository.chartState
+
     val chartUpdate = settingsRepository.chartUpdate
 
     fun generateChart(
