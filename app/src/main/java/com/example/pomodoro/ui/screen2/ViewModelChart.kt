@@ -12,7 +12,6 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-
 class ViewModelChart @Inject constructor (
     private val settingsRepository: SettingsRepositoryImpl,
 ): ViewModel() {
@@ -30,8 +29,8 @@ class ViewModelChart @Inject constructor (
     ) = viewModelScope.launch { settingsRepository.generateChart(viewMode, weekStart) }
 
 
-    fun pickDay(day: String) {
-        settingsRepository.pickDay(day)
+    fun pickDay(viewMode: ViewMode) {
+        settingsRepository.pickDay(viewMode)
     }
 
     fun pickWeek(week: Int) {

@@ -2,6 +2,7 @@ package com.example.pomodoro.ui.screen2
 
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -36,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -57,6 +62,7 @@ import com.example.pomodoro.ChartDayHour
 import com.example.pomodoro.ChartMonthDay
 import com.example.pomodoro.ChartWeekDay
 import com.example.pomodoro.ChartYearMonth
+import com.example.pomodoro.R
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
@@ -94,40 +100,75 @@ fun Screen2LineChart(
 
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
+        var colorDay by remember { mutableStateOf(Color.LightGray) }
+        var colorWeek by remember { mutableStateOf(Color.LightGray) }
+        var colorMonth by remember { mutableStateOf(Color.LightGray) }
+        var colorYear by remember { mutableStateOf(Color.LightGray) }
         Text(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
-        Row() {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
             Button(
-                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Day,) }
-                    ) {
+                onClick = {
+                    viewModelChart.generateChart(viewMode = ViewMode.Day)
+                    colorDay = Color.Red
+                    colorWeek = Color.LightGray
+                    colorMonth = Color.LightGray
+                    colorYear = Color.LightGray
+                },
+                colors = ButtonDefaults.buttonColors(colorDay)
+            ) {
                 Text("Day")
             }
             Button(
-                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Week,) }
-                    ) {
-                Text("Week")
-            }
+                onClick = {
+                    viewModelChart.generateChart(viewMode = ViewMode.Week)
+                    colorDay = Color.LightGray
+                    colorWeek = Color.Red
+                    colorMonth = Color.LightGray
+                    colorYear = Color.LightGray
+                },
+                colors = ButtonDefaults.buttonColors(colorWeek)
+            ) { Text("Week") }
             Button(
-                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Month,) }
-                    ) {
+                onClick = { viewModelChart.generateChart(viewMode = ViewMode.Month)
+                    colorDay = Color.LightGray
+                    colorWeek = Color.LightGray
+                    colorMonth = Color.Red
+                    colorYear = Color.LightGray
+                },
+                colors = ButtonDefaults.buttonColors(colorMonth)
+            ) {
                 Text("Month")
             }
             Button(
-                        onClick = { viewModelChart.generateChart(viewMode = ViewMode.Year,) }
-                    ) {
-                Text("Year")
-            }
+                onClick = { viewModelChart.generateChart(viewMode = ViewMode.Year)
+                    colorDay = Color.LightGray
+                    colorWeek = Color.LightGray
+                    colorMonth = Color.LightGray
+                    colorYear = Color.Red
+                },
+                colors = ButtonDefaults.buttonColors(colorYear)
+            ) { Text("Year") }
 
         } //ViewMode
-        ButtonViewChart(
 
+        ButtonViewChart(
+            onClickLeft = { viewModelChart.pickDay(viewMode = chartUpdate.viewMode) },
+            availableList = availableDaysList,
+            index = chartUpdate.dayIndex
         )
+        Log.d("DEBUG", "date: ${chartUpdate.availableDays[chartUpdate.dayIndex]}")
 
         when (chartUpdate.viewMode) {
             ViewMode.Month -> {
@@ -156,30 +197,46 @@ fun Screen2LineChart(
 
 
 
+
+
 @Composable
 fun ButtonViewChart (
-    onClickLeft: () -> Unit = {},
-    onClickRight: () -> Unit = {}
+    onClickLeft: (viewMode: ViewMode) -> Unit = {ViewMode.Day } ,
+    onClickRight: () -> Unit = {},
+    availableList: List<String>,
+    index: Int = 0
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = { onClickLeft }
+        Button(
+            onClick = {
+                onClickLeft(
+                    ViewMode.Day
+                )
+                      },
+            colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = null
+            Image(
+                painter = painterResource(id = R.drawable.left_navigate),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
             )
         }
-        IconButton(
-            onClick = { onClickRight}
+        Text(
+            text = availableList.getOrNull(index) ?: "No Data",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Button(
+            onClick = { onClickRight},
+            colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null
+            Image(
+                painter = painterResource(id = R.drawable.right_navigate),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
             )
         }
     }

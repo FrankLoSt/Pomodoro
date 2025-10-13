@@ -183,7 +183,7 @@ fun ChartWeekDay (
     val pointsData = pointsData
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(58.dp)
+        .axisStepSize(56.dp)
         .backgroundColor(Color.Transparent)
         .steps(7)
         .labelData { i ->  when (i) {
@@ -324,7 +324,7 @@ fun ChartMonthDay (
     val pointsData = pointsData
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(11.64.dp)
+        .axisStepSize(11.6.dp)
         .backgroundColor(Color.Transparent)
         .steps(pointsData.size - 1)
         .labelData { i ->
@@ -486,7 +486,7 @@ fun ChartYearMonth(
     val pointsData = pointsData
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(34.dp)
+        .axisStepSize(32.3.dp)
         .backgroundColor(Color.Transparent)
         .steps(pointsData.size - 1)
         .startPadding(25.dp)

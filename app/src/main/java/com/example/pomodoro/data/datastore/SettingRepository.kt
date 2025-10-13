@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.datastore.core.DataStore
@@ -94,7 +95,7 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
     }
 }
 
-
+   //this stores all data for the chart
     data class ChartState  (
         val chartDataYearWeeks: List<Point> = zeroYearWeeksDataPoints,
         val chartDataYearDays: List<Point> = zeroYearDaysDataPoints,
@@ -106,22 +107,25 @@ val zeroDayHoursDataPoints: List<Point> = buildList {
         val chartDataDayHours: Map<String, List<Point>>? = null,
     )
 
-
+//This is what is displayed in the UI chart
 data class ChartUpdate (
     val viewMode: ViewMode = ViewMode.Day,
 
     val availableDays: List<String> = listOf("No Data"),
     val dateHourDataPoint: List<Point> = zeroDayHoursDataPoints,
+    val dayIndex: Int = 0,
 
     val availableWeeks: List<Int> = listOf(0),
     val weekDayDataPoints: List<Point> = zeroWeekDaysDataPoints,
+    val weekIndex: Int = 0,
 
     val availableMonths : List<Int> = listOf(0),
     val monthDayDataPoints: List<Point> = zeroMonthDaysDataPoints,
+    val monthIndex: Int = 0,
 
     val availableYears: List<Int> = listOf(0),
     val yearMonthDataPoints: List<Point> = zeroYearMonthsDataPoints,
-
+    val yearIndex: Int = 0,
 )
 
 
@@ -341,8 +345,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
         val listDays: List<LocalDate> = totalFocusOfADay.mapNotNull { runCatching{LocalDate.parse(it.key, formatterDay) }.getOrNull() }
 
-
-
         when (viewMode) {
 
             ViewMode.Year -> {
@@ -368,21 +370,17 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 val availableYears = yearMonthDataChart.keys.toList().sortedDescending()
 
-                Log.d("DEBUG", "generateChart - availableYears: $availableYears")
+               // Log.d("DEBUG", "generateChart - availableYears: $availableYears")
 
                 updateChartState(chartDataYearMonths = yearMonthDataChart)
 
-                Log.d("DEBUG", "generateChart - chartDataYearMonths: ${chartState.value.chartDataYearMonths}")
+               // Log.d("DEBUG", "generateChart - chartDataYearMonths: ${chartState.value.chartDataYearMonths}")
 
                 _chartUpdate.update {
                     it.copy(
                         availableYears = availableYears.ifEmpty { listOf(0) },
                         yearMonthDataPoints = yearMonthDataChart[availableYears.firstOrNull()] ?: zeroYearMonthsDataPoints
                     )
-                }
-
-                if(availableYears.isNotEmpty()) {
-                    pickYear(availableYears.first())
                 }
 
             }
@@ -434,11 +432,11 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 updateChartState(chartDataMonthDays = listMonthDaysPoints)
 
-                Log.d("DEBUG", "generateChart - chartDataMonthDays: ${chartState.value.chartDataMonthDays}")
+              //  Log.d("DEBUG", "generateChart - chartDataMonthDays: ${chartState.value.chartDataMonthDays}")
 
                 val availableMonths = listMonthDaysPoints.keys.toList().sortedDescending()
 
-                Log.d("DEBUG", "generateChart - availableMonths: $availableMonths")
+               // Log.d("DEBUG", "generateChart - availableMonths: $availableMonths")
 
                 _chartUpdate.update {
                     it.copy(
@@ -447,11 +445,8 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     )
                 }
 
-                if (availableMonths.isNotEmpty()) {
-                    pickMonth(availableMonths.first())
-                }
-            }
 
+            }
 
             ViewMode.Week -> {
 
@@ -507,21 +502,18 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 updateChartState(chartDataWeekDays = chartDataWeekDays)
 
-                Log.d("DEBUG", "generateChart - chartDataWeekDays: ${chartState.value.chartDataWeekDays}")
+                //Log.d("DEBUG", "generateChart - chartDataWeekDays: ${chartState.value.chartDataWeekDays}")
 
                 val availableWeek: List<Int> = chartDataWeekDays.keys.toList().sortedDescending()
 
-                Log.d("DEBUG", "generateChart - availableWeek: $availableWeek")
+                //Log.d("DEBUG", "generateChart - availableWeek: $availableWeek")
                 _chartUpdate.update {
                     it.copy(
                         availableWeeks = availableWeek.ifEmpty { listOf(0) },
                         weekDayDataPoints = chartDataWeekDays[availableWeek.firstOrNull()] ?: zeroWeekDaysDataPoints
                     )
                 }
-
-                if (availableWeek.isNotEmpty()) pickWeek(availableWeek.first())
             }
-
 
             ViewMode.Day -> {
 
@@ -537,18 +529,15 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 updateChartState(chartDataDayHours = chartDataDayHours)
 
-                Log.d(
-                    "DEBUG",
-                    "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}"
-                )
+                //Log.d("DEBUG", "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}")
 
-                val availableDays = chartDataDayHours.keys.toList()
+                val availableDays: List<String> = chartDataDayHours.keys.toList()
                     .map{LocalDate.parse(it, formatterDay)}
                     .sortedDescending()
                     .map{
                         it.format(formatterDay)
                     }
-                Log.d("DEBUG", "generateChart - availableDays: $availableDays")
+              //  Log.d("DEBUG", "generateChart - availableDays: $availableDays")
 
                 //the latest focus day is at index 0
                 if (availableDays.isNotEmpty()) {
@@ -558,8 +547,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                             dateHourDataPoint = chartDataDayHours.values.first()
                         )
                     }
-                    pickDay(availableDays.first()) //pick the first day
-
                 } else {
                     _chartUpdate.update {
                         it.copy(
@@ -574,21 +561,124 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     }
 
 
-    fun pickDay(date: String) {
-        _chartUpdate.update {
-            it.copy(
-                dateHourDataPoint = chartState.value.chartDataDayHours?.getOrDefault(
-                    date,
-                    zeroDayHoursDataPoints
-                ) ?: zeroDayHoursDataPoints,
-            )
-            /*
-                * if chartDataDayHours is not null -> getOrDefault, if the date does not exist -> return zeroDayHoursDataPoints,
-                * if chartDataDayHours is null -> return zeroDayHoursDataPoints
-                * => Always return a non-null, list of DataPoint.
-                * */
+
+    fun pickDay(viewMode: ViewMode = ViewMode.Day) {
+        val availableDays: List<String> = chartUpdate.value.availableDays
+        val availableWeeks: List<Int> = chartUpdate.value.availableWeeks
+        val availableMonths: List<Int> = chartUpdate.value.availableMonths
+        val availableYears: List<Int> = chartUpdate.value.availableYears
+
+
+        when (viewMode) {
+            ViewMode.Day -> {
+                if (chartUpdate.value.dayIndex < availableDays.size - 1) {
+                    _chartUpdate.update {
+                        it.copy(
+                            dayIndex = it.dayIndex + 1
+                        )
+                    }
+                } else {
+                    _chartUpdate.update {
+                        it.copy(
+                            dayIndex = 0
+                        )
+                    }
+                }
+                val dayIndex: Int = chartUpdate.value.dayIndex
+
+                val day: String = availableDays.getOrNull(dayIndex) ?: "No data"
+                _chartUpdate.update {
+                    it.copy(
+                        dateHourDataPoint = chartState.value.chartDataDayHours?.getOrDefault(
+                            day,
+                            zeroDayHoursDataPoints
+                        ) ?: zeroDayHoursDataPoints
+                    )
+                }
+            }
+
+            ViewMode.Week -> {
+                if (chartUpdate.value.weekIndex < availableWeeks.size - 1) {
+                    _chartUpdate.update {
+                        it.copy(
+                            weekIndex = it.weekIndex + 1
+                        )
+                    }
+                } else {
+                    _chartUpdate.update {
+                        it.copy(
+                            weekIndex = 0
+                        )
+                    }
+                }
+
+                val weekIndex: Int = chartUpdate.value.dayIndex
+
+                val week: Int = availableWeeks.getOrNull(weekIndex) ?: 0
+                _chartUpdate.update {
+                    it.copy(
+                        weekDayDataPoints = chartState.value.chartDataWeekDays?.getOrDefault(
+                            week,
+                            zeroWeekDaysDataPoints
+                        ) ?: zeroWeekDaysDataPoints
+                    )
+                }
+            }
+
+            ViewMode.Month -> {
+                if (chartUpdate.value.monthIndex < availableMonths.size - 1) {
+                    _chartUpdate.update {
+                        it.copy(
+                            monthIndex = it.monthIndex + 1
+                        )
+                    }
+                } else {
+                    _chartUpdate.update {
+                        it.copy(
+                            monthIndex = 0
+                        )
+                    }
+                }
+                val monthIndex: Int = chartUpdate.value.monthIndex
+                val month: Int = availableMonths.getOrNull(monthIndex) ?: 0
+                _chartUpdate.update {
+                    it.copy(
+                        monthDayDataPoints = chartState.value.chartDataMonthDays?.getOrDefault(
+                            month,
+                            zeroMonthDaysDataPoints
+                        ) ?: zeroMonthDaysDataPoints
+                    )
+                }
+            }
+
+            ViewMode.Year -> {
+                if (chartUpdate.value.yearIndex < availableYears.size - 1) {
+                    _chartUpdate.update {
+                        it.copy(
+                            yearIndex = it.yearIndex + 1
+                        )
+                    }
+                } else {
+                    _chartUpdate.update {
+                        it.copy(
+                            yearIndex = 0
+                        )
+                    }
+                }
+                val yearIndex: Int = chartUpdate.value.yearIndex
+                val year: Int = availableYears.getOrNull(yearIndex) ?: 0
+                _chartUpdate.update {
+                    it.copy(
+                        yearMonthDataPoints = chartState.value.chartDataYearMonths?.getOrDefault(
+                            year,
+                            zeroYearMonthsDataPoints
+                        ) ?: zeroYearMonthsDataPoints
+                    )
+                }
+            }
         }
     }
+
     fun pickWeek(week: Int = 0) {
         _chartUpdate.update {
             it.copy(
