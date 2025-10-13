@@ -53,6 +53,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -67,6 +68,7 @@ import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.theme.PomodoroTheme
+import java.time.format.DateTimeFormatter
 
 
 @Preview
@@ -97,6 +99,11 @@ fun Screen2LineChart(
     val availableMonthsList = chartUpdate.availableMonths
     val availableYearsList = chartUpdate.availableYears
 
+    var colorDay by remember { mutableStateOf(Color.LightGray) }
+    var colorWeek by remember { mutableStateOf(Color.LightGray) }
+    var colorMonth by remember { mutableStateOf(Color.LightGray) }
+    var colorYear by remember { mutableStateOf(Color.LightGray) }
+
 
     Column(
         modifier = Modifier
@@ -105,82 +112,110 @@ fun Screen2LineChart(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        var colorDay by remember { mutableStateOf(Color.LightGray) }
-        var colorWeek by remember { mutableStateOf(Color.LightGray) }
-        var colorMonth by remember { mutableStateOf(Color.LightGray) }
-        var colorYear by remember { mutableStateOf(Color.LightGray) }
         Text(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
+
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Button(
                 onClick = {
                     viewModelChart.generateChart(viewMode = ViewMode.Day)
-                    colorDay = Color.Red
-                    colorWeek = Color.LightGray
-                    colorMonth = Color.LightGray
-                    colorYear = Color.LightGray
                 },
                 colors = ButtonDefaults.buttonColors(colorDay)
-            ) {
-                Text("Day")
-            }
+            ) { Text("Day") }
             Button(
                 onClick = {
                     viewModelChart.generateChart(viewMode = ViewMode.Week)
-                    colorDay = Color.LightGray
-                    colorWeek = Color.Red
-                    colorMonth = Color.LightGray
-                    colorYear = Color.LightGray
                 },
                 colors = ButtonDefaults.buttonColors(colorWeek)
             ) { Text("Week") }
             Button(
                 onClick = { viewModelChart.generateChart(viewMode = ViewMode.Month)
-                    colorDay = Color.LightGray
-                    colorWeek = Color.LightGray
-                    colorMonth = Color.Red
-                    colorYear = Color.LightGray
+
                 },
                 colors = ButtonDefaults.buttonColors(colorMonth)
-            ) {
-                Text("Month")
-            }
+            ) { Text("Month") }
             Button(
                 onClick = { viewModelChart.generateChart(viewMode = ViewMode.Year)
-                    colorDay = Color.LightGray
-                    colorWeek = Color.LightGray
-                    colorMonth = Color.LightGray
-                    colorYear = Color.Red
                 },
                 colors = ButtonDefaults.buttonColors(colorYear)
             ) { Text("Year") }
 
         } //ViewMode
 
-        ButtonViewChart(
-            onClickLeft = { viewModelChart.pickDay(viewMode = chartUpdate.viewMode) },
-            availableList = availableDaysList,
-            index = chartUpdate.dayIndex
-        )
-        Log.d("DEBUG", "date: ${chartUpdate.availableDays[chartUpdate.dayIndex]}")
+
+
 
         when (chartUpdate.viewMode) {
             ViewMode.Month -> {
+                colorMonth = Color.Red
+                colorDay = Color.LightGray
+                colorWeek = Color.LightGray
+                colorYear = Color.LightGray
+
+
+                ButtonViewChart(
+                    onClickLeft = {viewMode, leftOrRight ->  viewModelChart.pickDay(viewMode = chartUpdate.viewMode, false) } ,
+                    availableList = availableMonthsList,
+                    index = chartUpdate.monthIndex,
+                    onClickRight = {viewMode, leftOrRight -> viewModelChart.pickDay(viewMode = chartUpdate.viewMode, true)},
+                    viewMode = ViewMode.Month,
+                    chartUpdate = chartUpdate
+                )
                 ChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
+
             }
             ViewMode.Week -> {
+                colorWeek = Color.Red
+                colorDay = Color.LightGray
+                colorMonth = Color.LightGray
+                colorYear = Color.LightGray
+
+                ButtonViewChart(
+                    onClickLeft = { viewMode, leftOrRight -> viewModelChart.pickDay(viewMode = chartUpdate.viewMode, false) },
+                    availableList = availableWeeksList,
+                    index = chartUpdate.weekIndex,
+                    onClickRight = {viewMode, leftOrRight -> viewModelChart.pickDay(viewMode = chartUpdate.viewMode, true)},
+                    viewMode = ViewMode.Week,
+                    chartUpdate = chartUpdate
+                )
                 ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
             }
             ViewMode.Day -> {
+                colorDay = Color.Red
+                colorWeek = Color.LightGray
+                colorMonth = Color.LightGray
+                colorYear = Color.LightGray
+
+                ButtonViewChart(
+                    onClickLeft = { viewMode, leftOrRight -> viewModelChart.pickDay(viewMode = chartUpdate.viewMode, false) },
+                    onClickRight = {viewMode, leftOrRight ->  viewModelChart.pickDay(viewMode = chartUpdate.viewMode, true)},
+                    availableList = availableDaysList,
+                    index = chartUpdate.dayIndex,
+                    viewMode = ViewMode.Day,
+                    chartUpdate = chartUpdate
+                )
                 ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
             }
             else -> {
+                colorYear = Color.Red
+                colorWeek = Color.LightGray
+                colorMonth = Color.LightGray
+                colorDay = Color.LightGray
+
+                ButtonViewChart(
+                    onClickLeft = { viewMode, leftOrRight -> viewModelChart.pickDay(viewMode = chartUpdate.viewMode, false) },
+                    onClickRight = {viewMode, leftOrRight -> viewModelChart.pickDay(viewMode = chartUpdate.viewMode, true)},
+                    availableList = availableYearsList,
+                    index = chartUpdate.yearIndex,
+                    viewMode = ViewMode.Year,
+                    chartUpdate = chartUpdate
+                )
                 ChartYearMonth(pointsData = chartUpdate.yearMonthDataPoints)
             }
         }
@@ -201,22 +236,21 @@ fun Screen2LineChart(
 
 @Composable
 fun ButtonViewChart (
-    onClickLeft: (viewMode: ViewMode) -> Unit = {ViewMode.Day } ,
-    onClickRight: () -> Unit = {},
-    availableList: List<String>,
-    index: Int = 0
+    onClickLeft: (viewMode: ViewMode, leftOrRight: Boolean) -> Unit,
+    onClickRight: ( viewMode: ViewMode, leftOrRight: Boolean) -> Unit,
+    viewMode: ViewMode,
+    availableList: List<Any>,
+    chartUpdate: ChartUpdate,
+    index: Int = 0,
 ) {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
-            onClick = {
-                onClickLeft(
-                    ViewMode.Day
-                )
-                      },
+            onClick = { onClickLeft(ViewMode.Day, false)},
             colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
             Image(
@@ -225,12 +259,35 @@ fun ButtonViewChart (
                 modifier = Modifier.size(24.dp)
             )
         }
-        Text(
-            text = availableList.getOrNull(index) ?: "No Data",
-            style = MaterialTheme.typography.bodyLarge
-        )
+        if(viewMode != ViewMode.Week) {
+            Text(
+                text = "${availableList.getOrNull(index) ?: "No Data"}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        } else {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Week: ${availableList.getOrNull(index) ?: "No Data"} ",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "${chartUpdate.startAndEndWeek.getOrNull(index)?.first?.format(formatter) ?: "No Data"} - ${
+                        chartUpdate.startAndEndWeek.getOrNull(
+                            index
+                        )?.second?.format(formatter) ?: "No Data"
+                    }",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
         Button(
-            onClick = { onClickRight},
+            onClick = { onClickRight(ViewMode.Day, true) },
             colors = ButtonDefaults.buttonColors(Color.Transparent)
         ) {
             Image(
@@ -241,15 +298,6 @@ fun ButtonViewChart (
         }
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -602,9 +650,11 @@ fun ScrollableDropdownMenuWithScrollbar() {
     val listState = rememberLazyListState()
     val dropdownHeight = 200.dp
 
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
         var textFieldHeight by remember { mutableStateOf(0) }
 
         Column {
@@ -659,7 +709,8 @@ fun ScrollableDropdownMenuWithScrollbar() {
                     val visibleItems = listState.layoutInfo.visibleItemsInfo.size
                     val firstVisibleIndex = listState.firstVisibleItemIndex
                     val maxScrollIndex = (totalItems - visibleItems).coerceAtLeast(1)
-                    val scrollProgress = (firstVisibleIndex.toFloat() / maxScrollIndex).coerceIn(0f, 1f)
+                    val scrollProgress =
+                        (firstVisibleIndex.toFloat() / maxScrollIndex).coerceIn(0f, 1f)
 
                     Box(
                         modifier = Modifier

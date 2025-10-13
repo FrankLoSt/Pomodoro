@@ -29,19 +29,9 @@ class ViewModelChart @Inject constructor (
     ) = viewModelScope.launch { settingsRepository.generateChart(viewMode, weekStart) }
 
 
-    fun pickDay(viewMode: ViewMode) {
-        settingsRepository.pickDay(viewMode)
+    fun pickDay(viewMode: ViewMode, leftOrRight: Boolean) {
+        settingsRepository.pickDay(viewMode, leftOrRight)
     }
 
-    fun pickWeek(week: Int) {
-        settingsRepository.pickWeek(week)
-    }
-
-    fun pickMonth(month: Int) {
-        settingsRepository.pickMonth(month)
-    }
-    fun pickYear(year: Int) {
-        settingsRepository.pickYear(year)
-    }
 
 }

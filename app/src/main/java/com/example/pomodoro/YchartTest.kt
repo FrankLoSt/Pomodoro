@@ -1,40 +1,30 @@
 package com.example.pomodoro
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
 import co.yml.charts.axis.AxisData
 import co.yml.charts.common.model.Point
+import co.yml.charts.ui.linechart.LineChart
+import co.yml.charts.ui.linechart.model.GridLines
+import co.yml.charts.ui.linechart.model.IntersectionPoint
+import co.yml.charts.ui.linechart.model.Line
 import co.yml.charts.ui.linechart.model.LineChartData
 import co.yml.charts.ui.linechart.model.LinePlotData
-import co.yml.charts.ui.linechart.model.Line
 import co.yml.charts.ui.linechart.model.LineStyle
 import co.yml.charts.ui.linechart.model.LineType
-import co.yml.charts.ui.linechart.model.IntersectionPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
-import co.yml.charts.ui.linechart.model.ShadowUnderLine
-
-import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
-import co.yml.charts.ui.linechart.model.GridLines
-import com.example.pomodoro.data.datastore.ChartState
+import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
 @Composable
@@ -98,7 +88,7 @@ fun ChartDayHour (
         .backgroundColor(Color.Transparent)
         .labelData { i -> (i * yScale).toInt().toString() }
         .labelAndAxisLinePadding(20.dp)
-        .axisLineColor(Color.Black)
+        .axisLineColor(Color.Transparent)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary)
         .build()
 
@@ -135,7 +125,7 @@ fun ChartDayHour (
         xAxisData = xAxisData,
         yAxisData = yAxisData,
         gridLines = GridLines(
-            color = MaterialTheme.colorScheme.tertiary,
+            color = Color.LightGray,
             lineWidth = 1.dp,
             enableHorizontalLines = true,
             enableVerticalLines = false,
@@ -158,6 +148,7 @@ fun ChartDayHour (
     }
 }
 
+
 @Preview
 @Composable
 fun ChartDayHourReview () {
@@ -165,6 +156,7 @@ fun ChartDayHourReview () {
         ChartDayHour()
     }
 }
+
 
 
 @Composable
@@ -271,6 +263,7 @@ fun ChartWeekDay (
 
 
 }
+
 
 @Preview
 @Composable 
@@ -454,6 +447,7 @@ fun ChartMonthDay (
 
 }
 
+
 @Preview
 @Composable
 fun ChartMonthReview () {
@@ -461,6 +455,7 @@ fun ChartMonthReview () {
         ChartMonthDay()
     }
 }
+
 
 @Composable
 fun ChartYearMonth(
@@ -579,6 +574,7 @@ fun ChartYearMonth(
         )
     }
 }
+
 
 @Preview
 @Composable

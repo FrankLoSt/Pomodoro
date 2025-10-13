@@ -130,9 +130,9 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            Screen2LineChart(
-                                viewModelChart = viewModelChart,
-                                navHostController = navHostController
+                            ScreenNavigation(
+                                navHostController = navHostController,
+                                viewModelChart = viewModelChart
                             )
                         }
                     }
