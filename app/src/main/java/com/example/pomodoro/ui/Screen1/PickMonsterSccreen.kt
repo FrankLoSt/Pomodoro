@@ -16,45 +16,65 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.pomodoro.R
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 data class Spacing(
     val small: Dp,
@@ -151,6 +171,9 @@ fun DashBoard (
 
 
 
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashBoardPhonePortrait (
     modifier: Modifier = Modifier
@@ -169,31 +192,120 @@ fun DashBoardPhonePortrait (
         verticalArrangement = Arrangement.Center,
     ) {
         val monsterList: List<Triple<Painter, String, String>> = listOf(
-            Triple(painterResource(id = R.drawable._01_1), "Anxiety", "Makes everyday tasks feel overwhelming"),
-            Triple(painterResource(id = R.drawable._01_2), "Loneliness", "Leads to isolation and low self-worth"),
-            Triple(painterResource(id = R.drawable._02_2), "Burnout", "Kills motivation and joy in learning"),
-            Triple(painterResource(id = R.drawable._03_2), "Comparison", "Breeds insecurity through social media"),
-            Triple(painterResource(id = R.drawable._04_1), "Rejection", "Shakes confidence and self-image"),
-            Triple(painterResource(id = R.drawable._03_3), "Pressure", "Creates fear of failure and perfectionism"),
-            Triple(painterResource(id = R.drawable._06_2), "Procrastination", "Delays growth and builds guilt"),
-            Triple(painterResource(id = R.drawable._07_2), "Identity", "Confuses self-understanding and belonging"),
-            Triple(painterResource(id = R.drawable._08_2), "Addiction", "Distracts from goals and relationships"),
-            Triple(painterResource(id = R.drawable._09_2), "Bullying", "Damages trust and emotional safety"),
-            Triple(painterResource(id = R.drawable._10_2), "Self-Doubt", "Blocks ambition and creativity"),
-            Triple(painterResource(id = R.drawable._12_1), "Financial Stress", "Limits opportunity and causes anxiety"),
-            Triple(painterResource(id = R.drawable._07_3), "Overthinking", "Paralyzes decision-making"),
-            Triple(painterResource(id = R.drawable._13_2), "Imposter", "Makes success feel undeserved"),
-            Triple(painterResource(id = R.drawable._08_3), "Neglect", "Leaves emotional needs unmet"),
-            Triple(painterResource(id = R.drawable._11_1), "Fear", "Prevents risk-taking and growth"),
-            Triple(painterResource(id = R.drawable._14_1), "Toxic Positivity", "Invalidates real emotions"),
-            Triple(painterResource(id = R.drawable._15_1), "Distraction", "Scatters focus and productivity"),
-            Triple(painterResource(id = R.drawable._16_3), "Insecurity", "Erodes confidence and self-love"),
-            Triple(painterResource(id = R.drawable._14_3), "Perfectionism", "Turns effort into self-criticism"),
-            Triple(painterResource(id = R.drawable._18_2), "Isolation", "Disconnects from support systems"),
-            Triple(painterResource(id = R.drawable._19_2), "Uncertainty", "Creates anxiety about the future"),
+            Triple(
+                painterResource(id = R.drawable._01_1),
+                "Anxiety",
+                "Makes everyday tasks feel overwhelming"
+            ),
+            Triple(
+                painterResource(id = R.drawable._01_2),
+                "Loneliness",
+                "Leads to isolation and low self-worth"
+            ),
+            Triple(
+                painterResource(id = R.drawable._02_2),
+                "Burnout",
+                "Kills motivation and joy in learning"
+            ),
+            Triple(
+                painterResource(id = R.drawable._03_2),
+                "Comparison",
+                "Breeds insecurity through social media"
+            ),
+            Triple(
+                painterResource(id = R.drawable._04_1),
+                "Rejection",
+                "Shakes confidence and self-image"
+            ),
+            Triple(
+                painterResource(id = R.drawable._03_3),
+                "Pressure",
+                "Creates fear of failure and perfectionism"
+            ),
+            Triple(
+                painterResource(id = R.drawable._06_2),
+                "Procrastination",
+                "Delays growth and builds guilt"
+            ),
+            Triple(
+                painterResource(id = R.drawable._07_2),
+                "Identity",
+                "Confuses self-understanding and belonging"
+            ),
+            Triple(
+                painterResource(id = R.drawable._08_2),
+                "Addiction",
+                "Distracts from goals and relationships"
+            ),
+            Triple(
+                painterResource(id = R.drawable._09_2),
+                "Bullying",
+                "Damages trust and emotional safety"
+            ),
+            Triple(
+                painterResource(id = R.drawable._10_2),
+                "Self-Doubt",
+                "Blocks ambition and creativity"
+            ),
+            Triple(
+                painterResource(id = R.drawable._12_1),
+                "Financial Stress",
+                "Limits opportunity and causes anxiety"
+            ),
+            Triple(
+                painterResource(id = R.drawable._07_3),
+                "Overthinking",
+                "Paralyzes decision-making"
+            ),
+            Triple(
+                painterResource(id = R.drawable._13_2),
+                "Imposter",
+                "Makes success feel undeserved"
+            ),
+            Triple(
+                painterResource(id = R.drawable._08_3),
+                "Neglect",
+                "Leaves emotional needs unmet"
+            ),
+            Triple(
+                painterResource(id = R.drawable._11_1),
+                "Fear",
+                "Prevents risk-taking and growth"
+            ),
+            Triple(
+                painterResource(id = R.drawable._14_1),
+                "Toxic Positivity",
+                "Invalidates real emotions"
+            ),
+            Triple(
+                painterResource(id = R.drawable._15_1),
+                "Distraction",
+                "Scatters focus and productivity"
+            ),
+            Triple(
+                painterResource(id = R.drawable._16_3),
+                "Insecurity",
+                "Erodes confidence and self-love"
+            ),
+            Triple(
+                painterResource(id = R.drawable._14_3),
+                "Perfectionism",
+                "Turns effort into self-criticism"
+            ),
+            Triple(
+                painterResource(id = R.drawable._18_2),
+                "Isolation",
+                "Disconnects from support systems"
+            ),
+            Triple(
+                painterResource(id = R.drawable._19_2),
+                "Uncertainty",
+                "Creates anxiety about the future"
+            ),
             Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
         )
-        BoxWithConstraints(){
+
+        BoxWithConstraints() {
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
             val adaptivePaddingHorizontal = maxWidth * 0.05f
@@ -201,7 +313,10 @@ fun DashBoardPhonePortrait (
 
 
             val estimatedColumns = 2 // or calculate based on screen width
-            Log.d("DEBUG", "screenWidth/estimatedColumns: ${maxWidth/estimatedColumns}, screenHeight: $maxHeight")
+            Log.d(
+                "DEBUG",
+                "screenWidth/estimatedColumns: ${maxWidth / estimatedColumns}, screenHeight: $maxHeight"
+            )
             //screenWidth/estimatedColumns: 205.7.dp  - screenHeight = 776.dp
 
             val minCellSize = maxOf(70.dp, minOf(90.dp, maxWidth / estimatedColumns))
@@ -216,26 +331,62 @@ fun DashBoardPhonePortrait (
                 elevation = CardDefaults.cardElevation(16.dp),
                 colors = CardDefaults.cardColors(Color(0xFF7A490C))
             ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minCellSize ),
+                Card(
                     modifier = Modifier
-                        .padding(bottom = spacing.medium, top = spacing.medium)
                         .fillMaxWidth()
-                        .height(maxHeight * 0.7f),
+                        .padding(top = spacing.medium, start = spacing.medium, end = spacing.medium, bottom = spacing.small)
+                        .height(maxHeight * 0.2f),
+                    colors = CardDefaults.cardColors(Color(0xFFCCC127)),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(spacing.small),
+                    ) {
+                        Row() {
+                            Image(
+                                painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
+                                    ?: painterResource(id = R.drawable._01_1),
+                                contentDescription = null,
+                            )
+                            Text(
+                                text = monsterList.getOrNull(expandedIndex ?: 0)?.second
+                                    ?: "Anxiety",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Text(
+                            text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                ?: "Makes everyday tasks feel overwhelming",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                Text(
+                    text = "Total: ${monsterList.size} monsters",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = spacing.medium),
+                    color = Color.White
+                )
 
-                    contentPadding = PaddingValues(spacing.medium),
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = minCellSize),
+                    modifier = Modifier
+                        .height(maxHeight * 0.7f)
+                        .padding(bottom = spacing.medium),
+                    contentPadding = PaddingValues(start = spacing.medium, end = spacing.medium, bottom = spacing.medium, top = spacing.small),
                     verticalArrangement = Arrangement.spacedBy(spacing.medium),
                     horizontalArrangement = Arrangement.spacedBy(spacing.medium),
-                ) {
-                    items(monsterList.size) { index ->
-                        Column() {
+                    ) { items(monsterList.size) { index ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(color = Color.DarkGray),
-                                colors = CardDefaults.cardColors(Color(0xFFCCC127))
+                                    .clickable {
+                                        expandedIndex = if (expandedIndex == index) null else index
+                                    },
+                                colors = if (expandedIndex == index) CardDefaults.cardColors(Color.LightGray) else CardDefaults.cardColors(
+                                    Color(0xFFCCC127)
+                                )
                             ) {
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
@@ -245,44 +396,15 @@ fun DashBoardPhonePortrait (
                                     Image(
                                         painter = monsterList[index].first,
                                         contentDescription = null,
-                                        modifier = Modifier
-                                            .size(minCellSize * 0.8f)
-                                            .clickable(
-                                                onClick = {
-                                                    expandedIndex =
-                                                        if (expandedIndex == index) null else index
-                                                }
-                                            ),
+                                        modifier = Modifier.size(minCellSize * 0.8f)
                                     )
                                     Text(
                                         text = monsterList[index].second,
                                         style = MaterialTheme.typography.bodySmall
                                     )
-                                    // Inject info box right after the selected card
-                                    if (expandedIndex == index) {
-                                        Spacer(modifier = Modifier.height(spacing.small))
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    Color(0xFF3E3E3E),
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-                                                .animateContentSize()
-                                                .padding(spacing.medium)
-                                        ) {
-                                            Text(
-                                                text = monsterList[index].third,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = Color.White
-                                            )
-                                        }
-                                    }
                                 }
                             }
-                        }
-                    }
-                }
+                        } }
             }
             FightButton(
                 modifier = Modifier.align(Alignment.BottomCenter),
@@ -334,6 +456,7 @@ fun DashBoardTabletPortrait (
             Triple(painterResource(id = R.drawable._19_2), "Uncertainty", "Creates anxiety about the future"),
             Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
         )
+        var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
         BoxWithConstraints(){
             val maxHeight = this.maxHeight
@@ -346,7 +469,7 @@ fun DashBoardTabletPortrait (
             Log.d("DEBUG", "screenWidth/estimatedColumns: ${maxWidth/estimatedColumns}, screenHeight: $maxHeight")
             //screenWidth/estimatedColumns: 205.7.dp  - screenHeight = 776.dp
 
-            val minCellSize = maxOf(70.dp, minOf(100.dp, maxWidth / estimatedColumns))
+            val minCellSize = maxOf(70.dp, minOf(120.dp, maxWidth / estimatedColumns))
 
             Card(
                 modifier = modifier
@@ -358,15 +481,53 @@ fun DashBoardTabletPortrait (
                 elevation = CardDefaults.cardElevation(16.dp),
                 colors = CardDefaults.cardColors(Color(0xFF7A490C))
             ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = spacing.medium, start = spacing.medium, end = spacing.medium, bottom = spacing.small)
+                        .height(maxHeight * 0.2f),
+                    colors = CardDefaults.cardColors(Color(0xFFCCC127)),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(spacing.small),
+                    ) {
+                        Row() {
+                            Image(
+                                painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
+                                    ?: painterResource(id = R.drawable._01_1),
+                                contentDescription = null,
+                                modifier = Modifier.size(minCellSize * 0.8f)
+                            )
+                            Text(
+                                text = monsterList.getOrNull(expandedIndex ?: 0)?.second
+                                    ?: "Anxiety",
+                                fontSize = fontSize.large,
+                                fontFamily =  FontFamily(Font(R.font.jersey))
+                            )
+                        }
+                        Text(
+                            text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                ?: "Makes everyday tasks feel overwhelming",
+                            fontSize = fontSize.large,
+                            fontFamily =  FontFamily(Font(R.font.jersey))
+                        )
+                    }
+                }
+                Text(
+                    text = "Total: ${monsterList.size} monsters",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = spacing.medium),
+                    color = Color.White
+                )
+
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minCellSize ),
                     modifier = Modifier
-                        .padding(bottom = spacing.medium, top = spacing.medium)
+                        .padding(bottom = spacing.medium)
                         .fillMaxWidth()
                         .height(maxHeight * 0.7f),
 
-                    contentPadding = PaddingValues(spacing.medium),
-
+                    contentPadding = PaddingValues(start = spacing.medium, end = spacing.medium, bottom = spacing.medium, top = spacing.small),
                     verticalArrangement = Arrangement.spacedBy(spacing.medium),
                     horizontalArrangement = Arrangement.spacedBy(spacing.medium),
                 ) {
@@ -376,8 +537,10 @@ fun DashBoardTabletPortrait (
                                 .fillMaxSize()
                                 .aspectRatio(1f)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(color = Color.DarkGray),
-                            colors = CardDefaults.cardColors(Color(0xFFCCC127))
+                                .clickable(onClick = {
+                                        expandedIndex = if (expandedIndex == index) null else index
+                                    }),
+                            colors = if(expandedIndex == index) CardDefaults.cardColors(Color.LightGray) else CardDefaults.cardColors(Color(0xFFCCC127))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -389,13 +552,12 @@ fun DashBoardTabletPortrait (
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(minCellSize* 0.8f)
-                                        .clickable(
-                                            onClick = { /*TODO*/ }
-                                        ),
+                                        .padding(top = spacing.small),
                                 )
                                 Text(
                                     text = monsterList[index].second,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontFamily = FontFamily(Font(R.font.jersey))
                                 )
                             }
                         }
@@ -412,12 +574,15 @@ fun DashBoardTabletPortrait (
     }
 }
 
+
+
 @Composable
 fun DashBoardPhoneLandScape (
     modifier: Modifier = Modifier
 ) {
     val spacing: Spacing = LocalSpacing.current
     val fontSize: FontSize = LocalFontSize.current
+    var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -540,14 +705,9 @@ fun DashBoardPhoneLandScape (
         BoxWithConstraints() {
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
-            val adaptivePaddingHorizontal = maxWidth * 0.05f
-            val adaptivePaddingVertical: Dp = maxHeight * 0.1f
 
             val estimatedColumns = 2 // or calculate based on screen width
-            Log.d(
-                "DEBUG",
-                "screenWidth/estimatedColumns: ${maxWidth / estimatedColumns}, screenHeight: $maxHeight"
-            )
+            Log.d("DEBUG", "screenWidth/estimatedColumns: ${maxWidth / estimatedColumns}, screenHeight: $maxHeight")
             //screenWidth/estimatedColumns: 205.7.dp  - screenHeight = 776.dp
 
             val minCellSize = maxOf(70.dp, minOf(90.dp, maxWidth / estimatedColumns))
@@ -560,52 +720,102 @@ fun DashBoardPhoneLandScape (
                     modifier = modifier
                         .fillMaxWidth()
                         .padding(
-                            horizontal = adaptivePaddingHorizontal,
-                            vertical = adaptivePaddingVertical
+                            horizontal = spacing.medium,
+                            vertical = spacing.medium
                         ).weight(0.8f),
                     elevation = CardDefaults.cardElevation(16.dp),
                     colors = CardDefaults.cardColors(Color(0xFF7A490C))
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minCellSize),
-                        modifier = Modifier
-                            .padding(bottom = spacing.medium, top = spacing.medium)
-                            .fillMaxWidth()
-                            .height(maxHeight * 0.7f),
+                    Row {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minCellSize),
+                            modifier = Modifier
+                                .padding(
+                                    bottom = spacing.medium,
+                                    top = spacing.medium,
+                                )
+                                .fillMaxWidth(0.7f),
 
-                        contentPadding = PaddingValues(spacing.medium),
+                            contentPadding = PaddingValues(top = spacing.medium, start = spacing.medium, bottom = spacing.medium),
 
-                        verticalArrangement = Arrangement.spacedBy(spacing.medium),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.medium),
-                    ) {
-                        items(monsterList.size) { index ->
+                            verticalArrangement = Arrangement.spacedBy(spacing.medium),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.medium),
+                        ) {
+                            items(monsterList.size) { index ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(color = Color.DarkGray)
+                                        .clickable(onClick = {
+                                            expandedIndex =
+                                                if (expandedIndex == index) null else index
+                                        }),
+                                    colors = if (expandedIndex == index) CardDefaults.cardColors(
+                                        Color.LightGray
+                                    ) else CardDefaults.cardColors(Color(0xFFCCC127))
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.SpaceEvenly
+                                    ) {
+                                        Image(
+                                            painter = monsterList[index].first,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(minCellSize * 0.8f)
+                                        )
+                                        Text(
+                                            text = monsterList[index].second,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Column(
+                            modifier = Modifier.padding(top = spacing.medium),
+                        ) {
+                            Text(
+                                text = "Total: ${monsterList.size} monsters",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = spacing.medium)
+                            )
                             Card(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(color = Color.DarkGray),
+                                    .fillMaxHeight()
+                                    .fillMaxWidth()
+                                    .padding(
+                                        top = spacing.small,
+                                        start = spacing.medium,
+                                        end = spacing.medium,
+                                        bottom = spacing.medium
+                                    ),
                                 colors = CardDefaults.cardColors(Color(0xFFCCC127))
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.SpaceEvenly
+                                Row(
+                                    modifier = Modifier.padding(spacing.small)
                                 ) {
                                     Image(
-                                        painter = monsterList[index].first,
+                                        painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
+                                            ?: painterResource(id = R.drawable._01_1),
                                         contentDescription = null,
-                                        modifier = Modifier
-                                            .size(minCellSize * 0.8f)
-                                            .clickable(
-                                                onClick = { /*TODO*/ }
-                                            ),
                                     )
                                     Text(
-                                        text = monsterList[index].second,
-                                        style = MaterialTheme.typography.bodySmall
+                                        text = monsterList.getOrNull(expandedIndex ?: 0)?.second
+                                            ?: "Anxiety",
+                                        style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
+                                Text(
+                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                        ?: "Makes everyday tasks feel overwhelming",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(spacing.small)
+                                )
                             }
                         }
                     }
@@ -622,6 +832,7 @@ fun DashBoardPhoneLandScape (
         }
     }
 }
+
 
 
 @Composable
@@ -630,6 +841,7 @@ fun DashBoardTabletLandScape (
 ) {
     val spacing: Spacing = LocalSpacing.current
     val fontSize: FontSize = LocalFontSize.current
+    var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -752,8 +964,6 @@ fun DashBoardTabletLandScape (
         BoxWithConstraints() {
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
-            val adaptivePaddingHorizontal = maxWidth * 0.05f
-            val adaptivePaddingVertical: Dp = maxHeight * 0.1f
 
             val estimatedColumns = 2 // or calculate based on screen width
             Log.d(
@@ -762,7 +972,7 @@ fun DashBoardTabletLandScape (
             )
             //screenWidth/estimatedColumns: 205.7.dp  - screenHeight = 776.dp
 
-            val minCellSize = maxOf(70.dp, minOf(90.dp, maxWidth / estimatedColumns))
+            val minCellSize = maxOf(70.dp, minOf(120.dp, maxWidth / estimatedColumns))
             Row(
                 modifier = modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -772,52 +982,102 @@ fun DashBoardTabletLandScape (
                     modifier = modifier
                         .fillMaxWidth()
                         .padding(
-                            horizontal = adaptivePaddingHorizontal,
-                            vertical = adaptivePaddingVertical
+                            horizontal = spacing.medium,
+                            vertical = spacing.medium
                         ).weight(0.8f),
                     elevation = CardDefaults.cardElevation(16.dp),
                     colors = CardDefaults.cardColors(Color(0xFF7A490C))
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minCellSize),
-                        modifier = Modifier
-                            .padding(bottom = spacing.medium, top = spacing.medium)
-                            .fillMaxWidth()
-                            .height(maxHeight * 0.7f),
+                    Row {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minCellSize),
+                            modifier = Modifier
+                                .padding(
+                                    bottom = spacing.medium,
+                                    top = spacing.medium,
+                                )
+                                .fillMaxWidth(0.7f),
 
-                        contentPadding = PaddingValues(spacing.medium),
+                            contentPadding = PaddingValues(top = spacing.medium, start = spacing.medium, bottom = spacing.medium),
 
-                        verticalArrangement = Arrangement.spacedBy(spacing.medium),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.medium),
-                    ) {
-                        items(monsterList.size) { index ->
+                            verticalArrangement = Arrangement.spacedBy(spacing.medium),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.medium),
+                        ) {
+                            items(monsterList.size) { index ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(color = Color.DarkGray)
+                                        .clickable(onClick = {
+                                            expandedIndex =
+                                                if (expandedIndex == index) null else index
+                                        }),
+                                    colors = if (expandedIndex == index) CardDefaults.cardColors(
+                                        Color.LightGray
+                                    ) else CardDefaults.cardColors(Color(0xFFCCC127))
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.SpaceEvenly
+                                    ) {
+                                        Image(
+                                            painter = monsterList[index].first,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(minCellSize * 0.8f)
+                                        )
+                                        Text(
+                                            text = monsterList[index].second,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Column(
+                            modifier = Modifier.padding(top = spacing.medium),
+                        ) {
+                            Text(
+                                text = "Total: ${monsterList.size} monsters",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = spacing.medium)
+                            )
                             Card(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(color = Color.DarkGray),
+                                    .fillMaxHeight()
+                                    .fillMaxWidth()
+                                    .padding(
+                                        top = spacing.small,
+                                        start = spacing.medium,
+                                        end = spacing.medium,
+                                        bottom = spacing.medium
+                                    ),
                                 colors = CardDefaults.cardColors(Color(0xFFCCC127))
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.SpaceEvenly
+                                Row(
+                                    modifier = Modifier.padding(spacing.small)
                                 ) {
                                     Image(
-                                        painter = monsterList[index].first,
+                                        painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
+                                            ?: painterResource(id = R.drawable._01_1),
                                         contentDescription = null,
-                                        modifier = Modifier
-                                            .size(minCellSize * 0.8f)
-                                            .clickable(
-                                                onClick = { /*TODO*/ }
-                                            ),
                                     )
                                     Text(
-                                        text = monsterList[index].second,
-                                        style = MaterialTheme.typography.bodySmall
+                                        text = monsterList.getOrNull(expandedIndex ?: 0)?.second
+                                            ?: "Anxiety",
+                                        style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
+                                Text(
+                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                        ?: "Makes everyday tasks feel overwhelming",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(spacing.small)
+                                )
                             }
                         }
                     }
@@ -837,12 +1097,7 @@ fun DashBoardTabletLandScape (
 
 
 @Composable
-fun FightButton (
-    modifier: Modifier = Modifier,
-    maxWidth: Dp,
-    maxHeight: Dp,
-    fontSize: TextUnit
-) {
+fun FightButton (modifier: Modifier = Modifier, maxWidth: Dp, maxHeight: Dp, fontSize: TextUnit) {
     Button(
         onClick = { /*TODO*/ },
         modifier = modifier
@@ -888,6 +1143,7 @@ fun PreviewPhonePortrait () {
         DashBoardPhonePortrait()
     }
 }
+
 
 @Preview(widthDp = 851, heightDp = 393, showBackground = true)
 @Composable
