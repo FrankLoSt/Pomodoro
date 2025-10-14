@@ -18,7 +18,6 @@
         android:theme="@style/Theme.Pomodoro">
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
             android:exported="true"
             android:theme="@style/Theme.Pomodoro">
             <intent-filter>

@@ -1,12 +1,9 @@
 package com.example.pomodoro
 
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,10 +21,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,8 @@ import com.example.pomodoro.data.FocusUiState
 import com.example.pomodoro.data.RestUiState
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
+import com.example.pomodoro.ui.Screen1.DashBoard
+import com.example.pomodoro.ui.Screen1.MyAppTheme
 import com.example.pomodoro.ui.Screen1.Screen1
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
 import com.example.pomodoro.ui.screen2.Screen2LineChart
@@ -47,7 +50,6 @@ import com.example.pomodoro.ui.screen2.ViewModelChart
 import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -56,11 +58,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PomodoroTheme {
+            MyAppTheme {
                 val navHostController = rememberNavController()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
                 val viewModelChart: ViewModelChart = hiltViewModel()
+
+                val windowSize = LocalWindowInfo.current.containerSize
+                val density = LocalDensity.current
+                val screenWidth = with(density) { windowSize.width.toDp().value }
+                val screenHeight = with(density) { windowSize.height.toDp().value }
+                val isLandscape = screenWidth > screenHeight
 
                 ModalNavigationDrawer(
                     drawerState = drawerState,
@@ -110,19 +118,21 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         topBar = {
-                            TopAppBar(
-                                title = { Text(stringResource(R.string.menu)) },
-                                navigationIcon = {
-                                    IconButton(
-                                        onClick = { scope.launch { drawerState.open() } }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.sprite_11_2),
-                                            contentDescription = stringResource(R.string.menu)
-                                        )
+                            if(isLandscape) null else {
+                                TopAppBar(
+                                    title = { Text(stringResource(R.string.menu)) },
+                                    navigationIcon = {
+                                        IconButton(
+                                            onClick = { scope.launch { drawerState.open() } }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.sprite_11_2),
+                                                contentDescription = stringResource(R.string.menu)
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     ) { innerPadding ->
                         Surface(
@@ -130,14 +140,12 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            ScreenNavigation(
-                                navHostController = navHostController,
-                                viewModelChart = viewModelChart
+                            DashBoard(
+                                windowSize = calculateWindowSizeClass( this ).widthSizeClass
                             )
                         }
                     }
                 }
-
             }
         }
     }

@@ -12,96 +12,9 @@ import java.time.temporal.WeekFields
 
 
 fun main () {
-    val regexDayHourKey = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
-    val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
-    val todayKey: LocalDate = LocalDate.now()
-    val year = 2025
 
-
-    val totalFocusOfADayInACertainYear = preferencesObj.asMap()
-        .filterKeys {
-            regexDayHourKey.matches(it.name)
-            //return a Map that only contains keys that matches the form : "29 09 2025T0"
-        }.toList()
-        .groupBy { it.first.name.substringBefore("T") }
-        //this will just return an empty Map if preferencesObject is empty
-        .mapValues { values ->
-            values.value.sumOf { pair ->
-                pair.second.toString().toIntOrNull() ?: 0
-            }
-        }
-        .filterKeys{it.contains(year.toString())}
-
-
-
-    val listAvailableYear = totalFocusOfADayInACertainYear.keys.map{ day ->
-        LocalDate.parse(day, formatterDay).year
-    }.toSet()
-
-
-    val totalFocusAMonth = totalFocusOfADayInACertainYear.keys
-        .groupBy{days ->
-            LocalDate.parse(days, formatterDay).month
-        }
-        .mapKeys{entry -> entry.key.value}
-        .mapValues{entry -> entry.value.sumOf { day ->  totalFocusOfADayInACertainYear.getOrDefault(day, 0) }}
-
-
-
-
-
-
-    val yearMonthMap: Map<Int, List<Point>> = buildMap {
-        val listMonths = (1..12).toList().mapIndexed{ index, month ->
-            val monthFocus = totalFocusAMonth.getOrDefault(month, 0)
-             Point((index+1).toFloat(), monthFocus.toFloat())
-        }
-        put(year, listMonths)
-    }
-
-
-
-
-    //...------------------------------------
-
-    val input = "123"
-    val result: Result<Int> = runCatching { input.toInt() }
-    println(result)
-    result
-        .onSuccess { age ->
-            println("Valid age: $age")
-            // Proceed with registration or next step
-            nextStep(age)
-        }
-        .onFailure { error ->
-            println("Invalid input: ${error.message}")
-            // Show error message to user
-            ifFalse()
-        }
-
-
-    val parsedEntries = preferencesObj.asMap()
-        .filterKeys { regexDayHourKey.matches(it.name) }
-        .mapNotNull { (key, value) ->
-            val dateStr = key.name.substringBefore("T")
-            val date  = runCatching { LocalDate.parse(dateStr, formatterDay) }.getOrNull()
-            //`result.getOrNull()` – returns the value or `null` if failed
-            date?.let { Triple(it, key.name, value.toString().toIntOrNull() ?: 0) }
-        }
 }
 
-fun isLeapYear(year: Int): Boolean {
-    return java.time.Year.of(year).isLeap
-}
-
-
-fun nextStep (age: Int) {
-    println("This is the next step")
-}
-
-fun ifFalse () {
-    println("If faile -> this is how handle")
-}
 
 
 

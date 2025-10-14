@@ -71,16 +71,7 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 import java.time.format.DateTimeFormatter
 
 
-@Preview
-@Composable
-fun PreviewScreen2() {
-    PomodoroTheme {
-        Screen2LineChart(
-            viewModelChart = hiltViewModel(),
-            navHostController = NavHostController(LocalContext.current)
-        )
-    }
-}
+
 
 
 @Composable
@@ -116,7 +107,6 @@ fun Screen2LineChart(
             text = if(parsedDate != null )"Last time fighting: $parsedDate" else "No data recorded"
         )
 
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -126,24 +116,27 @@ fun Screen2LineChart(
                 onClick = {
                     viewModelChart.generateChart(viewMode = ViewMode.Day)
                 },
-                colors = ButtonDefaults.buttonColors(colorDay)
+                colors = ButtonDefaults.buttonColors(colorDay),
+
             ) { Text("Day") }
             Button(
                 onClick = {
                     viewModelChart.generateChart(viewMode = ViewMode.Week)
                 },
-                colors = ButtonDefaults.buttonColors(colorWeek)
+                colors = ButtonDefaults.buttonColors(colorWeek),
+
             ) { Text("Week") }
             Button(
                 onClick = { viewModelChart.generateChart(viewMode = ViewMode.Month)
-
                 },
-                colors = ButtonDefaults.buttonColors(colorMonth)
+                colors = ButtonDefaults.buttonColors(colorMonth),
+
             ) { Text("Month") }
             Button(
                 onClick = { viewModelChart.generateChart(viewMode = ViewMode.Year)
                 },
-                colors = ButtonDefaults.buttonColors(colorYear)
+                colors = ButtonDefaults.buttonColors(colorYear),
+
             ) { Text("Year") }
 
         } //ViewMode
