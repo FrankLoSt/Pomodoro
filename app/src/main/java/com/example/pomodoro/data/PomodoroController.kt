@@ -22,6 +22,8 @@ interface PomodoroController {
 
     val restUiState: StateFlow<RestUiState>
 
+    val initSetUpState: StateFlow<InitSetUpState>
+
     fun setDurationMinutes(minutes: Int)
     fun setRestDurationMinutes(minutes: Int)
 
@@ -36,7 +38,7 @@ interface PomodoroController {
     fun formatter(durationSeconds: Int): String
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 class PomodoroControllerImpl @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val scope: CoroutineScope, // usually viewModelScope, -----  uses Dispatchers.Main by default
@@ -48,6 +50,9 @@ class PomodoroControllerImpl @Inject constructor(
     private val _restUiState = MutableStateFlow(RestUiState())
 
     override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
+
+    private val _initSetUpState = MutableStateFlow(InitSetUpState())
+    override val initSetUpState: StateFlow<InitSetUpState> = _initSetUpState.asStateFlow()
 
 
     //Create job controllers for 2 countdown
@@ -71,6 +76,9 @@ class PomodoroControllerImpl @Inject constructor(
         Log.d("DEBUG", "setSessions: $sessions assigned")
     }
 
+    fun toggleSetUpPopup() {
+        _initSetUpState.update { it.copy(toggleSetUp = !it.toggleSetUp) }
+    }
 
     //------------- Count down Logic-------------
     private suspend fun countdownStudy() = coroutineScope {
@@ -210,7 +218,7 @@ class PomodoroControllerImpl @Inject constructor(
     fun toggleFinished () {
         reset()
     }
-    //Before cancell everything -> save users focus time.
+
 
     //----BREAK - PAUSE - RESUME LOGIC -----
     override fun breakFun () {

@@ -172,11 +172,44 @@ fun DashBoard (
 
 
 
+@Composable
+fun SetUpDialog (
+    toggleDialog: () -> Unit  = {}
+) {
+    val spacing = LocalSpacing.current
+    val fontSize = LocalFontSize.current
+
+    Dialog(onDismissRequest = { toggleDialog() } ) {
+       Card(
+           shape = RoundedCornerShape(16.dp),
+           modifier = Modifier.padding(spacing.medium)
+       ) {
+           DropDown(
+               setDurationMinutes = {},
+               setRestDurationMinutes = {},
+               setSessions = {},
+               listFocusDuration = listOf(1, 2, 3, 4, 5),
+               listRestDuration = listOf(1, 2, 3, 4, 5),
+               listSessions = listOf(1, 2, 3, 4, 5),
+           )
+       }
+    }
+}
+
+@Preview
+@Composable
+fun SetUpPopUpPreview () {
+    MyAppTheme {
+        SetUpDialog()
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashBoardPhonePortrait (
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMonsterClick: () -> Unit = {}
 ) {
     var expandedIndex: Int? by remember { mutableStateOf<Int?>(null) }
 
@@ -305,22 +338,21 @@ fun DashBoardPhonePortrait (
             Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
         )
 
-        BoxWithConstraints() {
+        BoxWithConstraints{
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
+
             val adaptivePaddingHorizontal = maxWidth * 0.05f
             val adaptivePaddingVertical: Dp = maxHeight * 0.1f
 
 
             val estimatedColumns = 2 // or calculate based on screen width
-            Log.d(
-                "DEBUG",
-                "screenWidth/estimatedColumns: ${maxWidth / estimatedColumns}, screenHeight: $maxHeight"
-            )
+            Log.d("DEBUG", "screenWidth/estimatedColumns: ${maxWidth / estimatedColumns}, screenHeight: $maxHeight")
             //screenWidth/estimatedColumns: 205.7.dp  - screenHeight = 776.dp
 
             val minCellSize = maxOf(70.dp, minOf(90.dp, maxWidth / estimatedColumns))
 
+              //Monster info panel + Monster pick side
             Card(
                 modifier = modifier
                     .fillMaxWidth()
@@ -404,13 +436,18 @@ fun DashBoardPhonePortrait (
                                     )
                                 }
                             }
-                        } }
+                        }
+                }
             }
+            //Fight Button
             FightButton(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 maxWidth = maxWidth * 0.25f,
                 maxHeight = maxHeight * 0.05f,
-                fontSize = fontSize.large
+                fontSize = fontSize.large,
+            )
+            SetUpDialog(
+                toggleDialog = {}
             )
         }
     }
@@ -1097,9 +1134,15 @@ fun DashBoardTabletLandScape (
 
 
 @Composable
-fun FightButton (modifier: Modifier = Modifier, maxWidth: Dp, maxHeight: Dp, fontSize: TextUnit) {
+fun FightButton (
+    modifier: Modifier = Modifier,
+    maxWidth: Dp,
+    maxHeight: Dp,
+    fontSize: TextUnit,
+    onMonsterClick: () -> Unit = {}
+) {
     Button(
-        onClick = { /*TODO*/ },
+        onClick = { onMonsterClick },
         modifier = modifier
             .padding(top = adaptivePadding())
             .size(width = maxWidth, height = maxHeight)

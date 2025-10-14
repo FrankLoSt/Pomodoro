@@ -30,3 +30,7 @@ data class RestUiState(
 ) {
     fun restProgress(): Float = if (initialRestDuration > 0) 1f - restDuration.toFloat() / initialRestDuration else 0f
 }
+
+data class InitSetUpState(
+    val toggleSetUp: Boolean = false,
+)

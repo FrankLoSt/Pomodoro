@@ -56,11 +56,9 @@ fun DropDown (
     setDurationMinutes: (Int) -> Unit = {},
     setRestDurationMinutes: (Int) -> Unit = {},
     setSessions: (Int) -> Unit = {},
-    setMonster: (String) -> Unit = {},
     listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
-    listMonsters: List<String> = listOf("Social Media", "Overthinking", "Fear"),
 ) {
     Box(
         modifier = Modifier
@@ -99,10 +97,6 @@ fun DropDown (
                     text = stringResource(R.string.sessions),
                     style = MaterialTheme.typography.titleMedium
                 )
-                Text(
-                    text = stringResource(R.string.monsters),
-                    style = MaterialTheme.typography.titleMedium
-                )
             }
             Column{
                 DropdownFun(
@@ -121,12 +115,6 @@ fun DropDown (
                     itemLists = listSessions,
                     onItemSelected = { sessions ->
                         setSessions(sessions)
-                    }
-                )
-                DropdownMonsterFun(
-                    itemLists = listMonsters,
-                    onItemSelected = { monster ->
-                        setMonster(monster)
                     }
                 )
             }

@@ -16,21 +16,21 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-@RequiresApi(Build.VERSION_CODES.O)
 class ViewModelCountDown @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-
+    //----------------------STATE----------------------------
      val controller = PomodoroControllerImpl(scope = viewModelScope, settingsRepository = settingsRepository) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState //reference to focusUiState in controller
     val restUiState: StateFlow<RestUiState> = controller.restUiState //reference to restUiState in controller
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
+
+    //---------------BUTTON---------------------
+
     fun startCountDown() = controller.start() //call start() from controller
-
-
     fun breakFun() = controller.breakFun()
     //only turns on pause when users want to break if it is not already paused
     fun breakFunDialog() {
@@ -51,9 +51,14 @@ class ViewModelCountDown @Inject constructor(
     }
     fun toggleisFinished() = controller.toggleFinished()
 
+
+    //--------------SET UP -------------------------
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)
     fun setRestDurationMinutes(minutes: Int) = controller.setRestDurationMinutes(minutes)
     fun setSessions(sessions: Int) = controller.setSessions(sessions)
+
+
+
 
     fun formatter(duration: Int): String = controller.formatter(duration)
 

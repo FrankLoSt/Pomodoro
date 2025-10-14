@@ -86,7 +86,9 @@ fun Screen1 (
             .fillMaxSize()
             .padding(top = 100.dp)
     ) {
-        //session title
+        /*
+        * 3 Screens: 1. Setup 2. CountDown 3. Finished
+        * */
         if(focusUiState.appPhrase == AppPhase.IDLE  && focusUiState.timerState == TimerState.STOPPED) {
             DropDown(
                 listSessions = focusUiState.listSessions,
@@ -100,6 +102,7 @@ fun Screen1 (
                 startCountDown = startCountDown,
             )
         }
+
         else  {
             CircularProgressBar(
                 focusUiState = focusUiState,
