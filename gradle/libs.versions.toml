@@ -24,6 +24,7 @@ benchmarkTraceprocessor = "1.4.1"
 coreI18n = "1.0.0"
 roomKtx = "2.8.1"
 ycharts = "2.1.0"
+foundationLayout = "1.9.3"
 
 
 
@@ -62,6 +63,7 @@ androidx-benchmark-traceprocessor = { group = "androidx.benchmark", name = "benc
 androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 ycharts = { module = "co.yml:ycharts", version.ref = "ycharts" }
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 
 
 [plugins]

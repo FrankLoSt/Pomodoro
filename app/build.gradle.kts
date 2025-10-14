@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.androidx.benchmark.traceprocessor)
     implementation(libs.androidx.core.i18n)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.foundation.layout)
     kapt(libs.hilt.compiler)
 //navigation
     implementation(libs.androidx.navigation.compose)

@@ -1,14 +1,20 @@
 package com.example.pomodoro.ui.Screen1
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -187,7 +193,6 @@ fun DashBoardPhonePortrait (
             Triple(painterResource(id = R.drawable._19_2), "Uncertainty", "Creates anxiety about the future"),
             Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
         )
-
         BoxWithConstraints(){
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
@@ -219,37 +224,61 @@ fun DashBoardPhonePortrait (
                         .height(maxHeight * 0.7f),
 
                     contentPadding = PaddingValues(spacing.medium),
-
                     verticalArrangement = Arrangement.spacedBy(spacing.medium),
                     horizontalArrangement = Arrangement.spacedBy(spacing.medium),
                 ) {
                     items(monsterList.size) { index ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .aspectRatio(1f)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(color = Color.DarkGray),
-                            colors = CardDefaults.cardColors(Color(0xFFCCC127))
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.SpaceEvenly
+                        Column() {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(color = Color.DarkGray),
+                                colors = CardDefaults.cardColors(Color(0xFFCCC127))
                             ) {
-                                Image(
-                                    painter = monsterList[index].first,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(minCellSize* 0.8f)
-                                        .clickable(
-                                            onClick = { /*TODO*/ }
-                                        ),
-                                )
-                                Text(
-                                    text = monsterList[index].second,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    Image(
+                                        painter = monsterList[index].first,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(minCellSize * 0.8f)
+                                            .clickable(
+                                                onClick = {
+                                                    expandedIndex =
+                                                        if (expandedIndex == index) null else index
+                                                }
+                                            ),
+                                    )
+                                    Text(
+                                        text = monsterList[index].second,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                    // Inject info box right after the selected card
+                                    if (expandedIndex == index) {
+                                        Spacer(modifier = Modifier.height(spacing.small))
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(
+                                                    Color(0xFF3E3E3E),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                .animateContentSize()
+                                                .padding(spacing.medium)
+                                        ) {
+                                            Text(
+                                                text = monsterList[index].third,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
