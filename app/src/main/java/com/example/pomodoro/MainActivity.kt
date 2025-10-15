@@ -22,7 +22,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,11 +42,9 @@ import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.Screen1.DashBoard
 import com.example.pomodoro.ui.Screen1.MyAppTheme
-import com.example.pomodoro.ui.Screen1.Screen1
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
 import com.example.pomodoro.ui.screen2.Screen2LineChart
 import com.example.pomodoro.ui.screen2.ViewModelChart
-import com.example.pomodoro.ui.theme.PomodoroTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -172,14 +169,15 @@ fun ScreenNavigation (
         composable(EnumScreenClass.screen1.name) {
             DashBoard(
                 windowSize = WindowWidthSizeClass.Compact,
-                fightToggleDialog = { viewModel.fightToggleDialog() },
+                toggleSetUpPopup = { viewModel.toggleSetUpPopup() },
                 setDurationMinutes = { viewModel.setDurationMinutes(it) },
                 setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
                 setSessions = { viewModel.setSessions(it) },
                 listFocusDuration = focusUiState.listFocusDuration,
                 listRestDuration = restUiState.listRestDuration,
                 listSessions = focusUiState.listSessions,
-                confirmBut = { viewModel.startCountDown() }
+                confirmBut = { viewModel.startCountDown() },
+                initSetUpState = viewModel.initSetUpState.collectAsState().value,
             )
         }
         composable(EnumScreenClass.screen2.name) {

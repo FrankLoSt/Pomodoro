@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -65,14 +66,24 @@ import com.example.pomodoro.data.TimerState
 
 
 @Composable
-fun Screen1Portrait (
+fun CountDownScreen(
     focusUiState: FocusUiState,
     restUiState: RestUiState,
     toggleisFinished: () -> Unit,
     breakFun: () -> Unit,
     togglePauseResume: () -> Unit,
     breakFunDialog: () -> Unit,
+    navHostController: NavHostController? = null,
+    windowSizeClass: WindowSizeClass? = null
 ) {
+    val windowSize = LocalWindowInfo.current.containerSize
+
+    val density = LocalDensity.current
+    val screenWidth = with(density) { windowSize.width.toDp().value }
+    val screenHeight = with(density) { windowSize.height.toDp().value }
+    val isLandscape = screenWidth > screenHeight
+
+
     PhonePortraitCircularProgressBar(
         focusUiState = focusUiState,
         restUiState = restUiState,
@@ -100,13 +111,14 @@ fun Screen1Portrait (
 @Composable
 fun Screen1Preview () {
     PomodoroTheme {
-        Screen1Portrait(
+        CountDownScreen(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
             toggleisFinished = {},
             breakFun = {},
             togglePauseResume = {},
             breakFunDialog = {},
+
         )
     }
 }
@@ -123,7 +135,7 @@ fun Screen1Preview () {
 @Composable
 fun Screen1PreviewLandscape () {
     PomodoroTheme {
-        Screen1Portrait(
+        CountDownScreen(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
             toggleisFinished = {},
