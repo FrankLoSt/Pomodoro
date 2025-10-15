@@ -62,7 +62,7 @@ fun TabletPortraitCircularProgressBar (
                 ) {
                     Text(
                         text = stringResource(R.string.batling),
-                        fontSize = localFontSize.large,
+                        fontSize = (maxWidth.value * 0.05f).toInt().sp,
                         modifier = Modifier.padding(bottom = localSpacing.medium),
                         fontFamily = FontFamily(Font(R.font.jersey))
                     )
@@ -241,16 +241,22 @@ fun PhonePortraitCircularProgressBar (
         val maxWidth: Dp = this.maxWidth
         val maxHeight: Dp = this.maxHeight
 
+        val baseSize = minOf(maxWidth, maxHeight) // 👈 Use the smaller dimension
+        val spacing = baseSize * 0.05f
+        val fontSizeSmall = (baseSize.value * 0.04f).sp
+        val fontSizeLarge = (baseSize.value * 0.2f).sp
+        val buttonSize = baseSize * 0.2f
+        val progressSize = baseSize * 0.8f
+        val imageSize = baseSize * 0.5f
 
         when (focusUiState.appPhrase) {
+
             AppPhase.FOCUSING -> {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(R.string.batling),
-                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
-                        modifier = Modifier.padding(bottom = localSpacing.medium),
+                        fontSize = (maxWidth.value * 0.05f).toInt().sp,
+                        modifier = Modifier.padding(bottom = spacing),
                         fontFamily = FontFamily(Font(R.font.jersey))
                     )
                     Box(
@@ -259,44 +265,33 @@ fun PhonePortraitCircularProgressBar (
                             .height(maxHeight * 0.4f),
                         contentAlignment = Alignment.Center
                     ) {
-                        val progress = focusUiState.studyProgress()
                         CustomCircularProgressIndicator(
-                            progress = progress,
-                            modifier = Modifier.size(maxWidth * 0.8f),
-                            blockSize = maxWidth.value * 0.1f,
+                            progress = focusUiState.studyProgress(),
+                            modifier = Modifier.size(progressSize),
+                            blockSize = baseSize.value * 0.1f
                         )
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                            modifier = Modifier.size(imageSize).align(Alignment.Center)
                         )
                     }
-                    Text(
-                        text = "Tag: Working",
-                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
-                        fontFamily = FontFamily(Font(R.font.jersey))
-                    )
-                    Text(
-                        text  = countDownText,
-                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
-                        fontFamily = FontFamily(Font(R.font.jersey))
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Text("Tag: Working", fontSize = fontSizeSmall, fontFamily = FontFamily(Font(R.font.jersey)))
+                    Text(countDownText, fontSize = fontSizeLarge, fontFamily = FontFamily(Font(R.font.jersey)))
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         BreakButton(
                             breakFun = breakFun,
                             breakFunDialog = breakFunDialog,
-                            modifier = Modifier.size(maxWidth * 0.2f)
+                            modifier = Modifier.size(buttonSize)
                         )
                         PauseButton(
                             togglePauseResume = togglePauseResume,
                             focusUiState = focusUiState,
-                            modifier = Modifier.size(maxWidth * 0.2f)
+                            modifier = Modifier.size(buttonSize)
                         )
                     }
                 }
+
             }
 
             AppPhase.RESTING -> {
@@ -448,7 +443,7 @@ fun CircularProgressBarPhoneLandScape () {
 
 @Preview(
     name = "Expanded Landscape",
-    widthDp = 1600,
+    widthDp = 1120,
     heightDp = 1600,
     showBackground = true
 )

@@ -65,7 +65,7 @@ import com.example.pomodoro.data.TimerState
 
 
 @Composable
-fun Screen1 (
+fun Screen1Portrait (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
     toggleisFinished: () -> Unit,
@@ -93,12 +93,14 @@ fun Screen1 (
 
 @Preview(
     name = "Compact Portrait",
-    showBackground = true
+    showBackground = true,
+    widthDp =  412,
+    heightDp =  915
 )
 @Composable
 fun Screen1Preview () {
     PomodoroTheme {
-        Screen1(
+        Screen1Portrait(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
             toggleisFinished = {},
@@ -121,7 +123,7 @@ fun Screen1Preview () {
 @Composable
 fun Screen1PreviewLandscape () {
     PomodoroTheme {
-        Screen1(
+        Screen1Portrait(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
             toggleisFinished = {},
