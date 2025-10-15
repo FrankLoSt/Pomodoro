@@ -15,7 +15,7 @@ data class FocusUiState(
     val sessions: Int = 1,
     val totalSessions: Int = 1, //test with 1
     //NEW STATE CONTROL
-    val appPhrase: AppPhase = AppPhase.IDLE,
+    val appPhrase: AppPhase = AppPhase.FINISHED,
     val timerState: TimerState = TimerState.STOPPED
 ) {
     // Helpers

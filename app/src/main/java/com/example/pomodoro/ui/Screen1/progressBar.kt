@@ -1,10 +1,16 @@
 package com.example.pomodoro.ui.Screen1
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
@@ -14,8 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.pomodoro.R
 import com.example.pomodoro.data.AppPhase
 import com.example.pomodoro.data.FocusUiState
@@ -25,63 +35,427 @@ import com.google.apps.card.v1.Columns
 import com.google.apps.card.v1.Image
 
 @Composable
-fun CircularProgressBar (
-    modifier: Modifier = Modifier,
+fun TabletPortraitCircularProgressBar (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
-    formatter: (Int) ->  String = { minutes -> "$minutes min"}
+    @DrawableRes monster: Int = R.drawable._07_1,
+    togglePauseResume: () -> Unit = {},
+    breakFun: () -> Unit = {},
+    breakFunDialog: () -> Unit = {},
+    countDownText: String = "25:00"
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    val localFontSize: FontSize = LocalFontSize.current
+    val localSpacing: Spacing = LocalSpacing.current
+
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Text(
-            text = if (focusUiState.appPhrase == AppPhase.FOCUSING)
-                stringResource(R.string.Studying)
-            else if (focusUiState.appPhrase == AppPhase.RESTING)
-                stringResource(R.string.Taking_a_break)
-            else "",
-            style = MaterialTheme.typography.titleLarge
-        )
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.wrapContentSize(),
+        val maxWidth: Dp = this.maxWidth
+        val maxHeight: Dp = this.maxHeight
+
+
+        when (focusUiState.appPhrase) {
+            AppPhase.FOCUSING -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.batling),
+                        fontSize = localFontSize.large,
+                        modifier = Modifier.padding(bottom = localSpacing.medium),
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight * 0.5f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val progress = focusUiState.studyProgress()
+                        CustomCircularProgressIndicator(
+                            progress = progress,
+                            modifier = Modifier.size(maxWidth * 0.8f),
+                            blockSize = maxWidth.value * 0.1f,
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                        )
+                    }
+                    Text(
+                        text = "Tag: Working",
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Text(
+                        text  = countDownText,
+                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BreakButton(
+                            breakFun = breakFun,
+                            breakFunDialog = breakFunDialog,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                        PauseButton(
+                            togglePauseResume = togglePauseResume,
+                            focusUiState = focusUiState,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                    }
+                }
+            }
+
+            AppPhase.RESTING -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val progress = restUiState.restProgress()
+                    Text(
+                        text = stringResource(R.string.Taking_a_break),
+                        fontSize = localFontSize.large,
+                        modifier = Modifier.padding(bottom = localSpacing.medium)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight * 0.5f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = progress,
+                            modifier = Modifier.size(maxWidth * 0.8f),
+                            blockSize = maxWidth.value * 0.1f,
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                        )
+                    }
+                    Text(
+                        text = "Tag: Working",
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Text(
+                        text  = countDownText,
+                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BreakButton(
+                            breakFun = breakFun,
+                            breakFunDialog = breakFunDialog,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                        PauseButton(
+                            togglePauseResume = togglePauseResume,
+                            focusUiState = focusUiState,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                    }
+                }
+            }
+
+            AppPhase.FINISHED -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight * 0.5f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = 1f,
+                            modifier = Modifier.size(maxWidth * 0.8f),
+                            blockSize = maxWidth.value * 0.1f,
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                        )
+                    }
+                    Text(
+                        text = "Tag: Working",
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Text(
+                        text = countDownText,
+                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BreakButton(
+                            breakFun = breakFun,
+                            breakFunDialog = breakFunDialog,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                        PauseButton(
+                            togglePauseResume = togglePauseResume,
+                            focusUiState = focusUiState,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                    }
+                }
+            }
+            else -> {}
+        }
+    } //box for progress bar and text
+}
+
+
+@Composable
+fun PhonePortraitCircularProgressBar (
+    focusUiState: FocusUiState,
+    restUiState: RestUiState,
+    @DrawableRes monster: Int = R.drawable._07_1,
+    togglePauseResume: () -> Unit = {},
+    breakFun: () -> Unit = {},
+    breakFunDialog: () -> Unit = {},
+    countDownText: String = "25:00"
+) {
+    val localFontSize: FontSize = LocalFontSize.current
+    val localSpacing: Spacing = LocalSpacing.current
+
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        val maxWidth: Dp = this.maxWidth
+        val maxHeight: Dp = this.maxHeight
+
+
+        when (focusUiState.appPhrase) {
+            AppPhase.FOCUSING -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.batling),
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        modifier = Modifier.padding(bottom = localSpacing.medium),
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight * 0.4f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val progress = focusUiState.studyProgress()
+                        CustomCircularProgressIndicator(
+                            progress = progress,
+                            modifier = Modifier.size(maxWidth * 0.8f),
+                            blockSize = maxWidth.value * 0.1f,
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                        )
+                    }
+                    Text(
+                        text = "Tag: Working",
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Text(
+                        text  = countDownText,
+                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BreakButton(
+                            breakFun = breakFun,
+                            breakFunDialog = breakFunDialog,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                        PauseButton(
+                            togglePauseResume = togglePauseResume,
+                            focusUiState = focusUiState,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                    }
+                }
+            }
+
+            AppPhase.RESTING -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.Taking_a_break),
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        modifier = Modifier.padding(bottom = localSpacing.medium),
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight * 0.4f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val progress = focusUiState.studyProgress()
+                        CustomCircularProgressIndicator(
+                            progress = progress,
+                            modifier = Modifier.size(maxWidth * 0.8f),
+                            blockSize = maxWidth.value * 0.1f,
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                        )
+                    }
+                    Text(
+                        text = "Tag: Working",
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Text(
+                        text = countDownText,
+                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BreakButton(
+                            breakFun = breakFun,
+                            breakFunDialog = breakFunDialog,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                        PauseButton(
+                            togglePauseResume = togglePauseResume,
+                            focusUiState = focusUiState,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                    }
+                }
+            }
+
+            AppPhase.FINISHED -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight * 0.4f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = 1f,
+                            modifier = Modifier.size(maxWidth * 0.8f),
+                            blockSize = maxWidth.value * 0.1f,
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                        )
+                    }
+                    Text(
+                        text = "Tag: Working",
+                        fontSize = (maxWidth.value * 0.04f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Text(
+                        text  = countDownText,
+                        fontSize = (maxWidth.value * 0.2f).toInt().sp,
+                        fontFamily = FontFamily(Font(R.font.jersey))
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BreakButton(
+                            breakFun = breakFun,
+                            breakFunDialog = breakFunDialog,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                        PauseButton(
+                            togglePauseResume = togglePauseResume,
+                            focusUiState = focusUiState,
+                            modifier = Modifier.size(maxWidth * 0.2f)
+                        )
+                    }
+                }
+            }
+            else -> {}
+        }
+    } //box for progress bar and text
+}
+
+
+
+
+
+
+
+
+@Preview(
+    name = "Compact Portrait",
+    showBackground = true
+)
+@Composable
+fun CircularProgressBarPhonePortrait () {
+    MyAppTheme {
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            //rest countdown Screen
-            if (focusUiState.appPhrase == AppPhase.FOCUSING) { //initial stage: isStudying = false, restDuration > 0 => automatically display the rest countdown screen
-                val progress = focusUiState.studyProgress()
-                CustomCircularProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.size(300.dp),
-                )
-            }
-            //progress focus time
-            else if(focusUiState.appPhrase == AppPhase.RESTING){
-                val progress = restUiState.restProgress()
-                CustomCircularProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.size(300.dp),
-                )
-            } else if (focusUiState.appPhrase == AppPhase.FINISHED) {
-                CustomCircularProgressIndicator(
-                    progress = 0f,
-                    modifier = Modifier.size(300.dp),
-                )
-            }
-            Image(
-                painter = painterResource(R.drawable._07_1),
-                contentDescription = null,
-                modifier = Modifier.size(180.dp)
+            PhonePortraitCircularProgressBar(
+                focusUiState = FocusUiState(),
+                restUiState = RestUiState(),
             )
-        } //box for progress bar and text
+        }
     }
 }
 
-@Preview
+@Preview(
+    name = "Phone landscape",
+    showBackground = true,
+    widthDp = 915,
+    heightDp = 400
+)
 @Composable
-fun CircularProgressBarPreview2 () {
-    PomodoroTheme {
-        CircularProgressBar(
+fun CircularProgressBarPhoneLandScape () {
+    MyAppTheme {
+
+    }
+}
+
+@Preview(
+    name = "Expanded Landscape",
+    widthDp = 1600,
+    heightDp = 1600,
+    showBackground = true
+)
+@Composable
+fun CircularProgressBarTabletPreview () {
+    MyAppTheme {
+        TabletPortraitCircularProgressBar(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
         )
@@ -90,16 +464,13 @@ fun CircularProgressBarPreview2 () {
 
 @Preview(
     name = "Expanded Landscape",
-    widthDp = 800,
-    heightDp = 1280,
+    widthDp = 1280,
+    heightDp = 1000,
     showBackground = true
 )
 @Composable
-fun CircularProgressBarPreview () {
-    PomodoroTheme {
-        CircularProgressBar(
-            focusUiState = FocusUiState(),
-            restUiState = RestUiState(),
-        )
+fun CircularProgressBarTabletLandscapePreview () {
+    MyAppTheme {
+
     }
 }

@@ -68,76 +68,67 @@ import com.example.pomodoro.data.TimerState
 fun Screen1 (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
-    setDurationMinutes : (Int) -> Unit = {},
-    setRestDurationMinutes : (Int) -> Unit = {},
-    setSessions : (Int) -> Unit = {},
-    formatter: (Int) ->  String = { minutes -> "$minutes min"},
     toggleisFinished: () -> Unit,
-    startCountDown: () -> Unit,
     breakFun: () -> Unit,
     togglePauseResume: () -> Unit,
     breakFunDialog: () -> Unit,
-    navHostController: NavHostController
 ) {
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 100.dp)
-    ) {
-        /*
-        * 3 Screens: 1. Setup 2. CountDown 3. Finished
-        * */
-        if(focusUiState.appPhrase == AppPhase.IDLE  && focusUiState.timerState == TimerState.STOPPED) {
-            DropDown(
-                listSessions = focusUiState.listSessions,
-                listFocusDuration = focusUiState.listFocusDuration,
-                listRestDuration = restUiState.listRestDuration,
-                setDurationMinutes = setDurationMinutes,
-                setRestDurationMinutes = setRestDurationMinutes,
-                setSessions = setSessions,
-            )
-            CountDownButton(
-                startCountDown = startCountDown,
-            )
-        }
+    PhonePortraitCircularProgressBar(
+        focusUiState = focusUiState,
+        restUiState = restUiState,
+        togglePauseResume = togglePauseResume,
+        breakFun = breakFun,
+        breakFunDialog = breakFunDialog
+    )
 
-        else  {
-            CircularProgressBar(
-                focusUiState = focusUiState,
-                restUiState = restUiState,
-                formatter = formatter
-            )
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BreakButton(
-                    breakFun = breakFun,
-                    breakFunDialog = breakFunDialog
-                )
-                PauseButton(
-                    togglePauseResume = togglePauseResume,
-                    focusUiState = focusUiState,
-                )
-            }
-        }
+    if (focusUiState.appPhrase == AppPhase.FINISHED) {
+        AlertDialog1(
+            onDismiss = toggleisFinished,
+            duration = focusUiState.duration
+        )
+    }
+}
 
-        if(focusUiState.appPhrase == AppPhase.FINISHED) {
-            AlertDialog1(
-                onDismiss = toggleisFinished,
-                duration = focusUiState.duration
-            )
-        }
+
+
+@Preview(
+    name = "Compact Portrait",
+    showBackground = true
+)
+@Composable
+fun Screen1Preview () {
+    PomodoroTheme {
+        Screen1(
+            focusUiState = FocusUiState(),
+            restUiState = RestUiState(),
+            toggleisFinished = {},
+            breakFun = {},
+            togglePauseResume = {},
+            breakFunDialog = {},
+        )
     }
 }
 
 
 
 
-
-
-
-
+@Preview(
+    name = "Compact Portrait",
+    showBackground = true,
+    widthDp = 915,
+    heightDp = 412
+)
+@Composable
+fun Screen1PreviewLandscape () {
+    PomodoroTheme {
+        Screen1(
+            focusUiState = FocusUiState(),
+            restUiState = RestUiState(),
+            toggleisFinished = {},
+            breakFun = {},
+            togglePauseResume = {},
+            breakFunDialog = {},
+        )
+    }
+}
 

@@ -1,20 +1,14 @@
 package com.example.pomodoro.ui.Screen1
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,14 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,27 +26,20 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
@@ -71,10 +53,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.example.pomodoro.R
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 data class Spacing(
     val small: Dp,
@@ -147,7 +126,15 @@ fun MyAppTheme(
 @Composable
 fun DashBoard (
     modifier: Modifier = Modifier,
-    windowSize: WindowWidthSizeClass
+    windowSize: WindowWidthSizeClass,
+    fightToggleDialog: () -> Unit,
+    setDurationMinutes: (Int) -> Unit = {},
+    setRestDurationMinutes: (Int) -> Unit = {},
+    setSessions: (Int) -> Unit = {},
+    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
+    confirmBut: () -> Unit = {}
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -158,7 +145,17 @@ fun DashBoard (
     Log.d("MyAppTheme", "screenWidth: $screenWidth, screenHeight: $screenHeight")
 
     if (windowSize == WindowWidthSizeClass.Compact) {
-        DashBoardPhonePortrait(modifier)
+        DashBoardPhonePortrait(
+            modifier,
+            fightToggleDialog = fightToggleDialog,
+            setDurationMinutes = setDurationMinutes,
+            setRestDurationMinutes = setRestDurationMinutes,
+            setSessions = setSessions,
+            listFocusDuration = listFocusDuration,
+            listRestDuration = listRestDuration,
+            listSessions = listSessions,
+            confirmBut = confirmBut
+        )
     } else if (screenHeight in 300..500 && screenWidth in 700..1000) {
         DashBoardPhoneLandScape()
     }
@@ -174,25 +171,41 @@ fun DashBoard (
 
 @Composable
 fun SetUpDialog (
-    toggleDialog: () -> Unit  = {}
+    fightToggleDialog: () -> Unit  = {},
+    confirmBut: () ->Unit = {},
+    setDurationMinutes: (Int) -> Unit = {},
+    setRestDurationMinutes: (Int) -> Unit = {},
+    setSessions: (Int) -> Unit = {},
+    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
 ) {
+
     val spacing = LocalSpacing.current
     val fontSize = LocalFontSize.current
 
-    Dialog(onDismissRequest = { toggleDialog() } ) {
-       Card(
-           shape = RoundedCornerShape(16.dp),
-           modifier = Modifier.padding(spacing.medium)
-       ) {
-           DropDown(
-               setDurationMinutes = {},
-               setRestDurationMinutes = {},
-               setSessions = {},
-               listFocusDuration = listOf(1, 2, 3, 4, 5),
-               listRestDuration = listOf(1, 2, 3, 4, 5),
-               listSessions = listOf(1, 2, 3, 4, 5),
-           )
-       }
+    Dialog(onDismissRequest = fightToggleDialog ) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.padding(spacing.medium)
+        ) {
+            DropDown(
+                setDurationMinutes = setDurationMinutes,
+                setRestDurationMinutes = setRestDurationMinutes,
+                setSessions = setSessions,
+                listFocusDuration = listFocusDuration,
+                listRestDuration = listRestDuration,
+                listSessions = listSessions,
+            )
+        }
+        Row() {
+            Button(
+                onClick = fightToggleDialog
+            ) {Text("Back")}
+            Button(
+                onClick =confirmBut
+            ) {Text("Start")}
+        }
     }
 }
 
@@ -200,7 +213,11 @@ fun SetUpDialog (
 @Composable
 fun SetUpPopUpPreview () {
     MyAppTheme {
-        SetUpDialog()
+        Column() {
+            if (true) {
+                SetUpDialog()
+            }
+        }
     }
 }
 
@@ -209,7 +226,14 @@ fun SetUpPopUpPreview () {
 @Composable
 fun DashBoardPhonePortrait (
     modifier: Modifier = Modifier,
-    onMonsterClick: () -> Unit = {}
+    fightToggleDialog: () -> Unit = {},
+    setDurationMinutes: (Int) -> Unit = {},
+    setRestDurationMinutes: (Int) -> Unit = {},
+    setSessions: (Int) -> Unit = {},
+    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
+    confirmBut: () -> Unit = {}
 ) {
     var expandedIndex: Int? by remember { mutableStateOf<Int?>(null) }
 
@@ -447,7 +471,14 @@ fun DashBoardPhonePortrait (
                 fontSize = fontSize.large,
             )
             SetUpDialog(
-                toggleDialog = {}
+                fightToggleDialog = fightToggleDialog,
+                setDurationMinutes = setDurationMinutes,
+                setRestDurationMinutes = setRestDurationMinutes,
+                setSessions = setSessions,
+                listFocusDuration = listFocusDuration,
+                listRestDuration = listRestDuration,
+                listSessions = listSessions,
+                confirmBut = confirmBut
             )
         }
     }

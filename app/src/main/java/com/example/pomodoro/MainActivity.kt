@@ -140,8 +140,9 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            DashBoard(
-                                windowSize = calculateWindowSizeClass( this ).widthSizeClass
+                            ScreenNavigation(
+                                navHostController = navHostController,
+                                viewModelChart = viewModelChart
                             )
                         }
                     }
@@ -169,19 +170,16 @@ fun ScreenNavigation (
         startDestination = EnumScreenClass.screen1.name
     ){
         composable(EnumScreenClass.screen1.name) {
-            Screen1(
-                focusUiState = focusUiState,
-                restUiState = restUiState,
-                togglePauseResume = {viewModel.togglePauseResume()},
-                toggleisFinished = {viewModel.toggleisFinished()},
-                formatter = {viewModel.formatter(it)},
-                breakFun = {viewModel.breakFun()},
-                setDurationMinutes = {viewModel.setDurationMinutes(it)},
-                setRestDurationMinutes = {viewModel.setRestDurationMinutes(it)},
-                setSessions = {viewModel.setSessions(it)},
-                startCountDown = {viewModel.startCountDown()},
-                navHostController = navHostController,
-                breakFunDialog = {viewModel.breakFunDialog()}
+            DashBoard(
+                windowSize = WindowWidthSizeClass.Compact,
+                fightToggleDialog = { viewModel.fightToggleDialog() },
+                setDurationMinutes = { viewModel.setDurationMinutes(it) },
+                setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
+                setSessions = { viewModel.setSessions(it) },
+                listFocusDuration = focusUiState.listFocusDuration,
+                listRestDuration = restUiState.listRestDuration,
+                listSessions = focusUiState.listSessions,
+                confirmBut = { viewModel.startCountDown() }
             )
         }
         composable(EnumScreenClass.screen2.name) {

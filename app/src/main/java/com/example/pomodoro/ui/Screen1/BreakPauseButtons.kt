@@ -41,6 +41,7 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 fun BreakButton (
     breakFun: () -> Unit = {},
     breakFunDialog: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     var isSure: Boolean? by rememberSaveable { mutableStateOf(null) }
     Button(
@@ -59,7 +60,7 @@ fun BreakButton (
             Image(
                 painter = painterResource(R.drawable.breakbut2),
                 contentDescription = null,
-                modifier = Modifier.size(width=100.dp, height=50.dp)
+                modifier = modifier
             )
         }
     }
@@ -76,28 +77,30 @@ fun BreakButton (
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BreakAlertDialog (
+    modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit = {},
     confirmButton: () -> Unit = {},
     @StringRes title: Int = R.string.break_title,
     @StringRes text: Int = R.string.break_text
 ) {
     AlertDialog(
+        modifier = modifier,
+
         title = {Text(text = stringResource(title))},
+
         text = {Text(text = stringResource(text))},
-        onDismissRequest = {
-            onDismissRequest()
-        },
-        confirmButton = {
-            TextButton(onClick = { confirmButton()}) {Text("Yes")}
-        } ,
-        dismissButton = {
-            TextButton(onClick = { onDismissRequest()}) {Text("No")}
-        }
+
+        onDismissRequest = { onDismissRequest() },
+
+        confirmButton = { TextButton(onClick = { confirmButton()}) {Text("Yes")} } ,
+
+        dismissButton = { TextButton(onClick = { onDismissRequest()}) {Text("No")} }
     )
 }
 
 @Composable
 fun PauseButton (
+    modifier: Modifier = Modifier,
     togglePauseResume: () -> Unit = {},
     focusUiState: FocusUiState,
 ) {
@@ -114,7 +117,7 @@ fun PauseButton (
             Image(
                 painter = if (focusUiState.timerState == TimerState.PAUSED) painterResource(R.drawable.resumebut) else painterResource(R.drawable.pausebutton2),
                 contentDescription = null,
-                modifier = Modifier.size(width = 100.dp, height = 50.dp)
+                modifier = modifier
             )
         }
     }
@@ -138,6 +141,7 @@ fun BreakPauseButtonsPreview2 () {
         )
     }
 }
+
 @Preview
 @Composable
 fun BreakAlertDialogPreview () {

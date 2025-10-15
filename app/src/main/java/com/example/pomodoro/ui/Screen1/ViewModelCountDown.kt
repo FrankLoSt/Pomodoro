@@ -49,7 +49,7 @@ class ViewModelCountDown @Inject constructor(
             pause()
         }
     }
-    fun toggleisFinished() = controller.toggleFinished()
+    fun fightToggleDialog() = controller.toggleFinished()
 
 
     //--------------SET UP -------------------------
