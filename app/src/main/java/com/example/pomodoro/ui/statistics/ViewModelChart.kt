@@ -1,4 +1,4 @@
-package com.example.pomodoro.ui.screen2
+package com.example.pomodoro.ui.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

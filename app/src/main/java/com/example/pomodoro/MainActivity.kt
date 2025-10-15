@@ -21,7 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,15 +37,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.pomodoro.data.FocusUiState
-import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.ui.countdown.FocusUiState
+import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
-import com.example.pomodoro.ui.Screen1.DashBoard
-import com.example.pomodoro.ui.Screen1.MyAppTheme
+import com.example.pomodoro.ui.countdown.CountDownScreen
+
+import com.example.pomodoro.ui.pickmonster.MyAppTheme
+import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
-import com.example.pomodoro.ui.screen2.Screen2LineChart
-import com.example.pomodoro.ui.screen2.ViewModelChart
+import com.example.pomodoro.ui.statistics.LineChartScreen
+import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -88,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                     label = { Text(stringResource(R.string.statistics)) },
                                     selected = false,
                                     onClick = {
-                                        navHostController.navigate(EnumScreenClass.screen2.name)
+                                        navHostController.navigate(EnumScreenClass.STATISTICS.name)
                                         scope.launch {
                                             drawerState.close()
                                             viewModelChart.generateChart(ViewMode.Day)
@@ -96,10 +99,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             NavigationDrawerItem(
-                                label = { Text("Count Down") },
+                                label = { Text("Home screen") },
                                 selected = false,
                                 onClick = {
-                                    navHostController.navigate(EnumScreenClass.screen1.name)
+                                    navHostController.navigate(EnumScreenClass.PICKMONSTER.name)
                                     scope.launch {
                                         drawerState.close()
                                     }
@@ -139,7 +142,8 @@ class MainActivity : ComponentActivity() {
                         ) {
                             ScreenNavigation(
                                 navHostController = navHostController,
-                                viewModelChart = viewModelChart
+                                viewModelChart = viewModelChart,
+                                windowSizeClass = calculateWindowSizeClass(this)
                             )
                         }
                     }
@@ -161,14 +165,15 @@ fun ScreenNavigation (
     viewModelChart: ViewModelChart,
     focusUiState: FocusUiState = viewModel.focusUiState.collectAsState().value,
     restUiState: RestUiState = viewModel.restUiState.collectAsState().value,
+    windowSizeClass: WindowSizeClass
 ) {
     NavHost(
         navController = navHostController,
-        startDestination = EnumScreenClass.screen1.name
+        startDestination = EnumScreenClass.PICKMONSTER.name
     ){
-        composable(EnumScreenClass.screen1.name) {
-            DashBoard(
-                windowSize = WindowWidthSizeClass.Compact,
+        composable(EnumScreenClass.PICKMONSTER.name) {
+            PickMonsterScreen(
+                windowSizeClass = windowSizeClass,
                 toggleSetUpPopup = { viewModel.toggleSetUpPopup() },
                 setDurationMinutes = { viewModel.setDurationMinutes(it) },
                 setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
@@ -178,11 +183,24 @@ fun ScreenNavigation (
                 listSessions = focusUiState.listSessions,
                 confirmBut = { viewModel.startCountDown() },
                 initSetUpState = viewModel.initSetUpState.collectAsState().value,
+                navHostController = navHostController
             )
         }
-        composable(EnumScreenClass.screen2.name) {
-            Screen2LineChart(
+        composable(EnumScreenClass.STATISTICS.name) {
+            LineChartScreen(
                 viewModelChart = viewModelChart,
+                navHostController = navHostController
+            )
+        }
+        composable(EnumScreenClass.COUNTDOWN.name) {
+            CountDownScreen(
+                focusUiState = focusUiState,
+                restUiState = restUiState,
+                toggleisFinished = { viewModel.toggleisFinished() },
+                breakFun = { viewModel.breakFun() },
+                togglePauseResume = { viewModel.togglePauseResume() },
+                breakFunDialog = { viewModel.breakFunDialog() },
+                windowSizeClass = windowSizeClass,
                 navHostController = navHostController
             )
         }

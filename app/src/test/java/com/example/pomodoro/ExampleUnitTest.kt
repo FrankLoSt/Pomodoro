@@ -1,6 +1,6 @@
 package com.example.pomodoro
 
-import com.example.pomodoro.data.FocusUiState
+import com.example.pomodoro.ui.countdown.FocusUiState
 import com.example.pomodoro.ui.Screen1.ViewModelCountDown
 
 import org.junit.Before

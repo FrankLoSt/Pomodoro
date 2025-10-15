@@ -1,4 +1,4 @@
-package com.example.pomodoro.ui.Screen1
+package com.example.pomodoro.ui.countdown
 
 
 import androidx.annotation.DrawableRes
@@ -8,10 +8,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -37,9 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,67 +61,64 @@ fun DropDown (
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
 ) {
-    Box(
-        modifier = Modifier
-            .clip(RectangleShape)
-            .background(Color.Transparent),
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Image(
-            painter = painterResource(R.drawable.panel),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(360.dp)
-        )
-        Row(
-            modifier = Modifier
-                .size(360.dp)
-                .padding(dimensionResource(R.dimen.medium_padding))
-                .align(Alignment.Center),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+        val maxWidth = this.maxWidth
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxHeight().padding(top = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(45.dp)
+            Row(
+                modifier = Modifier
+                    .size(360.dp)
+                    .padding(dimensionResource(R.dimen.medium_padding)),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.focus_duration),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = stringResource(R.string.rest_duration),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = stringResource(R.string.sessions),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-            Column{
-                DropdownFun(
-                    itemLists = listFocusDuration,
-                    onItemSelected = { minutes ->
-                       setDurationMinutes(minutes)
-                    }
-                )
-                DropdownFun(
-                    itemLists = listRestDuration,
-                    onItemSelected = { minutes ->
-                        setRestDurationMinutes(minutes)
-                    }
-                )
-                DropdownSessionFun(
-                    itemLists = listSessions,
-                    onItemSelected = { sessions ->
-                        setSessions(sessions)
-                    }
-                )
+                Column(
+                    modifier = Modifier.fillMaxHeight().padding(top = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(45.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.focus_duration),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.rest_duration),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.sessions),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Column {
+                    DropdownFun(
+                        itemLists = listFocusDuration,
+                        onItemSelected = { minutes ->
+                            setDurationMinutes(minutes)
+                        }
+                    )
+                    DropdownFun(
+                        itemLists = listRestDuration,
+                        onItemSelected = { minutes ->
+                            setRestDurationMinutes(minutes)
+                        }
+                    )
+                    DropdownSessionFun(
+                        itemLists = listSessions,
+                        onItemSelected = { sessions ->
+                            setSessions(sessions)
+                        }
+                    )
+                }
             }
         }
     }
 }
+
 
 
 

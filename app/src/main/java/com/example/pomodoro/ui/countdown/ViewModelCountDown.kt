@@ -1,14 +1,12 @@
 package com.example.pomodoro.ui.Screen1
 
 // --- ViewModelCountDown.kt ---
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pomodoro.data.FocusUiState
-import com.example.pomodoro.data.RestUiState
+import com.example.pomodoro.ui.countdown.FocusUiState
+import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.data.PomodoroControllerImpl
-import com.example.pomodoro.data.TimerState
+import com.example.pomodoro.ui.countdown.TimerState
 import com.example.pomodoro.data.datastore.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -50,7 +48,7 @@ class ViewModelCountDown @Inject constructor(
         }
     }
 
-
+    fun toggleisFinished() = controller.toggleisFinished()
 
     //--------------SET UP -------------------------
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)

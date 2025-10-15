@@ -1,21 +1,16 @@
 package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import com.example.pomodoro.data.datastore.SettingsRepository
-import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
+import com.example.pomodoro.ui.countdown.AppPhase
+import com.example.pomodoro.ui.countdown.FocusUiState
+import com.example.pomodoro.ui.countdown.RestUiState
+import com.example.pomodoro.ui.countdown.TimerState
+import com.example.pomodoro.ui.pickmonster.InitSetUpState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.sync.Mutex
 import javax.inject.Inject
-import kotlin.concurrent.timer
 
 interface PomodoroController {
     val focusUiState: StateFlow<FocusUiState>
@@ -83,7 +78,6 @@ class PomodoroControllerImpl @Inject constructor(
     //------------- Count down Logic-------------
     private suspend fun countdownStudy() = coroutineScope {
         //set up
-
 
         _focusUiState.update{
             it.copy(
@@ -166,6 +160,7 @@ class PomodoroControllerImpl @Inject constructor(
     } //countdown for rest session
 
     override fun start () {
+
         studyJob?.cancel()
         Log.d("DEBUG", "start: start() runs")
 
@@ -215,9 +210,10 @@ class PomodoroControllerImpl @Inject constructor(
         }
         Log.d("reset", "reset: reset done!")
     }
-    fun toggleFinished () {
+
+     fun toggleisFinished () {
         reset()
-    }
+     }
 
 
     //----BREAK - PAUSE - RESUME LOGIC -----

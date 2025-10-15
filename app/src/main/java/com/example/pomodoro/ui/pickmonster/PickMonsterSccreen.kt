@@ -1,4 +1,4 @@
-package com.example.pomodoro.ui.Screen1
+package com.example.pomodoro.ui.pickmonster
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -28,7 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -53,8 +53,11 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavHostController
 import com.example.pomodoro.R
-import com.example.pomodoro.data.InitSetUpState
+import com.example.pomodoro.ui.countdown.DropDown
+import com.example.pomodoro.ui.ScreenShape
+import com.example.pomodoro.ui.detectScreenShape
 
 data class Spacing(
     val small: Dp,
@@ -125,9 +128,9 @@ fun MyAppTheme(
 
 
 @Composable
-fun DashBoard (
+fun PickMonsterScreen (
     modifier: Modifier = Modifier,
-    windowSize: WindowWidthSizeClass,
+    windowSizeClass: WindowSizeClass,
     toggleSetUpPopup: () -> Unit,
     setDurationMinutes: (Int) -> Unit = {},
     setRestDurationMinutes: (Int) -> Unit = {},
@@ -136,19 +139,25 @@ fun DashBoard (
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
-    initSetUpState: InitSetUpState
+    initSetUpState: InitSetUpState,
+    navHostController: NavHostController? = null
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
+    val screenWidth = with(density) { windowSizeCheck.width.toDp() }.value.toInt()
+    val screenHeight = with(density) { windowSizeCheck.height.toDp() }.value.toInt()
 
-    val screenWidth = with(density) { windowSizeCheck.width.toDp()}.value.toInt()
-    val screenHeight = with(density) { windowSizeCheck.height.toDp()}.value.toInt()
+    val windowSizeClass = windowSizeClass
+    val screenShape = detectScreenShape(
+        windowSizeClass.widthSizeClass ,
+        windowSizeClass.heightSizeClass,
+        screenWidth,
+        screenHeight
+    )
 
-    Log.d("MyAppTheme", "screenWidth: $screenWidth, screenHeight: $screenHeight")
-
-    if (windowSize == WindowWidthSizeClass.Compact && screenHeight in 800 .. 1500 ) {
-        DashBoardPhonePortrait(
-            modifier,
+    when (screenShape) {
+        is ScreenShape.PhonePortrait -> DashBoardPhonePortrait(
+            modifier = modifier,
             toggleSetUpPopup = toggleSetUpPopup,
             setDurationMinutes = setDurationMinutes,
             setRestDurationMinutes = setRestDurationMinutes,
@@ -159,15 +168,20 @@ fun DashBoard (
             confirmBut = confirmBut,
             initSetUpState = initSetUpState
         )
+
+        is ScreenShape.PhoneLandscape ->  DashBoardPhoneLandScape(
+            modifier = modifier,
+
+        )
+
+        is ScreenShape.TabletPortrait -> DashBoardTabletPortrait(
+            modifier = modifier,
+
+        )
+        is ScreenShape.TabletLandscape -> DashBoardTabletLandscape()
     }
-    else if (screenHeight in 300..600 && screenWidth in 700..1000) {
-        DashBoardPhoneLandScape()
-    }
-    else if(screenHeight in 1000..1300 && screenWidth in 600 .. 1000) {
-        DashBoardTabletPortrait(modifier)
-    } else {
-        DashBoardTabletLandScape(modifier)
-    }
+
+
 }
 
 
@@ -190,38 +204,47 @@ fun SetUpDialog (
     val spacing = LocalSpacing.current
     val fontSize = LocalFontSize.current
 
+    val maxWidth = LocalWindowInfo.current.containerSize.width
+    val maxHeight = LocalWindowInfo.current.containerSize.height
+
+    val isPortrait: Boolean = maxWidth < maxHeight
+
     Dialog(onDismissRequest = fightToggleDialog ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .padding(spacing.medium),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.padding(spacing.medium)
+        if (isPortrait) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+                    .padding(spacing.medium),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                DropDown(
-                    setDurationMinutes = setDurationMinutes,
-                    setRestDurationMinutes = setRestDurationMinutes,
-                    setSessions = setSessions,
-                    listFocusDuration = listFocusDuration,
-                    listRestDuration = listRestDuration,
-                    listSessions = listSessions,
-                )
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.padding(spacing.medium)
+                ) {
+                    DropDown(
+                        setDurationMinutes = setDurationMinutes,
+                        setRestDurationMinutes = setRestDurationMinutes,
+                        setSessions = setSessions,
+                        listFocusDuration = listFocusDuration,
+                        listRestDuration = listRestDuration,
+                        listSessions = listSessions,
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = fightToggleDialog
+                    ) { Text("Back") }
+                    Button(
+                        onClick = confirmBut
+                    ) { Text("Start") }
+                }
             }
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(
-                    onClick = fightToggleDialog
-                ) { Text("Back") }
-                Button(
-                    onClick = confirmBut
-                ) { Text("Start") }
-            }
+        } else {
+
         }
     }
 }
@@ -384,7 +407,6 @@ fun DashBoardPhonePortrait (
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
 
-
             val adaptivePaddingHorizontal = maxWidth * 0.05f
             val adaptivePaddingVertical: Dp = maxHeight * 0.1f
 
@@ -422,7 +444,9 @@ fun DashBoardPhonePortrait (
                     colors = CardDefaults.cardColors(Color(0xFFCCC127)),
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(spacing.small),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(spacing.small),
                     ) {
                         Row() {
                             Image(
@@ -443,6 +467,7 @@ fun DashBoardPhonePortrait (
                         )
                     }
                 }
+
                 Text(
                     text = "Total: ${monsterList.size} monsters",
                     style = MaterialTheme.typography.bodyMedium,
@@ -519,6 +544,15 @@ fun DashBoardPhonePortrait (
         }
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -669,7 +703,8 @@ fun DashBoardPhoneLandScape (
                         .padding(
                             horizontal = spacing.medium,
                             vertical = spacing.medium
-                        ).weight(0.8f),
+                        )
+                        .weight(0.8f),
                     elevation = CardDefaults.cardElevation(16.dp),
                     colors = CardDefaults.cardColors(Color(0xFF7A490C))
                 ) {
@@ -729,7 +764,9 @@ fun DashBoardPhoneLandScape (
                                 text = "Total: ${monsterList.size} monsters",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White,
-                                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = spacing.medium)
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = spacing.medium)
                             )
                             Card(
                                 modifier = Modifier
@@ -776,18 +813,6 @@ fun DashBoardPhoneLandScape (
                     fontSize = fontSize.medium
                 )
 
-                if (initSetUpState.toggleSetUp) {
-                    SetUpDialog(
-                        fightToggleDialog = toggleSetUpPopup,
-                        setDurationMinutes = setDurationMinutes,
-                        setRestDurationMinutes = setRestDurationMinutes,
-                        setSessions = setSessions,
-                        listFocusDuration = listFocusDuration,
-                        listRestDuration = listRestDuration,
-                        listSessions = listSessions,
-                        confirmBut = confirmBut,
-                    )
-                }
             }
         }
     }
@@ -862,12 +887,19 @@ fun DashBoardTabletPortrait (
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = spacing.medium, start = spacing.medium, end = spacing.medium, bottom = spacing.small)
+                        .padding(
+                            top = spacing.medium,
+                            start = spacing.medium,
+                            end = spacing.medium,
+                            bottom = spacing.small
+                        )
                         .height(maxHeight * 0.2f),
                     colors = CardDefaults.cardColors(Color(0xFFCCC127)),
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(spacing.small),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(spacing.small),
                     ) {
                         Row() {
                             Image(
@@ -929,7 +961,7 @@ fun DashBoardTabletPortrait (
                                     painter = monsterList[index].first,
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .size(minCellSize* 0.8f)
+                                        .size(minCellSize * 0.8f)
                                         .padding(top = spacing.small),
                                 )
                                 Text(
@@ -953,7 +985,7 @@ fun DashBoardTabletPortrait (
 }
 
 @Composable
-fun DashBoardTabletLandScape (
+fun DashBoardTabletLandscape (
     modifier: Modifier = Modifier
 ) {
     val spacing: Spacing = LocalSpacing.current
@@ -1101,7 +1133,8 @@ fun DashBoardTabletLandScape (
                         .padding(
                             horizontal = spacing.medium,
                             vertical = spacing.medium
-                        ).weight(0.8f),
+                        )
+                        .weight(0.8f),
                     elevation = CardDefaults.cardElevation(16.dp),
                     colors = CardDefaults.cardColors(Color(0xFF7A490C))
                 ) {
@@ -1161,7 +1194,9 @@ fun DashBoardTabletLandScape (
                                 text = "Total: ${monsterList.size} monsters",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White,
-                                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = spacing.medium)
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = spacing.medium)
                             )
                             Card(
                                 modifier = Modifier
@@ -1290,6 +1325,6 @@ fun PreviewPortraitTablet () {
 @Composable
 fun PreviewLandscapeTablet () {
     MyAppTheme {
-        DashBoardTabletLandScape()
+        DashBoardTabletLandscape()
     }
 }

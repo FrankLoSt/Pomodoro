@@ -1,4 +1,4 @@
-package com.example.pomodoro.ui.Screen1
+package com.example.pomodoro.ui.countdown
 
 import android.view.MotionEvent
 import androidx.compose.foundation.Canvas

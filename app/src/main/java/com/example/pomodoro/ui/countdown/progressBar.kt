@@ -1,4 +1,4 @@
-package com.example.pomodoro.ui.Screen1
+package com.example.pomodoro.ui.countdown
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,16 +23,14 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pomodoro.R
-import com.example.pomodoro.data.AppPhase
-import com.example.pomodoro.data.FocusUiState
-import com.example.pomodoro.data.RestUiState
-import com.example.pomodoro.ui.theme.PomodoroTheme
-import com.google.apps.card.v1.Columns
-import com.google.apps.card.v1.Image
-import org.intellij.lang.annotations.JdkConstants
+import com.example.pomodoro.ui.pickmonster.FontSize
+import com.example.pomodoro.ui.pickmonster.LocalFontSize
+import com.example.pomodoro.ui.pickmonster.LocalSpacing
+import com.example.pomodoro.ui.pickmonster.MyAppTheme
+import com.example.pomodoro.ui.pickmonster.Spacing
+
 
 @Composable
 fun TabletPortraitCircularProgressBar (
@@ -214,6 +210,222 @@ fun TabletPortraitCircularProgressBar (
                             focusUiState = focusUiState,
                             modifier = Modifier.size(maxWidth * 0.2f)
                         )
+                    }
+                }
+            }
+            else -> {}
+        }
+    } //box for progress bar and text
+}
+
+@Composable
+fun TabletLandscapeCircularProgressBar (
+    focusUiState: FocusUiState,
+    restUiState: RestUiState,
+    @DrawableRes monster: Int = R.drawable._07_1,
+    togglePauseResume: () -> Unit = {},
+    breakFun: () -> Unit = {},
+    breakFunDialog: () -> Unit = {},
+    countDownText: String = "25:00"
+) {
+    val localFontSize: FontSize = LocalFontSize.current
+    val localSpacing: Spacing = LocalSpacing.current
+
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        val maxWidth: Dp = this.maxWidth
+        val maxHeight: Dp = this.maxHeight
+
+
+        val baseSize = minOf(maxWidth, maxHeight) // 👈 Use the smaller dimension
+
+        val spacing = baseSize * 0.05f
+        val fontSizeSmall = (baseSize.value * 0.04f).sp
+        val fontSizeLarge = (baseSize.value * 0.2f).sp
+        val buttonSize = baseSize * 0.2f
+
+        val imageSize = baseSize * 0.5f
+
+        when (focusUiState.appPhrase) {
+
+            AppPhase.FOCUSING -> {
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight(0.8f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = focusUiState.studyProgress(),
+                            modifier = Modifier.size(baseSize),
+                            blockSize = baseSize.value * 0.1f
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(imageSize).align(Alignment.Center)
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.batling),
+                            fontSize = (baseSize.value * 0.05f).toInt().sp,
+                            modifier = Modifier.padding(bottom = spacing),
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Text(
+                            "Tag: Working",
+                            fontSize = fontSizeSmall,
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Text(
+                            countDownText,
+                            fontSize = fontSizeLarge,
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            BreakButton(
+                                breakFun = breakFun,
+                                breakFunDialog = breakFunDialog,
+                                modifier = Modifier.size(buttonSize)
+                            )
+                            PauseButton(
+                                togglePauseResume = togglePauseResume,
+                                focusUiState = focusUiState,
+                                modifier = Modifier.size(buttonSize)
+                            )
+                        }
+                    }
+                }
+            }
+
+            AppPhase.RESTING -> {
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight(0.8f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = focusUiState.studyProgress(),
+                            modifier = Modifier.size(baseSize),
+                            blockSize = baseSize.value * 0.1f
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(imageSize).align(Alignment.Center)
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.batling),
+                            fontSize = (baseSize.value * 0.05f).toInt().sp,
+                            modifier = Modifier.padding(bottom = spacing),
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Text(
+                            "Tag: Working",
+                            fontSize = fontSizeSmall,
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Text(
+                            countDownText,
+                            fontSize = fontSizeLarge,
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            BreakButton(
+                                breakFun = breakFun,
+                                breakFunDialog = breakFunDialog,
+                                modifier = Modifier.size(buttonSize)
+                            )
+                            PauseButton(
+                                togglePauseResume = togglePauseResume,
+                                focusUiState = focusUiState,
+                                modifier = Modifier.size(buttonSize)
+                            )
+                        }
+                    }
+                }
+            }
+
+            AppPhase.FINISHED -> {
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight(0.8f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomCircularProgressIndicator(
+                            progress = 1f,
+                            modifier = Modifier.size(baseSize),
+                            blockSize = baseSize.value * 0.1f
+                        )
+                        Image(
+                            painter = painterResource(monster),
+                            contentDescription = null,
+                            modifier = Modifier.size(imageSize).align(Alignment.Center)
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.batling),
+                            fontSize = (baseSize.value * 0.05f).toInt().sp,
+                            modifier = Modifier.padding(bottom = spacing),
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Text(
+                            "Tag: Working",
+                            fontSize = fontSizeSmall,
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Text(
+                            countDownText,
+                            fontSize = fontSizeLarge,
+                            fontFamily = FontFamily(Font(R.font.jersey))
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            BreakButton(
+                                breakFun = breakFun,
+                                breakFunDialog = breakFunDialog,
+                                modifier = Modifier.size(buttonSize)
+                            )
+                            PauseButton(
+                                togglePauseResume = togglePauseResume,
+                                focusUiState = focusUiState,
+                                modifier = Modifier.size(buttonSize)
+                            )
+                        }
                     }
                 }
             }
@@ -433,7 +645,7 @@ fun PhoneLandscapeCircularProgressBar (
         val fontSizeSmall = (baseSize.value * 0.04f).sp
         val fontSizeLarge = (baseSize.value * 0.2f).sp
         val buttonSize = baseSize * 0.2f
-        val progressSize = baseSize * 0.8f
+
         val imageSize = baseSize * 0.5f
 
         when (focusUiState.appPhrase) {
@@ -660,6 +872,7 @@ fun PhoneLandScapeCircularProgressBarP () {
     }
 }
 
+
 @Preview(
     name = "Expanded Landscape",
     widthDp = 1120,
@@ -667,7 +880,7 @@ fun PhoneLandScapeCircularProgressBarP () {
     showBackground = true
 )
 @Composable
-fun CircularProgressBarTabletPreview () {
+fun CircularProgressBarPortraitTabletPreview () {
     MyAppTheme {
         TabletPortraitCircularProgressBar(
             focusUiState = FocusUiState(),
@@ -685,6 +898,9 @@ fun CircularProgressBarTabletPreview () {
 @Composable
 fun CircularProgressBarTabletLandscapePreview () {
     MyAppTheme {
-
+        TabletLandscapeCircularProgressBar(
+            focusUiState = FocusUiState(),
+            restUiState = RestUiState(),
+        )
     }
 }

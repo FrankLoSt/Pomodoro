@@ -1,4 +1,4 @@
-package com.example.pomodoro.ui.Screen1
+package com.example.pomodoro.ui.countdown
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
