@@ -109,7 +109,6 @@ data class ChartUpdate (
 
 
 @Singleton
-
 class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need to inject this dependency in the constructor to build this class -> Hilt looks at it at compile time -> draw the graph -> then at run time -> it will inject the dependency
         private val dataStore: DataStore<Preferences>,
         private val scope: CoroutineScope

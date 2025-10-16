@@ -61,10 +61,9 @@ fun DropDown (
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
 ) {
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    BoxWithConstraints {
         val maxWidth = this.maxWidth
+
         Card(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.padding(16.dp)

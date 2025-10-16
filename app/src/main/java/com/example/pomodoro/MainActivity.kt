@@ -45,7 +45,7 @@ import com.example.pomodoro.ui.countdown.CountDownScreen
 
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
-import com.example.pomodoro.ui.Screen1.ViewModelCountDown
+import com.example.pomodoro.ui.countdown.ViewModelCountDown
 import com.example.pomodoro.ui.statistics.LineChartScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
