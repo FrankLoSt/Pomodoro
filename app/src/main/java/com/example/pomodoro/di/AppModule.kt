@@ -10,11 +10,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import androidx.datastore.preferences.core.Preferences
-import com.example.pomodoro.data.datastore.SettingsRepository
-import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
-import dagger.Binds
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
+import androidx.room.Room
+import com.example.pomodoro.data.AppDatabase
+import com.example.pomodoro.data.FocusSessionDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -43,15 +41,16 @@ object AppModule {
         return CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
 
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class RepositoryModule {
-
-    @Binds
+    @Provides
     @Singleton
-    abstract fun bindSettingsRepository(
-        impl: SettingsRepositoryImpl
-    ): SettingsRepository
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
+        Room.databaseBuilder(context, AppDatabase::class.java, "focus_db").build()
+    //create an actual ROOM database using AppDatabase abstract class -> this is when it is actually built
+
+    @Provides
+    fun provideFocusSessionDao(db: AppDatabase): FocusSessionDao =
+        db.FocusSessionDao()
+    //Returns your DAO so you can use it to insert/query data.
 }
+
+

@@ -57,6 +57,8 @@ dependencies {
 
     implementation(libs.ycharts)
 
+    implementation("androidx.room:room-runtime:2.8.2")
+    kapt("androidx.room:room-compiler:2.6.1")
 
 
 

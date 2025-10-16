@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import co.yml.charts.common.model.Point
+import com.example.pomodoro.data.FocusSessionDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -110,9 +111,10 @@ data class ChartUpdate (
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need to inject this dependency in the constructor to build this class -> Hilt looks at it at compile time -> draw the graph -> then at run time -> it will inject the dependency
-        private val dataStore: DataStore<Preferences>,
-        private val scope: CoroutineScope
-    ) : SettingsRepository {
+    private val dataStore: DataStore<Preferences>,
+    private val scope: CoroutineScope
+) : SettingsRepository
+{
 
     private val LAST_FOCUS_KEY: Preferences.Key<String> =
         stringPreferencesKey("last_active_time")
@@ -750,3 +752,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         }
     }
 }
+
+
+

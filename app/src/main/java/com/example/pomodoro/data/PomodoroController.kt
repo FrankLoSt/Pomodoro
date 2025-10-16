@@ -37,7 +37,8 @@ interface PomodoroController {
 class PomodoroControllerImpl @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val scope: CoroutineScope, // usually viewModelScope, -----  uses Dispatchers.Main by default
-) : PomodoroController {
+) : PomodoroController
+{
 
     private val _focusUiState = MutableStateFlow(FocusUiState())
     override val focusUiState: StateFlow<FocusUiState> = _focusUiState.asStateFlow()
@@ -96,7 +97,8 @@ class PomodoroControllerImpl @Inject constructor(
                 focusUiState.value.appPhrase == AppPhase.FINISHED ||
                 focusUiState.value.appPhrase == AppPhase.IDLE ||
                 focusUiState.value.appPhrase == AppPhase.RESTING ||
-                focusUiState.value.duration <= 0) break //if isRunning = false or duration <= 0 then break
+                focusUiState.value.duration <= 0) break
+            //Only runs when appPhase == FOCUSING, and duration > 0.
             delay(1000L)
 
             if(focusUiState.value.timerState == TimerState.RUNNING && focusUiState.value.appPhrase == AppPhase.FOCUSING)
