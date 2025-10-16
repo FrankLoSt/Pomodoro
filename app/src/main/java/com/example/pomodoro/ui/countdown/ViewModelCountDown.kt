@@ -16,7 +16,10 @@ class ViewModelCountDown @Inject constructor(
 ) : ViewModel() {
 
     //----------------------STATE----------------------------
-     val controller = PomodoroControllerImpl(scope = viewModelScope, settingsRepository = settingsRepository) //temporarily make it be able to access outside for testing
+     val controller = PomodoroControllerImpl(
+        scope = viewModelScope, settingsRepository = settingsRepository,
+
+    ) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState //reference to focusUiState in controller
     val restUiState: StateFlow<RestUiState> = controller.restUiState //reference to restUiState in controller
@@ -48,6 +51,7 @@ class ViewModelCountDown @Inject constructor(
     fun toggleisFinished() = controller.toggleisFinished()
 
     fun toggleSetUpPopup() = controller.toggleSetUpPopup()
+
     //--------------SET UP -------------------------
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)
     fun setRestDurationMinutes(minutes: Int) = controller.setRestDurationMinutes(minutes)

@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
 
 @Entity
 data class FocusSession (
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val monsterName: String,
     val duration: Int,
     val timestamp: Long
@@ -32,5 +32,20 @@ abstract class AppDatabase : RoomDatabase() {
 }
 
 
+
+/*@Entity
+data class FocusSessionInfo(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val monsterFight: String,
+    val totalSession: Int,
+    val sessionCompleted: Int,
+    val totalFocusTimeSet: Int,
+    val totalFocusTimeCompleted: Int,
+    val totalRestTime: Int,
+    val timestampSet: Long,
+    val timestampFinished: Long?,
+    val status: Boolean
+)
+*/
 
 
