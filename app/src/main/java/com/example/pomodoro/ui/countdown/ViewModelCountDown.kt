@@ -24,7 +24,7 @@ class ViewModelCountDown @Inject constructor(
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState //reference to focusUiState in controller
     val restUiState: StateFlow<RestUiState> = controller.restUiState //reference to restUiState in controller
 
-    val initSetUpState = controller.initSetUpState //reference to initSetUpState in controller
+
 
     //---------------BUTTON---------------------
 
@@ -50,7 +50,7 @@ class ViewModelCountDown @Inject constructor(
 
     fun toggleisFinished() = controller.toggleisFinished()
 
-    fun toggleSetUpPopup() = controller.toggleSetUpPopup()
+
 
     //--------------SET UP -------------------------
     fun setDurationMinutes(minutes: Int) = controller.setDurationMinutes(minutes)

@@ -21,8 +21,8 @@ fun detectScreenShape(
     val isLandscape = screenWidth > screenHeight
 
     return when {
-        widthClass == WindowWidthSizeClass.Compact && isPortrait -> ScreenShape.PhonePortrait
-        widthClass == WindowWidthSizeClass.Compact && isLandscape -> ScreenShape.PhoneLandscape
+        widthClass <= WindowWidthSizeClass.Compact && isPortrait -> ScreenShape.PhonePortrait
+        widthClass in WindowWidthSizeClass.Medium.. WindowWidthSizeClass.Expanded&& isLandscape -> ScreenShape.PhoneLandscape
         widthClass >= WindowWidthSizeClass.Medium && isPortrait -> ScreenShape.TabletPortrait
         widthClass >= WindowWidthSizeClass.Medium && isLandscape -> ScreenShape.TabletLandscape
         else -> ScreenShape.PhonePortrait // fallback

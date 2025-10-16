@@ -19,7 +19,6 @@ interface PomodoroController {
 
     val restUiState: StateFlow<RestUiState>
 
-    val initSetUpState: StateFlow<InitSetUpState>
 
     fun setDurationMinutes(minutes: Int)
     fun setRestDurationMinutes(minutes: Int)
@@ -49,8 +48,7 @@ class PomodoroControllerImpl @Inject constructor(
 
     override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
 
-    private val _initSetUpState = MutableStateFlow(InitSetUpState())
-    override val initSetUpState: StateFlow<InitSetUpState> = _initSetUpState.asStateFlow()
+
 
 
     //Create job controllers for 2 countdown
@@ -74,9 +72,7 @@ class PomodoroControllerImpl @Inject constructor(
         Log.d("DEBUG", "setSessions: $sessions assigned")
     }
 
-    fun toggleSetUpPopup() {
-        _initSetUpState.update { it.copy(toggleSetUp = !it.toggleSetUp) }
-    }
+
 
     //------------- Count down Logic-------------
     private suspend fun countdownStudy() = coroutineScope {

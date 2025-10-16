@@ -1,6 +1,7 @@
 package com.example.pomodoro
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,6 +48,8 @@ import com.example.pomodoro.ui.countdown.CountDownScreen
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
 import com.example.pomodoro.ui.countdown.ViewModelCountDown
+import com.example.pomodoro.ui.pickmonster.InitSetUpState
+import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.statistics.LineChartScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
@@ -143,7 +147,7 @@ class MainActivity : ComponentActivity() {
                             ScreenNavigation(
                                 navHostController = navHostController,
                                 viewModelChart = viewModelChart,
-                                windowSizeClass = calculateWindowSizeClass(this)
+                                windowSizeClass = calculateWindowSizeClass(this),
                             )
                         }
                     }
@@ -165,8 +169,11 @@ fun ScreenNavigation (
     viewModelChart: ViewModelChart,
     focusUiState: FocusUiState = viewModel.focusUiState.collectAsState().value,
     restUiState: RestUiState = viewModel.restUiState.collectAsState().value,
-    windowSizeClass: WindowSizeClass
-) {
+    monsterViewModel: MonsterViewModel = hiltViewModel(),
+    initSetUpState: InitSetUpState = monsterViewModel.initSetUpState.collectAsState().value,
+    windowSizeClass: WindowSizeClass,
+
+    ) {
     NavHost(
         navController = navHostController,
         startDestination = EnumScreenClass.PICKMONSTER.name
@@ -174,16 +181,22 @@ fun ScreenNavigation (
         composable(EnumScreenClass.PICKMONSTER.name) {
             PickMonsterScreen(
                 windowSizeClass = windowSizeClass,
-                toggleSetUpPopup = { viewModel.toggleSetUpPopup() },
+                toggleSetUpPopup = { monsterViewModel.toggleSetUpPopup() },
                 setDurationMinutes = { viewModel.setDurationMinutes(it) },
                 setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
                 setSessions = { viewModel.setSessions(it) },
                 listFocusDuration = focusUiState.listFocusDuration,
                 listRestDuration = restUiState.listRestDuration,
                 listSessions = focusUiState.listSessions,
-                confirmBut = { viewModel.startCountDown() },
-                initSetUpState = viewModel.initSetUpState.collectAsState().value,
-                navHostController = navHostController
+                confirmBut = {
+                    viewModel.startCountDown();
+                    navHostController.navigate(EnumScreenClass.COUNTDOWN.name);
+                    monsterViewModel.toggleSetUpPopup()
+                    Log.e("DEBUG", "Monster picked : ${initSetUpState.monsterPickedIndex}")
+                             },
+                initSetUpState = initSetUpState,
+                navHostController = navHostController,
+                monsterViewModel = monsterViewModel,
             )
         }
         composable(EnumScreenClass.STATISTICS.name) {
@@ -196,12 +209,14 @@ fun ScreenNavigation (
             CountDownScreen(
                 focusUiState = focusUiState,
                 restUiState = restUiState,
-                toggleisFinished = { viewModel.toggleisFinished() },
+                onDismiss = { viewModel.toggleisFinished(); navHostController.navigate(EnumScreenClass.PICKMONSTER.name) },
                 breakFun = { viewModel.breakFun() },
                 togglePauseResume = { viewModel.togglePauseResume() },
                 breakFunDialog = { viewModel.breakFunDialog() },
                 windowSizeClass = windowSizeClass,
-                navHostController = navHostController
+                navHostController = navHostController,
+                monsterId = initSetUpState.monsterPickedIndex,
+                monsterList = initSetUpState.monsterList
             )
         }
     }

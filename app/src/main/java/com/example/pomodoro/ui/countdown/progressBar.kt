@@ -28,6 +28,7 @@ import com.example.pomodoro.R
 import com.example.pomodoro.ui.pickmonster.FontSize
 import com.example.pomodoro.ui.pickmonster.LocalFontSize
 import com.example.pomodoro.ui.pickmonster.LocalSpacing
+import com.example.pomodoro.ui.pickmonster.MonsterInfo
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.Spacing
 
@@ -439,14 +440,20 @@ fun TabletLandscapeCircularProgressBar (
 fun PhonePortraitCircularProgressBar (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
-    @DrawableRes monster: Int = R.drawable._07_1,
+    monsterIndex: Int = 0,
     togglePauseResume: () -> Unit = {},
     breakFun: () -> Unit = {},
     breakFunDialog: () -> Unit = {},
-    countDownText: String = "25:00"
+    countDownText: String = "25:00",
+    monsterList: List<MonsterInfo> = emptyList()
 ) {
     val localFontSize: FontSize = LocalFontSize.current
     val localSpacing: Spacing = LocalSpacing.current
+    
+    val monsterList = monsterList
+
+    val monster = monsterList[monsterIndex].imageId
+
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,

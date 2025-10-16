@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -18,7 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,6 +36,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +58,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.pomodoro.R
 import com.example.pomodoro.ui.countdown.DropDown
@@ -140,7 +146,8 @@ fun PickMonsterScreen (
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
     initSetUpState: InitSetUpState,
-    navHostController: NavHostController? = null
+    navHostController: NavHostController? = null,
+    monsterViewModel: MonsterViewModel
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -166,18 +173,18 @@ fun PickMonsterScreen (
             listRestDuration = listRestDuration,
             listSessions = listSessions,
             confirmBut = confirmBut,
-            initSetUpState = initSetUpState
+            initSetUpState = initSetUpState,
+            monsterViewModel = monsterViewModel,
+
         )
 
         is ScreenShape.PhoneLandscape ->  DashBoardPhoneLandScape(
             modifier = modifier,
-
+            monsterViewModel = monsterViewModel,
+            initSetUpState = initSetUpState
         )
 
-        is ScreenShape.TabletPortrait -> DashBoardTabletPortrait(
-            modifier = modifier,
-
-        )
+        is ScreenShape.TabletPortrait -> DashBoardTabletPortrait(modifier = modifier,)
         is ScreenShape.TabletLandscape -> DashBoardTabletLandscape()
     }
 
@@ -272,9 +279,10 @@ fun DashBoardPhonePortrait (
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
-    initSetUpState: InitSetUpState
+    initSetUpState: InitSetUpState,
+    monsterViewModel: MonsterViewModel,
 ) {
-    var expandedIndex: Int? by remember { mutableStateOf<Int?>(null) }
+    val monsterPickedIndex = initSetUpState.monsterPickedIndex
 
     val spacing = LocalSpacing.current
     val fontSize = LocalFontSize.current
@@ -287,129 +295,7 @@ fun DashBoardPhonePortrait (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        val monsterList: List<Triple<Painter, String, String>> = listOf(
-            Triple(
-                painterResource(id = R.drawable.spider),
-                "Anxiety",
-                "Makes everyday tasks feel overwhelming"
-            ),
-            Triple(
-                painterResource(id = R.drawable.monster1),
-                "Porn addiction",
-                "drain your energy and destroy your relationship"
-            ),
-            Triple(
-                painterResource(id = R.drawable._01_1),
-                "Anxiety",
-                "Makes everyday tasks feel overwhelming"
-            ),
-            Triple(
-                painterResource(id = R.drawable._01_2),
-                "Loneliness",
-                "Leads to isolation and low self-worth"
-            ),
-            Triple(
-                painterResource(id = R.drawable._02_2),
-                "Burnout",
-                "Kills motivation and joy in learning"
-            ),
-            Triple(
-                painterResource(id = R.drawable._03_2),
-                "Comparison",
-                "Breeds insecurity through social media"
-            ),
-            Triple(
-                painterResource(id = R.drawable._04_1),
-                "Rejection",
-                "Shakes confidence and self-image"
-            ),
-            Triple(
-                painterResource(id = R.drawable._03_3),
-                "Pressure",
-                "Creates fear of failure and perfectionism"
-            ),
-            Triple(
-                painterResource(id = R.drawable._06_2),
-                "Procrastination",
-                "Delays growth and builds guilt"
-            ),
-            Triple(
-                painterResource(id = R.drawable._07_2),
-                "Identity",
-                "Confuses self-understanding and belonging"
-            ),
-            Triple(
-                painterResource(id = R.drawable._08_2),
-                "Addiction",
-                "Distracts from goals and relationships"
-            ),
-            Triple(
-                painterResource(id = R.drawable._09_2),
-                "Bullying",
-                "Damages trust and emotional safety"
-            ),
-            Triple(
-                painterResource(id = R.drawable._10_2),
-                "Self-Doubt",
-                "Blocks ambition and creativity"
-            ),
-            Triple(
-                painterResource(id = R.drawable._12_1),
-                "Financial Stress",
-                "Limits opportunity and causes anxiety"
-            ),
-            Triple(
-                painterResource(id = R.drawable._07_3),
-                "Overthinking",
-                "Paralyzes decision-making"
-            ),
-            Triple(
-                painterResource(id = R.drawable._13_2),
-                "Imposter",
-                "Makes success feel undeserved"
-            ),
-            Triple(
-                painterResource(id = R.drawable._08_3),
-                "Neglect",
-                "Leaves emotional needs unmet"
-            ),
-            Triple(
-                painterResource(id = R.drawable._11_1),
-                "Fear",
-                "Prevents risk-taking and growth"
-            ),
-            Triple(
-                painterResource(id = R.drawable._14_1),
-                "Toxic Positivity",
-                "Invalidates real emotions"
-            ),
-            Triple(
-                painterResource(id = R.drawable._15_1),
-                "Distraction",
-                "Scatters focus and productivity"
-            ),
-            Triple(
-                painterResource(id = R.drawable._16_3),
-                "Insecurity",
-                "Erodes confidence and self-love"
-            ),
-            Triple(
-                painterResource(id = R.drawable._14_3),
-                "Perfectionism",
-                "Turns effort into self-criticism"
-            ),
-            Triple(
-                painterResource(id = R.drawable._18_2),
-                "Isolation",
-                "Disconnects from support systems"
-            ),
-            Triple(
-                painterResource(id = R.drawable._19_2),
-                "Uncertainty",
-                "Creates anxiety about the future"
-            ),
-            Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
-        )
+        val monsterList: List<MonsterInfo> = initSetUpState.monsterList
 
         BoxWithConstraints {
             val maxHeight = this.maxHeight
@@ -458,19 +344,20 @@ fun DashBoardPhonePortrait (
                     ) {
                         Row() {
                             Image(
-                                painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
-                                    ?: painterResource(id = R.drawable._01_1),
+                                painter = painterResource(monsterList.getOrNull(monsterPickedIndex)?.imageId?: R.drawable.spider),
                                 contentDescription = null,
                                 modifier = Modifier.size(minCellSize * 1.4f)
                             )
-                            Column() {
+                            Column(
+                                modifier = Modifier.verticalScroll(rememberScrollState()),
+                            ) {
                                 Text(
-                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.second
-                                        ?: "Anxiety",
+                                    text = monsterList.getOrNull(monsterPickedIndex)?.name
+                                        ?: "Distraction",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 Text(
-                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                    text = monsterList.getOrNull(monsterPickedIndex)?.description
                                         ?: "Makes everyday tasks feel overwhelming",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -507,9 +394,10 @@ fun DashBoardPhonePortrait (
                                 .aspectRatio(1f)
                                 .clip(RoundedCornerShape(16.dp))
                                 .clickable {
-                                    expandedIndex = if (expandedIndex == index) null else index
+                                     if (monsterPickedIndex == index) null else monsterViewModel.updateMonsterPickedIndex(index)
+                                    Log.e("DEBUG", "MonsterList ${monsterList.size}, monster being choose ${monsterList[index].name}")
                                 },
-                            colors = if (expandedIndex == index) CardDefaults.cardColors(Color.LightGray) else CardDefaults.cardColors(
+                            colors = if (monsterPickedIndex == index) CardDefaults.cardColors(Color.LightGray) else CardDefaults.cardColors(
                                 Color(0xFFCCC127)
                             )
                         ) {
@@ -519,12 +407,13 @@ fun DashBoardPhonePortrait (
                                 verticalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 Image(
-                                    painter = monsterList[index].first,
+                                    painter = painterResource(monsterList.getOrNull(index)?.imageId?: R.drawable.spider),
                                     contentDescription = null,
                                     modifier = Modifier.size(minCellSize * 0.8f)
                                 )
                                 Text(
-                                    text = monsterList[index].second,
+                                    text = monsterList.getOrNull(index)?.name
+                                        ?: "Distraction",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
@@ -570,142 +459,27 @@ fun DashBoardPhonePortrait (
 
 @Composable
 fun DashBoardPhoneLandScape (
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    monsterViewModel: MonsterViewModel,
+    initSetUpState: InitSetUpState
 ) {
     val spacing: Spacing = LocalSpacing.current
     val fontSize: FontSize = LocalFontSize.current
-    var expandedIndex by remember { mutableStateOf<Int?>(null) }
+
+
+    val monsterPickedIndex = initSetUpState.monsterPickedIndex
+
+
+
 
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        val monsterList: List<Triple<Painter, String, String>> = listOf(
-            Triple(
-                first = painterResource(id = R.drawable.spider),
-                "Anxiety",
-                "Game addiction destroys your career, study, and mental health"
-            ),
-            Triple(
-                painterResource(R.drawable.monster1),
-                "Porn addiction",
-                "drain your energy and destroy your relationship"
-            ),
-            Triple(
-                painterResource(id = R.drawable._01_1),
-                "Anxiety",
-                "Makes everyday tasks feel overwhelming"
-            ),
-            Triple(
-                painterResource(id = R.drawable._01_2),
-                "Loneliness",
-                "Leads to isolation and low self-worth"
-            ),
-            Triple(
-                painterResource(id = R.drawable._02_2),
-                "Burnout",
-                "Kills motivation and joy in learning"
-            ),
-            Triple(
-                painterResource(id = R.drawable._03_2),
-                "Comparison",
-                "Breeds insecurity through social media"
-            ),
-            Triple(
-                painterResource(id = R.drawable._04_1),
-                "Rejection",
-                "Shakes confidence and self-image"
-            ),
-            Triple(
-                painterResource(id = R.drawable._03_3),
-                "Pressure",
-                "Creates fear of failure and perfectionism"
-            ),
-            Triple(
-                painterResource(id = R.drawable._06_2),
-                "Procrastination",
-                "Delays growth and builds guilt"
-            ),
-            Triple(
-                painterResource(id = R.drawable._07_2),
-                "Identity",
-                "Confuses self-understanding and belonging"
-            ),
-            Triple(
-                painterResource(id = R.drawable._08_2),
-                "Addiction",
-                "Distracts from goals and relationships"
-            ),
-            Triple(
-                painterResource(id = R.drawable._09_2),
-                "Bullying",
-                "Damages trust and emotional safety"
-            ),
-            Triple(
-                painterResource(id = R.drawable._10_2),
-                "Self-Doubt",
-                "Blocks ambition and creativity"
-            ),
-            Triple(
-                painterResource(id = R.drawable._12_1),
-                "Financial Stress",
-                "Limits opportunity and causes anxiety"
-            ),
-            Triple(
-                painterResource(id = R.drawable._07_3),
-                "Overthinking",
-                "Paralyzes decision-making"
-            ),
-            Triple(
-                painterResource(id = R.drawable._13_2),
-                "Imposter",
-                "Makes success feel undeserved"
-            ),
-            Triple(
-                painterResource(id = R.drawable._08_3),
-                "Neglect",
-                "Leaves emotional needs unmet"
-            ),
-            Triple(
-                painterResource(id = R.drawable._11_1),
-                "Fear",
-                "Prevents risk-taking and growth"
-            ),
-            Triple(
-                painterResource(id = R.drawable._14_1),
-                "Toxic Positivity",
-                "Invalidates real emotions"
-            ),
-            Triple(
-                painterResource(id = R.drawable._15_1),
-                "Distraction",
-                "Scatters focus and productivity"
-            ),
-            Triple(
-                painterResource(id = R.drawable._16_3),
-                "Insecurity",
-                "Erodes confidence and self-love"
-            ),
-            Triple(
-                painterResource(id = R.drawable._14_3),
-                "Perfectionism",
-                "Turns effort into self-criticism"
-            ),
-            Triple(
-                painterResource(id = R.drawable._18_2),
-                "Isolation",
-                "Disconnects from support systems"
-            ),
-            Triple(
-                painterResource(id = R.drawable._19_2),
-                "Uncertainty",
-                "Creates anxiety about the future"
-            ),
-            Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
-        )
+        val monsterList: List<MonsterInfo> = initSetUpState.monsterList
 
-        Log.d("DEBUG", "monsterList: ${monsterList.size}, the first item: ${monsterList[0].second}")
+
         BoxWithConstraints{
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
@@ -754,11 +528,12 @@ fun DashBoardPhoneLandScape (
                                         .clip(RoundedCornerShape(16.dp))
                                         .background(color = Color.DarkGray)
                                         .clickable(onClick = {
-                                            expandedIndex =
-                                                if (expandedIndex == index) null else index
+                                             if (monsterPickedIndex == index) null else monsterViewModel.updateMonsterPickedIndex(index)
+
+                                            Log.e("DEBUG", "MonsterList ${monsterList.size}, monster being choose ${monsterList.getOrNull(monsterPickedIndex)?.name ?: "Distraction"}")
                                         }
                                         ),
-                                    colors = if (expandedIndex == index) CardDefaults.cardColors(
+                                    colors = if (monsterPickedIndex == index) CardDefaults.cardColors(
                                         Color.LightGray
                                     ) else CardDefaults.cardColors(Color(0xFFCCC127))
                                 ) {
@@ -768,13 +543,14 @@ fun DashBoardPhoneLandScape (
                                         verticalArrangement = Arrangement.SpaceEvenly
                                     ) {
                                         Image(
-                                            painter = monsterList[index].first,
+                                            painter = painterResource(monsterList.getOrNull(index)?.imageId?: R.drawable.spider),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(minCellSize * 0.8f)
                                         )
                                         Text(
-                                            text = monsterList[index].second,
+                                            text = monsterList.getOrNull(index)?.name
+                                                ?: "Distraction",
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
@@ -801,7 +577,8 @@ fun DashBoardPhoneLandScape (
                                         start = spacing.medium,
                                         end = spacing.medium,
                                         bottom = spacing.medium
-                                    ).align(Alignment.CenterHorizontally),
+                                    ).align(Alignment.CenterHorizontally)
+                                    .verticalScroll(rememberScrollState()),
                                 elevation = CardDefaults.cardElevation(16.dp),
                                 colors = CardDefaults.cardColors(Color(0xFFCCC127))
                             ) {
@@ -809,19 +586,18 @@ fun DashBoardPhoneLandScape (
                                     modifier = Modifier.padding(spacing.small)
                                 ) {
                                     Image(
-                                        painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
-                                            ?: painterResource(id = R.drawable._01_1),
+                                        painter = painterResource(monsterList.getOrNull(monsterPickedIndex)?.imageId?: R.drawable.spider),
                                         contentDescription = null,
                                         modifier = Modifier.size(minCellSize * 1.4f)
                                     )
                                     Text(
-                                        text = monsterList.getOrNull(expandedIndex ?: 0)?.second
-                                            ?: "Anxiety",
+                                        text = monsterList.getOrNull(monsterPickedIndex)?.name
+                                            ?: "Distraction",
                                         style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
                                 Text(
-                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                    text = monsterList.getOrNull(monsterPickedIndex)?.description
                                         ?: "Makes everyday tasks feel overwhelming",
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(spacing.small)
@@ -1024,6 +800,16 @@ fun DashBoardTabletLandscape (
         verticalArrangement = Arrangement.Center,
     ) {
         val monsterList: List<Triple<Painter, String, String>> = listOf(
+            Triple(
+                painterResource(id = R.drawable.spider),
+                "Anxiety",
+                "Makes everyday tasks feel overwhelming"
+            ),
+            Triple(
+                painterResource(id = R.drawable.monster1),
+                "Porn addiction",
+                "drain your energy and destroy your relationship"
+            ),
             Triple(
                 painterResource(id = R.drawable._01_1),
                 "Anxiety",
@@ -1324,7 +1110,7 @@ fun adaptiveFontSize(): TextUnit {
 @Composable
 fun PreviewPhonePortrait () {
     MyAppTheme {
-        DashBoardPhonePortrait(initSetUpState = InitSetUpState())
+        DashBoardPhonePortrait(initSetUpState = InitSetUpState(), monsterViewModel = viewModel())
     }
 }
 
@@ -1333,7 +1119,10 @@ fun PreviewPhonePortrait () {
 @Composable
 fun PreviewPhoneLandscape () {
     MyAppTheme {
-        DashBoardPhoneLandScape()
+        DashBoardPhoneLandScape(
+            monsterViewModel = viewModel(),
+            initSetUpState = InitSetUpState()
+        )
     }
 }
 

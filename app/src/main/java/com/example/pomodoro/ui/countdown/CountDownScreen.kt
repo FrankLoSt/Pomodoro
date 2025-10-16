@@ -1,6 +1,7 @@
 package com.example.pomodoro.ui.countdown
 
 
+import androidx.annotation.DrawableRes
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -15,18 +16,22 @@ import androidx.navigation.NavHostController
 import com.example.pomodoro.MainActivity
 import com.example.pomodoro.ui.ScreenShape
 import com.example.pomodoro.ui.detectScreenShape
+import com.example.pomodoro.ui.pickmonster.MonsterInfo
 
 
 @Composable
 fun CountDownScreen(
     focusUiState: FocusUiState,
     restUiState: RestUiState,
-    toggleisFinished: () -> Unit,
+    onDismiss: () -> Unit,
     breakFun: () -> Unit,
     togglePauseResume: () -> Unit,
     breakFunDialog: () -> Unit,
     navHostController: NavHostController? = null,
-    windowSizeClass: WindowSizeClass
+    windowSizeClass: WindowSizeClass,
+    monsterId: Int = 0,
+    monsterList: List<MonsterInfo> = emptyList()
+
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -48,8 +53,8 @@ fun CountDownScreen(
             togglePauseResume = togglePauseResume,
             breakFun = breakFun,
             breakFunDialog = breakFunDialog,
-
-
+            monsterIndex = monsterId,
+            monsterList = monsterList
             )
         is ScreenShape.PhoneLandscape -> PhoneLandscapeCircularProgressBar(
             focusUiState = focusUiState,
@@ -77,7 +82,7 @@ fun CountDownScreen(
 
     if (focusUiState.appPhrase == AppPhase.FINISHED) {
         AlertDialog1(
-            onDismiss = toggleisFinished,
+            onDismiss = onDismiss,
             duration = focusUiState.duration
         )
     }
@@ -99,7 +104,7 @@ fun Screen1Preview () {
         CountDownScreen(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
-            toggleisFinished = {},
+            onDismiss = {},
             breakFun = {},
             togglePauseResume = {},
             breakFunDialog = {},
@@ -125,7 +130,7 @@ fun Screen1PreviewLandscape () {
         CountDownScreen(
             focusUiState = FocusUiState(),
             restUiState = RestUiState(),
-            toggleisFinished = {},
+            onDismiss = {},
             breakFun = {},
             togglePauseResume = {},
             breakFunDialog = {},
