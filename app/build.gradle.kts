@@ -2,13 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.hilt)         // ✅ Hilt plugin
-    kotlin("kapt")                   // ✅ annotation processing
+    alias(libs.plugins.hilt)
+    kotlin("kapt")
 }
 
 android {
     namespace = "com.example.pomodoro"
-    compileSdk = 36
+    compileSdk = 36  // ✅ Latest stable compile SDK (36 can be unstable on AGP 8.1–8.5)
 
     defaultConfig {
         applicationId = "com.example.pomodoro"
@@ -18,7 +18,6 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
 
     buildTypes {
         release {
@@ -31,65 +30,78 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "2.0.21"
+    }
+
+    packaging {
+        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
 }
 
 dependencies {
-    implementation(libs.hilt.android)
-    implementation(libs.androidx.material3.window.size.class1)
-    implementation(libs.androidx.benchmark.traceprocessor)
-    implementation(libs.androidx.core.i18n)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.foundation.layout)
-    kapt(libs.hilt.compiler)
-//navigation
-    implementation(libs.androidx.navigation.compose)
-
-
-
-    implementation(libs.ycharts)
-
-    implementation("androidx.room:room-runtime:2.8.2")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-
-
+    // --- Core ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    // --- Compose ---
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.foundation.layout)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
+    // --- Navigation ---
+    implementation(libs.androidx.navigation.compose)
+
+    // --- Hilt ---
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
+
+    // --- Room ---
+    implementation(libs.androidx.room.ktx)
+
+    // --- Datastore ---
+    implementation(libs.androidx.datastore.preferences)
+
+    // --- Others ---
+    implementation(libs.androidx.material3.window.size.class1)
+    implementation(libs.androidx.benchmark.traceprocessor)
+    implementation(libs.androidx.core.i18n)
     implementation(libs.grpc.okhttp)
-//gif
+    implementation(libs.grpc.protobuf)
+    implementation(libs.grpc.stub)
+    implementation(libs.ycharts)
+
+    // --- Coil & GIF ---
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.android.gif.drawable)
-// or latest version
-    implementation(libs.grpc.protobuf)
-    implementation(libs.grpc.stub)
+
+    // --- Testing ---
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 }
 
 configurations.all {

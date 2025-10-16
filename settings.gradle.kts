@@ -9,7 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven(url = "https://jitpack.io") // ✅ Add here too
+        maven(url = "https://jitpack.io")
     }
 }
 
@@ -18,10 +18,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io")
     }
 }
 
 rootProject.name = "Pomodoro"
 include(":app")
+
 
  

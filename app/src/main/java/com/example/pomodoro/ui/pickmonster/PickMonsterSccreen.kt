@@ -243,8 +243,6 @@ fun SetUpDialog (
                     ) { Text("Start") }
                 }
             }
-        } else {
-
         }
     }
 }
@@ -290,6 +288,16 @@ fun DashBoardPhonePortrait (
         verticalArrangement = Arrangement.Center,
     ) {
         val monsterList: List<Triple<Painter, String, String>> = listOf(
+            Triple(
+                painterResource(id = R.drawable.spider),
+                "Anxiety",
+                "Makes everyday tasks feel overwhelming"
+            ),
+            Triple(
+                painterResource(id = R.drawable.monster1),
+                "Porn addiction",
+                "drain your energy and destroy your relationship"
+            ),
             Triple(
                 painterResource(id = R.drawable._01_1),
                 "Anxiety",
@@ -453,18 +461,21 @@ fun DashBoardPhonePortrait (
                                 painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
                                     ?: painterResource(id = R.drawable._01_1),
                                 contentDescription = null,
+                                modifier = Modifier.size(minCellSize * 1.4f)
                             )
-                            Text(
-                                text = monsterList.getOrNull(expandedIndex ?: 0)?.second
-                                    ?: "Anxiety",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            Column() {
+                                Text(
+                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.second
+                                        ?: "Anxiety",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = monsterList.getOrNull(expandedIndex ?: 0)?.third
+                                        ?: "Makes everyday tasks feel overwhelming",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
-                        Text(
-                            text = monsterList.getOrNull(expandedIndex ?: 0)?.third
-                                ?: "Makes everyday tasks feel overwhelming",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
                     }
                 }
 
@@ -571,6 +582,16 @@ fun DashBoardPhoneLandScape (
         verticalArrangement = Arrangement.Center,
     ) {
         val monsterList: List<Triple<Painter, String, String>> = listOf(
+            Triple(
+                first = painterResource(id = R.drawable.spider),
+                "Anxiety",
+                "Game addiction destroys your career, study, and mental health"
+            ),
+            Triple(
+                painterResource(R.drawable.monster1),
+                "Porn addiction",
+                "drain your energy and destroy your relationship"
+            ),
             Triple(
                 painterResource(id = R.drawable._01_1),
                 "Anxiety",
@@ -683,6 +704,8 @@ fun DashBoardPhoneLandScape (
             ),
             Triple(painterResource(id = R.drawable._20_1), "Regret", "Chains you to the past")
         )
+
+        Log.d("DEBUG", "monsterList: ${monsterList.size}, the first item: ${monsterList[0].second}")
         BoxWithConstraints{
             val maxHeight = this.maxHeight
             val maxWidth = this.maxWidth
@@ -733,7 +756,8 @@ fun DashBoardPhoneLandScape (
                                         .clickable(onClick = {
                                             expandedIndex =
                                                 if (expandedIndex == index) null else index
-                                        }),
+                                        }
+                                        ),
                                     colors = if (expandedIndex == index) CardDefaults.cardColors(
                                         Color.LightGray
                                     ) else CardDefaults.cardColors(Color(0xFFCCC127))
@@ -777,21 +801,23 @@ fun DashBoardPhoneLandScape (
                                         start = spacing.medium,
                                         end = spacing.medium,
                                         bottom = spacing.medium
-                                    ),
+                                    ).align(Alignment.CenterHorizontally),
+                                elevation = CardDefaults.cardElevation(16.dp),
                                 colors = CardDefaults.cardColors(Color(0xFFCCC127))
                             ) {
-                                Row(
+                                Column(
                                     modifier = Modifier.padding(spacing.small)
                                 ) {
                                     Image(
                                         painter = monsterList.getOrNull(expandedIndex ?: 0)?.first
                                             ?: painterResource(id = R.drawable._01_1),
                                         contentDescription = null,
+                                        modifier = Modifier.size(minCellSize * 1.4f)
                                     )
                                     Text(
                                         text = monsterList.getOrNull(expandedIndex ?: 0)?.second
                                             ?: "Anxiety",
-                                        style = MaterialTheme.typography.bodyMedium
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
                                 Text(
