@@ -14,7 +14,7 @@ class MonsterViewModel @Inject constructor(
 
     fun updateMonsterPickedIndex(index: Int) = monsterDataController.updateMonsterPickedIndex(index)
 
-    suspend fun updateMonsterList () = monsterDataController.updateMonsterList()
+    //suspend fun updateMonsterList () = monsterDataController.updateMonsterList()
 
     fun toggleSetUpPopup() = monsterDataController.toggleSetUpPopup()
 }

@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.pomodoro"
-    compileSdk = 36  // ✅ Latest stable compile SDK (36 can be unstable on AGP 8.1–8.5)
+    compileSdk = 36  // 
 
     defaultConfig {
         applicationId = "com.example.pomodoro"

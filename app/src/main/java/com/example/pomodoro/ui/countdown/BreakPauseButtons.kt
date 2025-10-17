@@ -28,7 +28,8 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 fun BreakButton (
     breakFun: () -> Unit = {},
     breakFunDialog: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigate: () -> Unit = {}
 ) {
     var isSure: Boolean? by rememberSaveable { mutableStateOf(null) }
     Button(
@@ -55,8 +56,11 @@ fun BreakButton (
         BreakAlertDialog(
             onDismissRequest = {
                 isSure = false
-                breakFunDialog() },
-            confirmButton = breakFun,
+                breakFunDialog()
+                               },
+            confirmButton = {
+                breakFun()
+                onNavigate()},
         )
     }
 }

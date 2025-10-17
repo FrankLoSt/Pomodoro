@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -32,6 +33,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,69 +53,153 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.pomodoro.R
+import com.example.pomodoro.ui.pickmonster.LocalFontSize
+import com.example.pomodoro.ui.pickmonster.LocalSpacing
+import com.example.pomodoro.ui.pickmonster.MyAppTheme
+import com.example.pomodoro.ui.pickmonster.Spacing
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
 
 @Composable
-fun DropDown (
+fun SetUpDialog (
+    fightToggleDialog: () -> Unit  = {},
+    confirmBut: () ->Unit = {},
     setDurationMinutes: (Int) -> Unit = {},
     setRestDurationMinutes: (Int) -> Unit = {},
     setSessions: (Int) -> Unit = {},
     listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
+    windowSizeClass: WindowSizeClass?
 ) {
-    BoxWithConstraints {
-        val maxWidth = this.maxWidth
+    Dialog(
+        onDismissRequest = fightToggleDialog,
 
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.padding(16.dp)
+    ) {
+        DropDownPortrait(
+            setDurationMinutes = setDurationMinutes,
+            setRestDurationMinutes = setRestDurationMinutes,
+            setSessions = setSessions,
+            listFocusDuration = listFocusDuration,
+            listRestDuration = listRestDuration,
+            listSessions = listSessions,
+            windowSizeClass = windowSizeClass,
+            fightToggleDialog = fightToggleDialog,
+            confirmBut = confirmBut
+        )
+    }
+}
+
+
+
+
+
+@Composable
+fun DropDownPortrait (
+    setDurationMinutes: (Int) -> Unit = {},
+    setRestDurationMinutes: (Int) -> Unit = {},
+    setSessions: (Int) -> Unit = {},
+    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
+    windowSizeClass: WindowSizeClass?,
+    fightToggleDialog: () -> Unit = {},
+    confirmBut: () -> Unit = {}
+) {
+    val spacing: Spacing = LocalSpacing.current
+    val maxWidth = LocalWindowInfo.current.containerSize.width
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 8.dp,
+        color = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .width(
+                    if (windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Compact) (maxWidth * 0.8f).dp
+                    else (maxWidth * 0.5f).dp
+                ),
+
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier
-                    .size(360.dp)
-                    .padding(dimensionResource(R.dimen.medium_padding)),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+            Card(
+                shape = RoundedCornerShape(16.dp),
             ) {
                 Column(
-                    modifier = Modifier.fillMaxHeight().padding(top = 40.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(45.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.focus_duration),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = stringResource(R.string.rest_duration),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = stringResource(R.string.sessions),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-                Column {
-                    DropdownFun(
-                        itemLists = listFocusDuration,
-                        onItemSelected = { minutes ->
-                            setDurationMinutes(minutes)
-                        }
-                    )
-                    DropdownFun(
-                        itemLists = listRestDuration,
-                        onItemSelected = { minutes ->
-                            setRestDurationMinutes(minutes)
-                        }
-                    )
-                    DropdownSessionFun(
-                        itemLists = listSessions,
-                        onItemSelected = { sessions ->
-                            setSessions(sessions)
-                        }
-                    )
+                    Row(
+                        modifier = Modifier.padding(
+                            top = spacing.medium,
+                            bottom = spacing.small
+                        ).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.focus_duration),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        DropdownFun(
+                            itemLists = listFocusDuration,
+                            onItemSelected = { minutes ->
+                                setDurationMinutes(minutes)
+                            }
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.padding(
+                            top = spacing.medium,
+                            bottom = spacing.small
+                        ).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.rest_duration),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        DropdownFun(
+                            itemLists = listRestDuration,
+                            onItemSelected = { minutes ->
+                                setRestDurationMinutes(minutes)
+                            }
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.padding(
+                            top = spacing.medium,
+                            bottom = spacing.small
+                        ).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.sessions),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        DropdownSessionFun(
+                            itemLists = listSessions,
+                            onItemSelected = { sessions ->
+                                setSessions(sessions)
+                            }
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = fightToggleDialog
+                        ) { Text("Back") }
+                        Button(
+                            onClick = confirmBut
+                        ) { Text("Start") }
+                    }
                 }
             }
         }
@@ -123,26 +211,33 @@ fun DropDown (
 
 @Preview(
     name = "Expanded Landscape",
-    widthDp = 800,
-    heightDp = 400,
+    widthDp = 915,
+    heightDp = 412,
     showBackground = true
 )
-@Composable
+@Composable()
 fun DropDownPreview () {
-    DropDown(
+    DropDownPortrait(
         setDurationMinutes = {},
         setRestDurationMinutes = {},
         setSessions = {},
+        windowSizeClass = null
     )
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    name = "Expanded Portrait",
+    widthDp = 412,
+    heightDp = 915
+)
 @Composable
 fun DropDownPreview2 () {
-    DropDown(
+    DropDownPortrait(
         setDurationMinutes = {},
         setRestDurationMinutes = {},
         setSessions = {},
+        windowSizeClass = null
     )
 }
 
@@ -323,53 +418,7 @@ fun DropdownMonsterFun(
 }
 
 
-@Composable
-fun AlertDialog1 (
-    onDismiss: () -> Unit,
-    @StringRes text1: Int = R.string.congrat_mess,
-    @StringRes text2: Int = R.string.you_ve_focused_for,
-    @StringRes text3: Int = R.string.you_ve_earned_an_armor,
-    @DrawableRes image: Int = R.drawable.amor,
-    duration: Int = 1
-    ) {
-    Dialog(
-        onDismissRequest = onDismiss,
-    ) {
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            color = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text( //text1
-                    text = stringResource(text1),
-                    style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(//text2
-                    text = stringResource(text2) + " $duration minutes",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-                Text(//text3
-                    text = stringResource(text3),
-                )
-                Image(//image
-                    painter = painterResource(image),
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp)
-                )
-                Button(onClick = onDismiss) {
-                    Text("Okay")
-                }
-            }
-        }
-    }
-}
+
 
 
 
