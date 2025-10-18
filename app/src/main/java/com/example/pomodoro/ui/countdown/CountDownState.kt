@@ -1,6 +1,6 @@
 package com.example.pomodoro.ui.countdown
 
-// --- UiState.kt ---
+// --- CountDownState.kt ---
 
 enum class AppPhase {IDLE, FOCUSING, RESTING, FINISHED}
 enum class TimerState {RUNNING, PAUSED, STOPPED}
@@ -21,6 +21,10 @@ data class FocusUiState(
     // Helpers
     fun studyProgress(): Float =
         if (initialDuration > 0) 1f - duration.toFloat() / initialDuration else 0f
+
+    val min = duration / 60
+    val sec = duration % 60
+    val countdown = String.format("%02d:%02d", min, sec)
 }
 
 data class RestUiState(

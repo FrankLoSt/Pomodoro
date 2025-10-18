@@ -52,7 +52,8 @@ fun CountDownScreen(
     windowSizeClass: WindowSizeClass,
     monsterId: Int = 0,
     monsterList: List<MonsterInfo> = emptyList(),
-    onNavigate: () -> Unit = {}
+    onNavigate: () -> Unit = {},
+    countDownText: String
     ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -77,8 +78,10 @@ fun CountDownScreen(
             monsterIndex = monsterId,
             monsterList = monsterList,
             onNavigate = onNavigate,
-            windowSizeClass = windowSizeClass
+            windowSizeClass = windowSizeClass,
+            countDownText = countDownText
             )
+
         is ScreenShape.PhoneLandscape -> PhoneLandscapeCircularProgressBar(
             focusUiState = focusUiState,
             restUiState = restUiState,
@@ -86,10 +89,12 @@ fun CountDownScreen(
             breakFun = breakFun,
             breakFunDialog = breakFunDialog,
             windowSizeClass =  windowSizeClass,
-            monsterId = monsterId,
+            monsterIndex = monsterId,
             monsterList = monsterList,
-            onNavigate = onNavigate
+            onNavigate = onNavigate,
+            countDownText = countDownText
         )
+
         is ScreenShape.TabletPortrait -> PhonePortraitCircularProgressBar(
             focusUiState = focusUiState,
             restUiState = restUiState,
@@ -99,8 +104,10 @@ fun CountDownScreen(
             monsterIndex = monsterId,
             monsterList = monsterList,
             onNavigate = onNavigate,
-            windowSizeClass = windowSizeClass
+            windowSizeClass = windowSizeClass,
+            countDownText = countDownText
         )
+
         is ScreenShape.TabletLandscape -> PhoneLandscapeCircularProgressBar(
             focusUiState = focusUiState,
             restUiState = restUiState,
@@ -108,9 +115,10 @@ fun CountDownScreen(
             breakFun = breakFun,
             breakFunDialog = breakFunDialog,
             windowSizeClass = windowSizeClass,
-            monsterId = monsterId,
+            monsterIndex = monsterId,
             monsterList = monsterList,
-            onNavigate = onNavigate
+            onNavigate = onNavigate,
+            countDownText = countDownText
         )
     }
 

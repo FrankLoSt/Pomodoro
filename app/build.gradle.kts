@@ -77,6 +77,8 @@ dependencies {
 
     // --- Room ---
     implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler) // ✅ REQUIRED
+
 
     // --- Datastore ---
     implementation(libs.androidx.datastore.preferences)

@@ -62,5 +62,6 @@ data class InitSetUpState(
         MonsterInfo(R.drawable._18_2, "Isolation", "Disconnects from support systems"),
         MonsterInfo(R.drawable._19_2, "Uncertainty", "Creates anxiety about the future"),
         MonsterInfo(R.drawable._20_1, "Regret", "Chains you to the past")
-    )
+    ),
+    val tag: String = "Study"
 )

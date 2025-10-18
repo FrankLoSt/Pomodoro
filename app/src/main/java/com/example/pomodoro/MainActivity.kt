@@ -63,6 +63,7 @@ import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
 import com.example.pomodoro.ui.ScreenShape
+import com.example.pomodoro.ui.countdown.AppPhase
 import com.example.pomodoro.ui.countdown.CountDownScreen
 
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
@@ -464,7 +465,8 @@ fun ScreenNavigation (
                 windowSizeClass = windowSizeClass,
                 monsterId = initSetUpState.monsterPickedIndex,
                 monsterList = initSetUpState.monsterList,
-                onNavigate = { navHostController.navigate(EnumScreenClass.PICKMONSTER.name) }
+                onNavigate = { navHostController.navigate(EnumScreenClass.PICKMONSTER.name) },
+                countDownText = viewModel.formatter(if(focusUiState.appPhrase == AppPhase.FOCUSING) focusUiState.duration else if (focusUiState.appPhrase == AppPhase.RESTING) restUiState.restDuration else (focusUiState.initialDuration))
             )
         }
     }

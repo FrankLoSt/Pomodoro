@@ -160,6 +160,7 @@ fun ChartDayHour (
 
 
 
+
 @Composable
 fun ChartWeekDay (
     pointsData: List<Point> =  listOf(
@@ -455,19 +456,20 @@ fun ChartMonthDay(
 
 
 
-    @Preview
-    @Composable
-    fun MonthPreview2() {
-        PomodoroTheme {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-            ) {
-                ChartMonthDay()
-            }
+
+@Preview
+@Composable
+fun MonthPreview2() {
+    PomodoroTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+        ) {
+            ChartMonthDay()
         }
     }
+}
 
 
 

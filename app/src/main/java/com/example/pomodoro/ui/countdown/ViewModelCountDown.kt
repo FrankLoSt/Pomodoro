@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pomodoro.data.PomodoroControllerImpl
 import com.example.pomodoro.data.datastore.SettingsRepository
+import com.example.pomodoro.ui.pickmonster.MonsterDataController
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 import kotlinx.coroutines.flow.StateFlow
@@ -13,11 +14,13 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewModelCountDown @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val monsterDataController: MonsterDataController
 ) : ViewModel() {
 
     //----------------------STATE----------------------------
      val controller = PomodoroControllerImpl(
         scope = viewModelScope, settingsRepository = settingsRepository,
+         monsterDataController = monsterDataController
 
     ) //temporarily make it be able to access outside for testing
     // Expose controller's state directly (keeps single source of truth)

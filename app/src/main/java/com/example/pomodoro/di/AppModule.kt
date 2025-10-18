@@ -11,8 +11,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
+import com.example.pomodoro.data.AppDatabase
+import com.example.pomodoro.data.MonsterFightingDao
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
+import com.example.pomodoro.ui.pickmonster.InitSetUpStateHolder
+import com.example.pomodoro.ui.pickmonster.MonsterDataController
+import com.example.pomodoro.ui.pickmonster.MonsterDataControllerImpl
 import dagger.Binds
 
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +48,28 @@ object AppModule {
         return CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
 
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "monster_fighting_db"
+        ).build()
+    }
+
+    @Provides
+    fun provideMonsterFightingDao(database: AppDatabase): MonsterFightingDao {
+        return database.monsterFightingDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideInitSetUpStateHolder(): InitSetUpStateHolder {
+        return InitSetUpStateHolder()
+    }
+
+
 }
 
 @Module
@@ -54,5 +81,13 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         impl: SettingsRepositoryImpl
     ): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMonsterFightingRepository(
+        impl: MonsterDataControllerImpl
+    ): MonsterDataController
+
+
 }
 

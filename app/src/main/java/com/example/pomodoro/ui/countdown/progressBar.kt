@@ -54,12 +54,9 @@ fun PhonePortraitCircularProgressBar (
     onNavigate: () -> Unit,
     windowSizeClass: WindowSizeClass? = null,
 ) {
-    val localFontSize: FontSize = LocalFontSize.current
-    val localSpacing: Spacing = LocalSpacing.current
-    
-    val monsterList = monsterList
 
-    val monster = monsterList[monsterIndex].imageId
+
+
     val windowSizeClass = windowSizeClass
 
 
@@ -71,22 +68,6 @@ fun PhonePortraitCircularProgressBar (
         val maxWidth: Dp = this.maxWidth
         val maxHeight: Dp = this.maxHeight
 
-        val screenShape = detectScreenShape(
-            windowSizeClass?.widthSizeClass ?: WindowWidthSizeClass.Compact ,
-            windowSizeClass?.heightSizeClass?: WindowHeightSizeClass.Compact,
-            maxWidth.value.toInt(),
-            maxHeight.value.toInt()
-        )
-
-
-        val baseSize = minOf(maxWidth, maxHeight) // 👈 Use the smaller dimension
-        val spacing = baseSize * 0.05f
-        val fontSizeSmall = (baseSize.value * 0.04f).sp
-        val fontSizeLarge = (baseSize.value * 0.2f).sp
-        val buttonSize = baseSize * 0.2f
-        val progressSize = baseSize * 0.8f
-        val imageSize = baseSize * 0.445f
-
         when (focusUiState.appPhrase) {
 
             AppPhase.FOCUSING -> ProgressViewPortraitMode(
@@ -95,13 +76,13 @@ fun PhonePortraitCircularProgressBar (
                 windowSizeClass = windowSizeClass,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
-                monster = monster,
+                monsterIndex = monsterIndex,
                 countDownText = countDownText,
                 onNavigate = onNavigate,
-
                 togglePauseResume = togglePauseResume,
                 breakFun = breakFun,
-                breakFunDialog = breakFunDialog
+                breakFunDialog = breakFunDialog,
+                monsterList = monsterList
             )
 
             AppPhase.RESTING -> ProgressViewPortraitMode(
@@ -110,13 +91,14 @@ fun PhonePortraitCircularProgressBar (
                 windowSizeClass = windowSizeClass,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
-                monster = monster,
+                monsterIndex = monsterIndex,
                 countDownText = countDownText,
                 onNavigate = onNavigate,
 
                 togglePauseResume = togglePauseResume,
                 breakFun = breakFun,
-                breakFunDialog = breakFunDialog
+                breakFunDialog = breakFunDialog,
+                monsterList = monsterList
             )
 
             AppPhase.FINISHED -> ProgressViewPortraitMode(
@@ -126,13 +108,14 @@ fun PhonePortraitCircularProgressBar (
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
 
-                monster = monster,
+                monsterIndex = monsterIndex,
                 countDownText = countDownText,
                 onNavigate = onNavigate,
 
                 togglePauseResume = togglePauseResume,
                 breakFun = breakFun,
-                breakFunDialog = breakFunDialog
+                breakFunDialog = breakFunDialog,
+                monsterList = monsterList
             )
             else -> {}
         }
@@ -147,12 +130,13 @@ fun ProgressViewPortraitMode (
     windowSizeClass: WindowSizeClass?,
     maxWidth: Dp,
     maxHeight: Dp,
-    monster: Int,
+    monsterIndex: Int,
     countDownText: String,
     onNavigate: () -> Unit,
     togglePauseResume: () -> Unit,
     breakFun: () -> Unit,
     breakFunDialog: () -> Unit,
+    monsterList: List<MonsterInfo>
 ){
     val baseSize = minOf(maxWidth, maxHeight) // 👈 Use the smaller dimension
     val spacing = baseSize * 0.05f
@@ -160,13 +144,25 @@ fun ProgressViewPortraitMode (
     val fontSizeLarge = (baseSize.value * 0.2f).sp
     val buttonSize = baseSize * 0.2f
     val progressSize = baseSize * 0.8f
-    val imageSize = baseSize * 0.445f
+
+
+    val monster = monsterList[monsterIndex].imageId
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = stringResource(R.string.batling),
-            fontSize = (maxWidth.value * 0.05f).toInt().sp,
+            text =
+                when (focusUiState.appPhrase) {
+                    AppPhase.FOCUSING -> stringResource(R.string.batling) + " " + monsterList[monsterIndex].name
+                    AppPhase.RESTING -> stringResource(R.string.Taking_a_break)
+                    else -> stringResource(R.string.finished)
+                },
+            fontSize = (maxWidth.value * 0.06f).toInt().sp,
             modifier = Modifier.padding(bottom = spacing),
+            fontFamily = FontFamily(Font(R.font.jersey))
+        )
+        Text(
+            text = "Session: ${focusUiState.sessions} /${focusUiState.totalSessions}",
+            fontSize = (maxWidth.value * 0.05f).toInt().sp,
             fontFamily = FontFamily(Font(R.font.jersey))
         )
         Box(
@@ -176,16 +172,22 @@ fun ProgressViewPortraitMode (
             contentAlignment = Alignment.Center
         ) {
             CustomCircularProgressIndicator(
-                progress = focusUiState.studyProgress(),
+                progress =
+                    when (focusUiState.appPhrase) {
+                        AppPhase.FOCUSING -> focusUiState.studyProgress()
+                        AppPhase.RESTING -> restUiState.restProgress()
+                        else -> (1f)
+                    },
                 modifier = Modifier.size(progressSize),
                 blockSize = if((windowSizeClass?.widthSizeClass) == WindowWidthSizeClass.Compact) baseSize.value * 0.08f else baseSize.value * 0.05f
             )
             Image(
                 painter = painterResource(monster),
                 contentDescription = null,
-                modifier = Modifier.size(
-                    if((windowSizeClass?.widthSizeClass) == WindowWidthSizeClass.Compact ) baseSize*0.45f else baseSize * 0.3f
-                )
+                modifier = Modifier
+                    .size(
+                        if ((windowSizeClass?.widthSizeClass) == WindowWidthSizeClass.Compact) baseSize * 0.45f else baseSize * 0.3f
+                    )
                     .align(Alignment.Center)
             )
             Log.e("ProgressViewModes", "ProgressViewModes: ${windowSizeClass?.widthSizeClass}")
@@ -218,7 +220,7 @@ fun ProgressViewPortraitMode (
 fun PhoneLandscapeCircularProgressBar (
     focusUiState: FocusUiState,
     restUiState: RestUiState,
-    monsterId: Int = 0,
+    monsterIndex: Int = 0,
     monsterList: List<MonsterInfo>,
     togglePauseResume: () -> Unit = {},
     breakFun: () -> Unit = {},
@@ -237,16 +239,7 @@ fun PhoneLandscapeCircularProgressBar (
         val maxHeight: Dp = this.maxHeight
 
 
-        val baseSize = minOf(maxWidth, maxHeight) // 👈 Use the smaller dimension
 
-        val spacing = baseSize * 0.05f
-        val fontSizeSmall = (baseSize.value * 0.04f).sp
-        val fontSizeLarge = (baseSize.value * 0.2f).sp
-        val buttonSize = baseSize * 0.2f
-
-        val imageSize = baseSize * 0.5f
-
-        val monster = monsterList[monsterId].imageId
 
         when (focusUiState.appPhrase) {
 
@@ -256,12 +249,13 @@ fun PhoneLandscapeCircularProgressBar (
                 windowSizeClass = windowSizeClass,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
-                monster = monster,
+                monsterIndex = monsterIndex,
                 countDownText = countDownText,
                 onNavigate = onNavigate,
                 togglePauseResume = togglePauseResume,
                 breakFun = breakFun,
-                breakFunDialog = breakFunDialog
+                breakFunDialog = breakFunDialog,
+                monsterList = monsterList
             )
 
             AppPhase.RESTING ->LandscapeProgressBarViewMode(
@@ -270,12 +264,13 @@ fun PhoneLandscapeCircularProgressBar (
                 windowSizeClass = windowSizeClass,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
-                monster = monster,
+                monsterIndex = monsterIndex,
                 countDownText = countDownText,
                 onNavigate = onNavigate,
                 togglePauseResume = togglePauseResume,
                 breakFun = breakFun,
-                breakFunDialog = breakFunDialog
+                breakFunDialog = breakFunDialog,
+                monsterList = monsterList
             )
 
             AppPhase.FINISHED -> LandscapeProgressBarViewMode(
@@ -284,12 +279,15 @@ fun PhoneLandscapeCircularProgressBar (
                 windowSizeClass = windowSizeClass,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
-                monster = monster,
+                monsterIndex = monsterIndex,
                 countDownText = countDownText,
                 onNavigate = onNavigate,
                 togglePauseResume = togglePauseResume,
                 breakFun = breakFun,
-                breakFunDialog = breakFunDialog)
+                breakFunDialog = breakFunDialog,
+                monsterList = monsterList
+            )
+
             else -> {}
         }
     } //box for progress bar and text
@@ -302,12 +300,13 @@ fun LandscapeProgressBarViewMode (
     windowSizeClass: WindowSizeClass?,
     maxWidth: Dp,
     maxHeight: Dp,
-    monster: Int,
+    monsterIndex: Int,
     countDownText: String,
     onNavigate: () -> Unit,
     togglePauseResume: () -> Unit,
     breakFun: () -> Unit,
     breakFunDialog: () -> Unit,
+    monsterList: List<MonsterInfo>
 ){
     val maxWidth: Dp = maxWidth
     val maxHeight: Dp = maxHeight
@@ -321,6 +320,9 @@ fun LandscapeProgressBarViewMode (
     val buttonSize = baseSize * 0.2f
 
     val imageSize = baseSize * 0.5f
+
+    val monster = monsterList[monsterIndex].imageId
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -331,7 +333,12 @@ fun LandscapeProgressBarViewMode (
             contentAlignment = Alignment.Center
         ) {
             CustomCircularProgressIndicator(
-                progress = focusUiState.studyProgress(),
+                progress =
+                    when (focusUiState.appPhrase) {
+                        AppPhase.FOCUSING -> focusUiState.studyProgress()
+                        AppPhase.RESTING -> restUiState.restProgress()
+                        else -> (1f)
+                    },
                 modifier = Modifier.size(baseSize),
                 blockSize =
                     if((windowSizeClass?.widthSizeClass) == WindowWidthSizeClass.Compact)
@@ -341,16 +348,28 @@ fun LandscapeProgressBarViewMode (
             Image(
                 painter = painterResource(monster),
                 contentDescription = null,
-                modifier = Modifier.size(imageSize).align(Alignment.Center)
+                modifier = Modifier
+                    .size(imageSize)
+                    .align(Alignment.Center)
             )
         }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.batling),
+                text =
+                    when (focusUiState.appPhrase) {
+                        AppPhase.FOCUSING -> stringResource(R.string.batling) + " " + monsterList[monsterIndex].name
+                        AppPhase.RESTING -> stringResource(R.string.Taking_a_break)
+                        else -> stringResource(R.string.finished)
+                    },
                 fontSize = (baseSize.value * 0.05f).toInt().sp,
                 modifier = Modifier.padding(bottom = spacing),
+                fontFamily = FontFamily(Font(R.font.jersey))
+            )
+            Text(
+                text = "Session: ${focusUiState.sessions} /${focusUiState.totalSessions}",
+                fontSize = (baseSize.value * 0.05f).toInt().sp,
                 fontFamily = FontFamily(Font(R.font.jersey))
             )
             Text(
@@ -476,7 +495,9 @@ fun TabletPortraitCircularProgressBar (
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                            modifier = Modifier
+                                .size(maxWidth * 0.5f)
+                                .align(Alignment.Center)
                         )
                     }
                     Text(
@@ -533,7 +554,9 @@ fun TabletPortraitCircularProgressBar (
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                            modifier = Modifier
+                                .size(maxWidth * 0.5f)
+                                .align(Alignment.Center)
                         )
                     }
                     Text(
@@ -581,7 +604,9 @@ fun TabletPortraitCircularProgressBar (
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(maxWidth * 0.5f).align(Alignment.Center)
+                            modifier = Modifier
+                                .size(maxWidth * 0.5f)
+                                .align(Alignment.Center)
                         )
                     }
                     Text(
@@ -667,7 +692,9 @@ fun TabletLandscapeCircularProgressBar (
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(imageSize).align(Alignment.Center)
+                            modifier = Modifier
+                                .size(imageSize)
+                                .align(Alignment.Center)
                         )
                     }
                     Column(
@@ -727,7 +754,9 @@ fun TabletLandscapeCircularProgressBar (
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(imageSize).align(Alignment.Center)
+                            modifier = Modifier
+                                .size(imageSize)
+                                .align(Alignment.Center)
                         )
                     }
                     Column(
@@ -787,7 +816,9 @@ fun TabletLandscapeCircularProgressBar (
                         Image(
                             painter = painterResource(monster),
                             contentDescription = null,
-                            modifier = Modifier.size(imageSize).align(Alignment.Center)
+                            modifier = Modifier
+                                .size(imageSize)
+                                .align(Alignment.Center)
                         )
                     }
                     Column(

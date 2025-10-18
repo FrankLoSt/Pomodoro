@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MonsterViewModel @Inject constructor(
-    private val monsterDataController: MonsterDataControllerImpl
+    private val monsterDataController: MonsterDataControllerImpl,
 ): ViewModel() {
 
     val initSetUpState = monsterDataController.initSetUpState

@@ -2,6 +2,7 @@ package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
 import com.example.pomodoro.ui.countdown.AppPhase
@@ -9,6 +10,8 @@ import com.example.pomodoro.ui.countdown.FocusUiState
 import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.ui.countdown.TimerState
 import com.example.pomodoro.ui.pickmonster.InitSetUpState
+import com.example.pomodoro.ui.pickmonster.InitSetUpStateHolder
+import com.example.pomodoro.ui.pickmonster.MonsterDataController
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -38,8 +41,9 @@ interface PomodoroController {
 class PomodoroControllerImpl @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val scope: CoroutineScope, // usually viewModelScope, -----  uses Dispatchers.Main by default
-) : PomodoroController
-{
+    private val monsterDataController: MonsterDataController,
+    private val initSetUpState: InitSetUpStateHolder
+) : PomodoroController {
 
     private val _focusUiState = MutableStateFlow(FocusUiState())
     override val focusUiState: StateFlow<FocusUiState> = _focusUiState.asStateFlow()
@@ -49,6 +53,9 @@ class PomodoroControllerImpl @Inject constructor(
     override val restUiState: StateFlow<RestUiState> = _restUiState.asStateFlow()
 
 
+
+   private  val _monsterFightingDb = MutableStateFlow(MonsterFightingDB())
+    val monsterFightingDB: StateFlow<MonsterFightingDB> = _monsterFightingDb.asStateFlow()
 
 
     //Create job controllers for 2 countdown
@@ -99,8 +106,42 @@ class PomodoroControllerImpl @Inject constructor(
             //Only runs when appPhase == FOCUSING, and duration > 0.
             delay(1000L)
 
-            if(focusUiState.value.timerState == TimerState.RUNNING && focusUiState.value.appPhrase == AppPhase.FOCUSING)
-            {settingsRepository.saveHourlyFocusDuration(1)}
+            if(focusUiState.value.timerState == TimerState.RUNNING && focusUiState.value.appPhrase == AppPhase.FOCUSING) {
+                settingsRepository.saveHourlyFocusDuration(1)
+
+                val ticks = monsterDataController.saveTick(1)
+
+
+
+                if (ticks == focusUiState.value.initialDuration) {
+
+                    Log.e("ROOM", "current monster name: ${initSetUpState.value.monsterList[_initSetUpState.value.monsterPickedIndex].name}")
+                    _monsterFightingDb.update {
+                        it.copy(
+                            monsterName = initSetUpState.value.monsterList[_initSetUpState.value.monsterPickedIndex].name,
+                            totalSessions = focusUiState.value.totalSessions,
+                            sessionsCompleted = focusUiState.value.sessions,
+                            totalFocusTime = monsterFightingDB.value.totalFocusTime + ticks, //total time recorded + tick recorded
+                        )
+                    }
+
+                    Log.e("ROOM", "monsterFightingDB: ${monsterFightingDB.value}")
+                    val existing = monsterDataController.getAllMonsterFightData()
+                        .any { it.id == monsterFightingDB.value.id }
+
+                    if (!existing) {
+                        //if not in the list, insert
+                        Log.e("ROOM", "insert called")
+                        monsterDataController.insertMonsterFightData(monsterFightingDB.value)
+                    } else {
+                        monsterDataController.updateMonsterFightData(monsterFightingDB.value)
+                        Log.d(
+                            "ROOM",
+                            "Data from ROOM: ${monsterDataController.getAllMonsterFightData()}"
+                        )
+                    }
+                }
+            }
             //only save when isPause = false, app is running and users are studying
 
             _focusUiState.update { it.copy(duration = if (focusUiState.value.timerState == TimerState.PAUSED) it.duration else (it.duration - 1).coerceAtLeast(0)) }
@@ -200,6 +241,7 @@ class PomodoroControllerImpl @Inject constructor(
                 appPhrase = AppPhase.IDLE,
                 timerState =  TimerState.STOPPED,
                 duration = it.initialDuration,
+                totalSessions = 1,
                 sessions = 1,
             )
         }
