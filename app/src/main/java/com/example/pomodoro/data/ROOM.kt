@@ -32,6 +32,19 @@ interface MonsterFightingDao {
     @Query("SELECT * FROM MonsterFightingDB ORDER BY id DESC LIMIT 1")
     suspend fun getLatestById(): MonsterFightingDB?
 
+    @Query("SELECT SUM(totalFocusTime) FROM monsterfightingdb WHERE timestampStart BETWEEN :startDate AND :endDate" )
+    suspend fun getSumOfFocusTime(startDate: Long, endDate: Long): Int
+
+    @Query("""
+        SELECT strftime('%Y-%m-%d', datetime(timestampStart / 1000, 'unixepoch')) AS day,
+              SUM(totalFocusTime) AS focusTime
+        FROM monsterfightingdb
+        WHERE timestampStart BETWEEN :start AND :end
+        GROUP BY day
+        ORDER BY focusTime DESC
+        LIMIT 1
+    """)
+    suspend fun getMostFocusedHour(start: Long, end: Long): String
 
     @Update
     suspend fun updateMonsterFightData(monsterFightingDB: MonsterFightingDB)

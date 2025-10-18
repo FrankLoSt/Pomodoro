@@ -48,6 +48,7 @@ interface MonsterDataController {
 
     suspend fun getLatestById(): MonsterFightingDB?
 
+    suspend fun getSumOfFocusTime(startDate: Long, endDate: Long): Int
 
 }
 
@@ -72,18 +73,12 @@ class MonsterDataControllerImpl @Inject constructor(
     private val dao: MonsterFightingDao,
     private val initSetUpStateHolder: InitSetUpStateHolder
 ): MonsterDataController {
-    init{
-        scope.launch {
-            dataStore.edit {
-                it[sessionKey] = 0
-            }
-        }
-    }
+
+
 
     val initSetUpState = initSetUpStateHolder.initSetUpState
 
-    private val _focusUiState = MutableStateFlow(FocusUiState())
-    val focusUiState: StateFlow<FocusUiState> = _focusUiState
+
 
     val monsterList: List<MonsterInfo> = listOf(
         MonsterInfo(
@@ -134,6 +129,7 @@ class MonsterDataControllerImpl @Inject constructor(
         Log.d("ROOM", "saveTick: ${dataStore.data.first()[sessionKey]}")
         return dataStore.data.first()[sessionKey] ?:0
     }
+    //saveTick does 2 jobs => increase + return / Be careful
 
 
 
@@ -154,6 +150,10 @@ class MonsterDataControllerImpl @Inject constructor(
             )
         )
     }
+
+    override suspend fun getSumOfFocusTime(startDate: Long, endDate: Long): Int {
+        return dao.getSumOfFocusTime(startDate, endDate)
+    } //Count total focus time in days, weeks, months, years :)))
 
     override suspend fun getAllMonsterFightData(): List<MonsterFightingDB> {
         Log.d("ROOM", "getAllMonsterFightData: called")
@@ -178,6 +178,8 @@ class MonsterDataControllerImpl @Inject constructor(
     override fun saveMonsterFightingData(monster: String) {
         TODO("Not yet implemented")
     }
+
+
 
     override suspend fun getLatestById(): MonsterFightingDB? {
         return dao.getLatestById()

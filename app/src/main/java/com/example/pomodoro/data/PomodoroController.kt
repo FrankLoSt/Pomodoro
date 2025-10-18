@@ -284,7 +284,7 @@ class PomodoroControllerImpl @Inject constructor(
         Log.d("DEBUG", "breakFun: breakFun() runs")
         reset() //cancel all jobs
         scope.launch {
-            val ticks = monsterDataController.saveTick(1)
+            val ticks = monsterDataController.saveTick(0)
             val latestRow = monsterDataController.getLatestById()
             val update = latestRow?.copy(
                 status = false,
