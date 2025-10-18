@@ -148,6 +148,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             val newVal = old + duration
 
             it[hourKey] = newVal //save in "29 09 2025T0"
+
             it[hourKey]?.let { it1 -> //
                 if (it1 >= 10) { //only save as last focus if it is more than 10 secs - TESTING
                     it[LAST_FOCUS_KEY] = LocalDate.now().format(formatterDay) // "26 09 2025"

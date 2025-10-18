@@ -8,6 +8,13 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Update
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+data class FocusSummary(
+    val day: String,
+    val focusTime: Int
+)
 
 @Entity
 data class MonsterFightingDB (
@@ -35,7 +42,9 @@ interface MonsterFightingDao {
     @Query("SELECT SUM(totalFocusTime) FROM monsterfightingdb WHERE timestampStart BETWEEN :startDate AND :endDate" )
     suspend fun getSumOfFocusTime(startDate: Long, endDate: Long): Int
 
-    @Query("""
+
+
+    @Query ("""
         SELECT strftime('%Y-%m-%d', datetime(timestampStart / 1000, 'unixepoch')) AS day,
               SUM(totalFocusTime) AS focusTime
         FROM monsterfightingdb
@@ -44,7 +53,17 @@ interface MonsterFightingDao {
         ORDER BY focusTime DESC
         LIMIT 1
     """)
-    suspend fun getMostFocusedHour(start: Long, end: Long): String
+    suspend fun getMostFocusedDay(start: Long, end: Long): FocusSummary
+
+    @Query("UPDATE MonsterFightingHourlyFocus SET focusTime = focusTime + :duration WHERE hour = :hour")
+    suspend fun updateHourFocusTime(hour: String, duration: Int)
+
+    @Insert
+    suspend fun insertHourFocusData(monsterFightingHourlyFocus: MonsterFightingHourlyFocus)
+
+    @Query("SELECT * FROM MonsterFightingHourlyFocus")
+    suspend fun getAllHourFocusData(): List<MonsterFightingHourlyFocus>
+
 
     @Update
     suspend fun updateMonsterFightData(monsterFightingDB: MonsterFightingDB)
@@ -55,9 +74,31 @@ interface MonsterFightingDao {
 }
 
 
-@Database (entities = [MonsterFightingDB::class], version = 1)
+@Entity
+data class MonsterFightingHourlyFocus (
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val hour: String = "00:00",
+    val focusTime: Int = 0,
+)
+
+
+@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun monsterFightingDao(): MonsterFightingDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+            CREATE TABLE IF NOT EXISTS MonsterFightingHourlyFocus (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                hour TEXT NOT NULL,
+                focusTime INTEGER NOT NULL
+            )
+        """.trimIndent())
+            }
+        }
+    }
 }
 //This is a blueprint for a table in ROOM, that has:
 // 10 fields

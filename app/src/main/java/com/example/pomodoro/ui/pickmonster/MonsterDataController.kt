@@ -10,9 +10,12 @@ import androidx.datastore.preferences.core.edit
 
 
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.preferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.pomodoro.R
 import com.example.pomodoro.data.MonsterFightingDB
 import com.example.pomodoro.data.MonsterFightingDao
+import com.example.pomodoro.data.MonsterFightingHourlyFocus
 import com.example.pomodoro.ui.countdown.FocusUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -50,6 +53,12 @@ interface MonsterDataController {
 
     suspend fun getSumOfFocusTime(startDate: Long, endDate: Long): Int
 
+    suspend fun getMostFocusedDay(start: Long, end: Long): String
+
+    suspend fun migrateHourFocusData()
+
+    fun updateMonsterPickedIndex(index: Int)
+
 }
 
 
@@ -73,7 +82,6 @@ class MonsterDataControllerImpl @Inject constructor(
     private val dao: MonsterFightingDao,
     private val initSetUpStateHolder: InitSetUpStateHolder
 ): MonsterDataController {
-
 
 
     val initSetUpState = initSetUpStateHolder.initSetUpState
@@ -118,6 +126,8 @@ class MonsterDataControllerImpl @Inject constructor(
         MonsterInfo(R.drawable._20_1, "Regret", "Chains you to the past")
     )
 
+
+
     val sessionKey: Preferences.Key<Int> = intPreferencesKey("session")
 
     override suspend fun saveTick(duration: Int): Int {
@@ -135,7 +145,7 @@ class MonsterDataControllerImpl @Inject constructor(
 
 
 
-    fun updateMonsterPickedIndex(index: Int) {
+    override fun updateMonsterPickedIndex(index: Int) {
         val newState = initSetUpState.value.copy(monsterPickedIndex = index)
         initSetUpStateHolder.updateState(newState)
         Log.d("ROOM", "updateMonsterPickedIndex: $index")
@@ -179,6 +189,144 @@ class MonsterDataControllerImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
+    override suspend fun getMostFocusedDay(start: Long, end: Long): String {
+        return "test"
+    }
+
+    val preferencesObj: Preferences = preferencesOf(
+        intPreferencesKey("26 09 2025T15") to 10,
+        stringPreferencesKey("last_active_time") to "06 10 2025T08",
+        intPreferencesKey("26 09 2025T16") to 30,
+        intPreferencesKey("26 09 2025T18") to 118,
+        intPreferencesKey("26 09 2025T19") to 52,
+        intPreferencesKey("26 09 2025T20") to 129,
+        intPreferencesKey("26 09 2025T21") to 62,
+        intPreferencesKey("27 09 2025T00") to 110,
+        intPreferencesKey("27 09 2025T01") to 65,
+        intPreferencesKey("27 09 2025T02") to 10,
+        intPreferencesKey("27 09 2025T03") to 16,
+        intPreferencesKey("27 09 2025T13") to 11,
+        intPreferencesKey("27 09 2025T14") to 10,
+        intPreferencesKey("04 10 2025T08") to 4,
+        intPreferencesKey("04 10 2025T15") to 28,
+        intPreferencesKey("04 10 2025T16") to 34,
+        intPreferencesKey("04 10 2025T20") to 20,
+        intPreferencesKey("05 10 2025T20") to 30,
+        intPreferencesKey("06 10 2025T08") to 10,
+
+        // October continued
+        intPreferencesKey("07 10 2025T09") to 45,
+        intPreferencesKey("08 10 2025T10") to 60,
+        intPreferencesKey("09 10 2025T11") to 75,
+        intPreferencesKey("10 10 2025T12") to 90,
+        intPreferencesKey("11 10 2025T13") to 105,
+        intPreferencesKey("12 10 2025T14") to 120,
+        intPreferencesKey("13 10 2025T15") to 135,
+        intPreferencesKey("14 10 2025T16") to 150,
+
+        // November
+        intPreferencesKey("01 11 2025T08") to 20,
+        intPreferencesKey("02 11 2025T09") to 25,
+        intPreferencesKey("03 11 2025T10") to 30,
+        intPreferencesKey("04 11 2025T11") to 35,
+        intPreferencesKey("05 11 2025T12") to 40,
+        intPreferencesKey("06 11 2025T13") to 45,
+        intPreferencesKey("07 11 2025T14") to 50,
+        intPreferencesKey("08 11 2025T15") to 55,
+
+        // December
+        intPreferencesKey("01 12 2025T08") to 60,
+        intPreferencesKey("02 12 2025T09") to 65,
+        intPreferencesKey("03 12 2025T10") to 70,
+        intPreferencesKey("04 12 2025T11") to 75,
+        intPreferencesKey("05 12 2025T12") to 80,
+        intPreferencesKey("06 12 2025T13") to 85,
+        intPreferencesKey("07 12 2025T14") to 90,
+        intPreferencesKey("08 12 2025T15") to 95,
+
+        // January
+        intPreferencesKey("10 01 2025T08") to 100,
+        intPreferencesKey("11 01 2025T09") to 105,
+        intPreferencesKey("12 01 2025T10") to 110,
+        intPreferencesKey("13 01 2025T11") to 115,
+        intPreferencesKey("14 01 2025T12") to 120,
+        intPreferencesKey("15 01 2025T13") to 125,
+        intPreferencesKey("16 01 2025T14") to 130,
+        intPreferencesKey("17 01 2025T15") to 135,
+        intPreferencesKey("18 01 2025T08") to 140,
+        intPreferencesKey("19 01 2025T09") to 145,
+        intPreferencesKey("20 01 2025T10") to 150,
+        intPreferencesKey("21 01 2025T11") to 155,
+        intPreferencesKey("22 01 2025T12") to 160,
+        intPreferencesKey("23 01 2025T13") to 165,
+        intPreferencesKey("24 01 2025T14") to 170,
+        intPreferencesKey("25 01 2025T15") to 175,
+
+        intPreferencesKey("01 02 2025T08") to 180,
+        intPreferencesKey("02 02 2025T09") to 185,
+        intPreferencesKey("03 02 2025T10") to 190,
+        intPreferencesKey("04 02 2025T11") to 195,
+        intPreferencesKey("05 02 2025T12") to 200,
+        intPreferencesKey("06 02 2025T13") to 205,
+        intPreferencesKey("07 02 2025T14") to 210,
+        intPreferencesKey("08 02 2025T15") to 215,
+
+        intPreferencesKey("15 03 2025T08") to 220,
+        intPreferencesKey("16 03 2025T09") to 225,
+        intPreferencesKey("17 03 2025T10") to 230,
+        intPreferencesKey("18 03 2025T11") to 235,
+        intPreferencesKey("19 03 2025T12") to 240,
+        intPreferencesKey("20 03 2025T13") to 245,
+        intPreferencesKey("21 03 2025T14") to 250,
+        intPreferencesKey("22 03 2025T15") to 240,
+
+        intPreferencesKey("01 04 2025T08") to 20,
+        intPreferencesKey("02 04 2025T09") to 25,
+        intPreferencesKey("03 04 2025T10") to 30,
+        intPreferencesKey("04 04 2025T11") to 35,
+        intPreferencesKey("05 04 2025T12") to 40,
+        intPreferencesKey("06 04 2025T13") to 45,
+        intPreferencesKey("07 04 2025T14") to 50,
+        intPreferencesKey("08 04 2025T15") to 55,
+
+
+        intPreferencesKey("10 05 2025T08") to 60,
+        intPreferencesKey("11 05 2025T09") to 65,
+        intPreferencesKey("12 05 2025T10") to 70,
+        intPreferencesKey("13 05 2025T11") to 75,
+        intPreferencesKey("14 05 2025T12") to 80,
+        intPreferencesKey("15 05 2025T13") to 85,
+        intPreferencesKey("16 05 2025T14") to 90,
+        intPreferencesKey("17 05 2025T15") to 95,
+
+        intPreferencesKey("20 06 2025T08") to 100,
+        intPreferencesKey("21 06 2025T09") to 105,
+        intPreferencesKey("22 06 2025T10") to 110,
+        intPreferencesKey("23 06 2025T11") to 115,
+        intPreferencesKey("24 06 2025T12") to 120,
+        intPreferencesKey("25 06 2025T13") to 125,
+        intPreferencesKey("26 06 2025T14") to 130,
+        intPreferencesKey("27 06 2025T15") to 135,
+
+        )
+
+    override suspend fun migrateHourFocusData() {
+        val preferObj = preferencesObj
+
+        val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+
+        preferObj.asMap().filterKeys {
+            regexDayHourKey.matches(it.name)
+        }.forEach {
+            val new = MonsterFightingHourlyFocus(
+                hour = it.key.name,
+                focusTime = it.value.toString().toInt()
+            )
+            dao.insertHourFocusData(new)
+        }
+
+        Log.d("ROOM", "updateHourFocusTime - getAllHourFocusData: ${dao.getAllHourFocusData()}")
+    }
 
 
     override suspend fun getLatestById(): MonsterFightingDB? {
