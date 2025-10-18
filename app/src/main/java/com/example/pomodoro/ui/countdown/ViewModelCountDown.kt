@@ -13,17 +13,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ViewModelCountDown @Inject constructor(
-    private val settingsRepository: SettingsRepository,
-    private val monsterDataController: MonsterDataController
+    private val controller: PomodoroControllerImpl
 ) : ViewModel() {
 
     //----------------------STATE----------------------------
-     val controller = PomodoroControllerImpl(
-        scope = viewModelScope, settingsRepository = settingsRepository,
-         monsterDataController = monsterDataController
 
-    ) //temporarily make it be able to access outside for testing
-    // Expose controller's state directly (keeps single source of truth)
     val focusUiState: StateFlow<FocusUiState> = controller.focusUiState //reference to focusUiState in controller
     val restUiState: StateFlow<RestUiState> = controller.restUiState //reference to restUiState in controller
 
@@ -41,6 +35,7 @@ class ViewModelCountDown @Inject constructor(
     }
 
     fun pause() = controller.pause()
+
     fun resume() = controller.resume()
 
     fun togglePauseResume () {

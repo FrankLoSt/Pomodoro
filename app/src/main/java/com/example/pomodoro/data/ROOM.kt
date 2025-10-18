@@ -13,12 +13,12 @@ import androidx.room.Update
 data class MonsterFightingDB (
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val monsterName: String = "Distraction",
-    val totalSessions: Int = 1,
+    val totalSessions: Int = 0,
     val sessionsCompleted: Int = 0,
     val totalFocusTime: Int = 0,
     val totalRestTime: Int = 0,
-    val timestampStart: Long = System.currentTimeMillis(),
-    val timestampEnd: Long = System.currentTimeMillis(),
+    val timestampStart: Long = 0L,
+    val timestampEnd: Long = 0L,
     val status: Boolean = false,
     val tag: String = "Study"
     )
@@ -27,6 +27,10 @@ data class MonsterFightingDB (
 interface MonsterFightingDao {
     @Query("SELECT * FROM MonsterFightingDB")
     suspend fun getAllMonsterFightData(): List<MonsterFightingDB>
+
+
+    @Query("SELECT * FROM MonsterFightingDB ORDER BY id DESC LIMIT 1")
+    suspend fun getLatestById(): MonsterFightingDB?
 
 
     @Update

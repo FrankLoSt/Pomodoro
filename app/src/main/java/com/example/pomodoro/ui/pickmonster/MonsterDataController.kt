@@ -46,6 +46,8 @@ interface MonsterDataController {
     suspend fun getAllMonsterFightData(): List<MonsterFightingDB>
     suspend fun insertMonsterFightData(monsterFightingDB: MonsterFightingDB)
 
+    suspend fun getLatestById(): MonsterFightingDB?
+
 
 }
 
@@ -163,7 +165,6 @@ class MonsterDataControllerImpl @Inject constructor(
         dataStore.edit {
             it[sessionKey] = 0
         }
-        Log.d("ROOM", "updateMonsterFightData: called")
     }
 
     override suspend fun insertMonsterFightData(monsterFightingDB: MonsterFightingDB) {
@@ -177,6 +178,36 @@ class MonsterDataControllerImpl @Inject constructor(
     override fun saveMonsterFightingData(monster: String) {
         TODO("Not yet implemented")
     }
+
+    override suspend fun getLatestById(): MonsterFightingDB? {
+        return dao.getLatestById()
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

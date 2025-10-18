@@ -54,10 +54,6 @@ class PomodoroControllerImpl @Inject constructor(
 
 
 
-   private  val _monsterFightingDb = MutableStateFlow(MonsterFightingDB())
-    val monsterFightingDB: StateFlow<MonsterFightingDB> = _monsterFightingDb.asStateFlow()
-
-
     //Create job controllers for 2 countdown
     private var studyJob: Job? = null
 
@@ -92,6 +88,15 @@ class PomodoroControllerImpl @Inject constructor(
             )
         }
 
+        if( monsterDataController.getLatestById() == null) {
+            val newRow = MonsterFightingDB(
+                monsterName = initSetUpState.initSetUpState.value.monsterList[initSetUpState.initSetUpState.value.monsterPickedIndex].name,
+                totalSessions = focusUiState.value.totalSessions,
+                timestampStart = System.currentTimeMillis(),
+            )
+            monsterDataController.insertMonsterFightData(newRow)
+        }
+
         while (isActive) {
             while (focusUiState.value.timerState == TimerState.PAUSED) {
                 Log.d("DEBUG", "countdownStudy: pausing")
@@ -111,35 +116,19 @@ class PomodoroControllerImpl @Inject constructor(
 
                 val ticks = monsterDataController.saveTick(1)
 
+                if(ticks == focusUiState.value.initialDuration) {
+                    val latestRow = monsterDataController.getLatestById()
+                    Log.d("ROOM", "Latest Row: $latestRow")
+                    val updated = latestRow?.copy(
+                        totalFocusTime = latestRow.totalFocusTime + ticks,
+                        sessionsCompleted = focusUiState.value.sessions,
+                    )
 
-
-                if (ticks == focusUiState.value.initialDuration) {
-
-                    Log.e("ROOM", "current monster name: ${initSetUpState.value.monsterList[_initSetUpState.value.monsterPickedIndex].name}")
-                    _monsterFightingDb.update {
-                        it.copy(
-                            monsterName = initSetUpState.value.monsterList[_initSetUpState.value.monsterPickedIndex].name,
-                            totalSessions = focusUiState.value.totalSessions,
-                            sessionsCompleted = focusUiState.value.sessions,
-                            totalFocusTime = monsterFightingDB.value.totalFocusTime + ticks, //total time recorded + tick recorded
-                        )
+                    if (updated != null) {
+                        monsterDataController.updateMonsterFightData(updated)
+                        Log.d("ROOM", "updateMonsterFightData: called")
                     }
 
-                    Log.e("ROOM", "monsterFightingDB: ${monsterFightingDB.value}")
-                    val existing = monsterDataController.getAllMonsterFightData()
-                        .any { it.id == monsterFightingDB.value.id }
-
-                    if (!existing) {
-                        //if not in the list, insert
-                        Log.e("ROOM", "insert called")
-                        monsterDataController.insertMonsterFightData(monsterFightingDB.value)
-                    } else {
-                        monsterDataController.updateMonsterFightData(monsterFightingDB.value)
-                        Log.d(
-                            "ROOM",
-                            "Data from ROOM: ${monsterDataController.getAllMonsterFightData()}"
-                        )
-                    }
                 }
             }
             //only save when isPause = false, app is running and users are studying
@@ -180,24 +169,36 @@ class PomodoroControllerImpl @Inject constructor(
                 focusUiState.value.appPhrase  == AppPhase.FINISHED ||
                 focusUiState.value.appPhrase == AppPhase.FOCUSING ||
                 focusUiState.value.appPhrase == AppPhase.IDLE
-                ) {
-                Log.e("DEBUG", "countdownRest: BREAK \n timerState = ${focusUiState.value.timerState} \n restDuration = ${restUiState.value.restDuration} \n appPhrase = ${focusUiState.value.appPhrase}")
-                break
-            }
+                ) { break }
 
             delay(1000L)
+
+            if(focusUiState.value.timerState == TimerState.RUNNING && focusUiState.value.appPhrase == AppPhase.RESTING) {
+
+                val ticks = monsterDataController.saveTick(1)
+
+                if(ticks == restUiState.value.initialRestDuration){
+                    val latestRow = monsterDataController.getLatestById()
+                    Log.d("ROOM", "Latest Row: $latestRow")
+                    val updated = latestRow?.copy(
+                        totalRestTime = latestRow.totalRestTime + ticks,
+                    )
+
+                    if(updated != null) {
+                        monsterDataController.updateMonsterFightData(updated)
+                    }
+                }
+            }
 
             _restUiState.update { it.copy(restDuration = if (focusUiState.value.timerState == TimerState.PAUSED) it.restDuration else (it.restDuration - 1).coerceAtLeast(0)) }
                                                        //if isPause -> no update
             Log.d("DEBUG", "countdownRest: ${restUiState.value.restDuration}")
         }
-        Log.d("DEBUG", "countdownRest: break finished")
         _restUiState.update{
             it.copy(
                 restDuration = it.initialRestDuration,
             )
         }
-        Log.d("DEBUG", "countdownRest: restDuration reset")
     } //countdown for rest session
 
     override fun start () {
@@ -210,8 +211,17 @@ class PomodoroControllerImpl @Inject constructor(
             appPhrase = AppPhase.FOCUSING,
         ) }
 
+        //Every time users press Start -> create a rew ROW
+        val newRow = MonsterFightingDB(
+            monsterName = initSetUpState.initSetUpState.value.monsterList[initSetUpState.initSetUpState.value.monsterPickedIndex].name,
+            totalSessions = focusUiState.value.totalSessions,
+            timestampStart = System.currentTimeMillis(),
+        )
+
+
         studyJob = scope.launch {
-            delay(100L)
+            monsterDataController.insertMonsterFightData(newRow)
+            //delay(100L) WTF is this for?
             while (focusUiState.value.sessions <= focusUiState.value.totalSessions) {
 
                 countdownStudy() //before running countdown, make sure isRunning = true, duration > 0, and isStudying = true.
@@ -222,10 +232,21 @@ class PomodoroControllerImpl @Inject constructor(
 
                 _focusUiState.update {
                     it.copy(
-                        sessions = it.sessions + 1, //
+                        sessions = it.sessions + 1,
                     )
                 } // after finish studying and resting => session + 1 and start studying again
                 Log.d("DEBUG", "Number of sessions: ${focusUiState.value.sessions}/${focusUiState.value.totalSessions}")
+            }
+
+            val latestRow = monsterDataController.getLatestById()
+
+            val updated = latestRow?.copy(
+                timestampEnd = System.currentTimeMillis(),
+                status = true
+            )
+            if(updated != null) {
+                monsterDataController.updateMonsterFightData(updated)
+                Log.d("ROOM", "Monster fight data updated ${updated}")
             }
 
             _focusUiState.update { it.copy(appPhrase = AppPhase.FINISHED) } // if appPhase == FINISHED ->
@@ -262,6 +283,20 @@ class PomodoroControllerImpl @Inject constructor(
     override fun breakFun () {
         Log.d("DEBUG", "breakFun: breakFun() runs")
         reset() //cancel all jobs
+        scope.launch {
+            val ticks = monsterDataController.saveTick(1)
+            val latestRow = monsterDataController.getLatestById()
+            val update = latestRow?.copy(
+                status = false,
+                timestampEnd = System.currentTimeMillis(),
+                totalFocusTime = latestRow.totalFocusTime + ticks,
+            )
+            if(update != null) {
+                monsterDataController.updateMonsterFightData(update)
+            }
+            Log.d("ROOM", "latest Row = ${monsterDataController.getLatestById()}")
+        }
+        //Update
     }
 
     override fun pause() {
