@@ -417,8 +417,8 @@ fun PortraitPickMonster (
                         .clickable {
                             if (monsterPickedIndex == index) null else updateMonsterPickedIndex(index)
                             Log.e(
-                                "DEBUG",
-                                "MonsterList ${monsterList.size}, monster being choose ${monsterList[index].name}"
+                                "ROOM",
+                                 "monster being choose ${monsterList[index].name}"
                             )
                         },
                     colors = if (monsterPickedIndex == index) CardDefaults.cardColors(Color.LightGray) else CardDefaults.cardColors(

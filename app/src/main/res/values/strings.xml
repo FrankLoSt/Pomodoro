@@ -20,4 +20,5 @@
     <string name="about">About</string>
     <string name="statistics">Statistics</string>
     <string name="batling">Batling with</string>
+    <string name="finished">You\'ve defeated a monster</string>
 </resources>
