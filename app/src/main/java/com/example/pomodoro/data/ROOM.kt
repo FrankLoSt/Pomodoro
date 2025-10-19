@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
@@ -58,12 +59,21 @@ interface MonsterFightingDao {
     @Query("UPDATE MonsterFightingHourlyFocus SET focusTime = focusTime + :duration WHERE hour = :hour")
     suspend fun updateHourFocusTime(hour: String, duration: Int)
 
-    @Insert
-    suspend fun insertHourFocusData(monsterFightingHourlyFocus: MonsterFightingHourlyFocus)
+    @Query("SELECT * FROM MonsterFightingHourlyFocus ORDER BY hour DESC LIMIT 1")
+    suspend fun getLatestHourById(): MonsterFightingHourlyFocus?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllHourFocusData(data: List<MonsterFightingHourlyFocus>)
+
+
+
 
     @Query("SELECT * FROM MonsterFightingHourlyFocus")
     suspend fun getAllHourFocusData(): List<MonsterFightingHourlyFocus>
 
+
+    @Query("DELETE FROM MonsterFightingHourlyFocus")
+    suspend fun clearAllSessions()
 
     @Update
     suspend fun updateMonsterFightData(monsterFightingDB: MonsterFightingDB)
@@ -76,23 +86,22 @@ interface MonsterFightingDao {
 
 @Entity
 data class MonsterFightingHourlyFocus (
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val hour: String = "00:00",
+    @PrimaryKey() val hour: String = "18 10 2025T16",
     val focusTime: Int = 0,
 )
 
 
-@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class], version = 2)
+@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun monsterFightingDao(): MonsterFightingDao
 
     companion object {
-        val MIGRATION_1_2 = object : Migration(1, 2) {
+        val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS MonsterFightingHourlyFocus")
                 db.execSQL("""
-            CREATE TABLE IF NOT EXISTS MonsterFightingHourlyFocus (
-                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                hour TEXT NOT NULL,
+            CREATE TABLE MonsterFightingHourlyFocus (
+                hour TEXT NOT NULL PRIMARY KEY,
                 focusTime INTEGER NOT NULL
             )
         """.trimIndent())

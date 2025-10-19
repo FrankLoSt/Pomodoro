@@ -12,7 +12,8 @@ import dagger.hilt.components.SingletonComponent
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import com.example.pomodoro.data.AppDatabase
-import com.example.pomodoro.data.AppDatabase.Companion.MIGRATION_1_2
+import com.example.pomodoro.data.AppDatabase.Companion.MIGRATION_2_3
+
 import com.example.pomodoro.data.MonsterFightingDao
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
@@ -56,7 +57,7 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "monster_fighting_db"
-        ).addMigrations(MIGRATION_1_2)
+        ).addMigrations(MIGRATION_2_3)
             .build()
     }
 

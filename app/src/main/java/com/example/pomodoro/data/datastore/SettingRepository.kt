@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import co.yml.charts.common.model.Point
+import com.example.pomodoro.data.MonsterFightingHourlyFocus
+import com.example.pomodoro.ui.pickmonster.MonsterDataControllerImpl
 import dagger.Provides
 
 import kotlinx.coroutines.CoroutineScope
@@ -113,7 +115,8 @@ data class ChartUpdate (
 @Singleton
 class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need to inject this dependency in the constructor to build this class -> Hilt looks at it at compile time -> draw the graph -> then at run time -> it will inject the dependency
     private val dataStore: DataStore<Preferences>,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val monsterDataControllerImpl: MonsterDataControllerImpl
 ) : SettingsRepository {
 
     private val LAST_FOCUS_KEY: Preferences.Key<String> =
@@ -299,6 +302,8 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     fun isLeapYear(year: Int): Boolean {
         return Year.of(year).isLeap
     }
+
+
 
     override suspend fun generateChart(viewMode: ViewMode, weekStart: DayOfWeek, year: Int) {
         _chartUpdate.update { it.copy(viewMode = viewMode) }
@@ -528,7 +533,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
             }
 
             ViewMode.Day -> {
-
+                /*
                 val chartDataDayHours: Map<String, List<Point>> = preferencesObject.asMap()
                     .filterKeys {
                         regexDayHourKey.matches(it.name)
@@ -536,14 +541,26 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     }.toList()
                     .groupBy { it.first.name.substringBefore("T") }
                     //this will just return an empty Map if preferencesObject is empty
-                    .mapValues { create24HoursKey(it.key, preferencesObject) }
+                    .mapValues { entry ->
+                        create24HoursKey(entry.key, preferencesObject) }
+                  */
 
 
-                updateChartState(chartDataDayHours = chartDataDayHours)
+                val chartDataDayHourRoom = monsterDataControllerImpl.getHourFocusData()
+                    .groupBy { obj ->
+                        obj.hour.substringBefore("T")
+                    }.mapValues { entry ->
+                        create24HoursKeyTest2(entry.key, entry.value)
+                    }
+
+                Log.e("ROOM", "generateChart - chartDataDayHourRomm: $chartDataDayHourRoom")
+
+
+                updateChartState(chartDataDayHours = chartDataDayHourRoom)
 
                 //Log.d("DEBUG", "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}")
 
-                val availableDays: List<String> = chartDataDayHours.keys.toList()
+                val availableDays: List<String> = chartDataDayHourRoom.keys.toList()
                     .map { LocalDate.parse(it, formatterDay) }
                     .sortedDescending()
                     .map {
@@ -556,7 +573,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     _chartUpdate.update {
                         it.copy(
                             availableDays = availableDays,
-                            dateHourDataPoint = chartDataDayHours.values.first()
+                            dateHourDataPoint = chartDataDayHourRoom.values.first()
                         )
                     }
                 } else {
@@ -725,11 +742,26 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     ): List<Point> {
         val chartDataDay = hourList.mapIndexed { index, hour ->
             val key = createHourKey(dateString.format(formatterDay), hour)
+
             Point(index.toFloat(), preferencesObject?.get(key)?.toFloat() ?: 0f) //Look up and get
         }
         return chartDataDay
     }
 
+
+    private  fun create24HoursKeyTest2(
+        dateString: String,
+        list: List<MonsterFightingHourlyFocus>
+    ): List<Point> {
+        val chartDataDay = hourList.mapIndexed { index, hour ->
+            val key = dateString.format(formatterDay) + "T" + hour.toString().padStart(2, '0')
+
+            val converter = list.associate { it.hour to it.focusTime }
+
+            Point(index.toFloat(), converter[key]?.toFloat() ?: 0f) //Look up and get
+        }
+        return chartDataDay
+    }
 
 
     // Helper functions for better organization

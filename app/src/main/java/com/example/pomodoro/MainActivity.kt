@@ -92,6 +92,8 @@ class MainActivity : ComponentActivity() {
                 val windowSizeClass = calculateWindowSizeClass(this)
                 val navHostController = rememberNavController()
                 val viewModelChart: ViewModelChart = hiltViewModel()
+                val monsterViewModel: MonsterViewModel = hiltViewModel()
+
 
                 val windowSizeCheck = LocalWindowInfo.current.containerSize
                 val density = LocalDensity.current
@@ -156,6 +158,8 @@ class MainActivity : ComponentActivity() {
                                         navHostController.navigate(EnumScreenClass.STATISTICS.name)
                                         scope.launch {
                                             showDrawer = false
+                                            monsterViewModel.migrateHourFocusData()
+
                                             viewModelChart.generateChart(ViewMode.Day)
                                         }
                                     }
