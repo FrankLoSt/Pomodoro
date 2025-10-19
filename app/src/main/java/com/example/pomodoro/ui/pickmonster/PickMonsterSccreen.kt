@@ -1,12 +1,17 @@
 package com.example.pomodoro.ui.pickmonster
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -27,11 +33,22 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Typography
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -42,6 +59,8 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +70,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,11 +82,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.pomodoro.R
+import com.example.pomodoro.ScreenNavigation
+import com.example.pomodoro.data.datastore.ViewMode
+import com.example.pomodoro.ui.EnumScreenClass
 
 import com.example.pomodoro.ui.ScreenShape
 import com.example.pomodoro.ui.countdown.DropDownPortrait
 import com.example.pomodoro.ui.countdown.SetUpDialog
 import com.example.pomodoro.ui.detectScreenShape
+import com.example.pomodoro.ui.statistics.ViewModelChart
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 data class Spacing(
     val small: Dp,
@@ -134,6 +160,131 @@ fun MyAppTheme(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Drawer (
+    navHostController: NavHostController,
+    viewModelChart: ViewModelChart,
+    scope: CoroutineScope = rememberCoroutineScope(),
+    drawerState: DrawerState,
+    drawerContent: @Composable () -> Unit,
+) {
+
+    val windowSize = LocalWindowInfo.current.containerSize
+    val density = LocalDensity.current
+    val screenWidth = with(density) { windowSize.width.toDp().value }
+    val screenHeight = with(density) { windowSize.height.toDp().value }
+    val isLandscape = screenWidth > screenHeight
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                modifier = Modifier.width(200.dp)
+            ) {
+                Row() {
+                    Icon(
+                        painter = painterResource(R.drawable.sprite_11_2),
+                        contentDescription = null,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    Text(
+                        stringResource(R.string.menu),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.statistics)) },
+                    selected = false,
+                    onClick = {
+                        navHostController.navigate(EnumScreenClass.STATISTICS.name)
+                        scope.launch {
+                            drawerState.close()
+                            viewModelChart.generateChart(ViewMode.Day)
+                        }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Home screen") },
+                    selected = false,
+                    onClick = {
+                        navHostController.navigate(EnumScreenClass.PICKMONSTER.name)
+                        scope.launch {
+                            drawerState.close()
+                        }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.about)) },
+                    selected = false,
+                    onClick = { /*TODO*/ }
+                )
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                if (isLandscape) null else {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.menu)) },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = { scope.launch { drawerState.open() } }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.sprite_11_2),
+                                    contentDescription = stringResource(R.string.menu)
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        ) { innerPadding ->
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                drawerContent()
+            }
+        }
+    }
+}
+
+
+@Composable
+fun RightSideDrawer(
+    isOpen: Boolean,
+    onClose: () -> Unit,
+    drawerContent: @Composable () -> Unit,
+    mainContent: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+
+        ) {
+        mainContent()
+
+        AnimatedVisibility(
+            visible = isOpen,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .width(300.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+        ) {
+            drawerContent()
+        }
+    }
+}
+
+
+
+
 
 
 @Composable
@@ -149,81 +300,232 @@ fun PickMonsterScreen (
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
     initSetUpState: InitSetUpState,
-    navHostController: NavHostController? = null,
+    navHostController: NavHostController,
     updateMonsterPickedIndex: (Int) -> Unit,
-
+    viewModelChart: ViewModelChart
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
     val screenWidth = with(density) { windowSizeCheck.width.toDp() }.value.toInt()
     val screenHeight = with(density) { windowSizeCheck.height.toDp() }.value.toInt()
 
-    val windowSizeClass = windowSizeClass
     val screenShape = detectScreenShape(
-        windowSizeClass.widthSizeClass ,
+        windowSizeClass.widthSizeClass,
         windowSizeClass.heightSizeClass,
         screenWidth,
         screenHeight
     )
+    val scope: CoroutineScope = rememberCoroutineScope()
 
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val spacing = LocalSpacing.current
+    val fontSize: FontSize = LocalFontSize.current
+
+
+    var showDrawer: Boolean by rememberSaveable { mutableStateOf(false) }
     when (screenShape) {
-        is ScreenShape.PhonePortrait -> DashBoardPhonePortrait(
-            modifier = modifier,
-            toggleSetUpPopup = toggleSetUpPopup,
-            setDurationMinutes = setDurationMinutes,
-            setRestDurationMinutes = setRestDurationMinutes,
-            setSessions = setSessions,
-            listFocusDuration = listFocusDuration,
-            listRestDuration = listRestDuration,
-            listSessions = listSessions,
-            confirmBut = confirmBut,
-            initSetUpState = initSetUpState,
-            updateMonsterPickedIndex = updateMonsterPickedIndex,
-            windowSizeClass = windowSizeClass
+        is ScreenShape.PhonePortrait -> Drawer(
+            navHostController = navHostController,
+            viewModelChart = viewModelChart,
+            scope = scope,
+            drawerState = drawerState,
+            drawerContent = {
+                DashBoardPhonePortrait(
+                    modifier = modifier,
+                    toggleSetUpPopup = toggleSetUpPopup,
+                    setDurationMinutes = setDurationMinutes,
+                    setRestDurationMinutes = setRestDurationMinutes,
+                    setSessions = setSessions,
+                    listFocusDuration = listFocusDuration,
+                    listRestDuration = listRestDuration,
+                    listSessions = listSessions,
+                    confirmBut = confirmBut,
+                    initSetUpState = initSetUpState,
+                    updateMonsterPickedIndex = updateMonsterPickedIndex,
+                    windowSizeClass = windowSizeClass,
+                )
+            },
         )
 
-        is ScreenShape.PhoneLandscape ->  DashBoardPhoneLandScape(
-            modifier = modifier,
-            toggleSetUpPopup = toggleSetUpPopup,
-            setDurationMinutes = setDurationMinutes,
-            setRestDurationMinutes = setRestDurationMinutes,
-            setSessions = setSessions,
-            listFocusDuration = listFocusDuration,
-            listRestDuration = listRestDuration,
-            listSessions = listSessions,
-            confirmBut = confirmBut,
-            initSetUpState = initSetUpState,
-            updateMonsterPickedIndex = updateMonsterPickedIndex,
-            windowSizeClass = windowSizeClass
+        is ScreenShape.PhoneLandscape -> RightSideDrawer(
+            isOpen = showDrawer,
+            onClose = {
+                showDrawer = false
+            },
+            drawerContent = {
+                ModalDrawerSheet(
+                    modifier = Modifier.width((screenWidth * 0.2f).dp)
+                ) {
+                    Row() {
+                        Icon(
+                            painter = painterResource(R.drawable.sprite_11_2),
+                            contentDescription = "Open Drawer",
+                            modifier = Modifier.size((screenWidth * 0.03f).dp)
+                        )
+                        Text(
+                            stringResource(R.string.menu),
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.statistics)) },
+                        selected = false,
+                        onClick = {
+                            navHostController.navigate(EnumScreenClass.STATISTICS.name)
+                            scope.launch {
+                                showDrawer = false
+
+                                viewModelChart.generateChart(ViewMode.Day)
+
+                            }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Home screen") },
+                        selected = false,
+                        onClick = {
+                            navHostController.navigate(EnumScreenClass.PICKMONSTER.name)
+                            showDrawer = false
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.about)) },
+                        selected = false,
+                        onClick = { /*TODO*/ }
+                    )
+                }
+            },
+            mainContent = {
+                Box(
+                    modifier = Modifier.clickable(
+                        onClick = { showDrawer = false },
+                        indication = null, // 🔥 disables ripple
+                        interactionSource = remember { MutableInteractionSource() } // 🔒 disables press animation
+                    )
+                ) {
+                    DashBoardPhoneLandScape(
+                        modifier = modifier,
+                        toggleSetUpPopup = toggleSetUpPopup,
+                        setDurationMinutes = setDurationMinutes,
+                        setRestDurationMinutes = setRestDurationMinutes,
+                        setSessions = setSessions,
+                        listFocusDuration = listFocusDuration,
+                        listRestDuration = listRestDuration,
+                        listSessions = listSessions,
+                        confirmBut = confirmBut,
+                        initSetUpState = initSetUpState,
+                        updateMonsterPickedIndex = updateMonsterPickedIndex,
+                        windowSizeClass = windowSizeClass,
+                    )
+                    IconButton(
+                        onClick = { showDrawer = true },
+                        modifier = Modifier.size((screenWidth * 0.15f).dp)
+                            .align(Alignment.TopEnd)
+                            .padding(end = spacing.medium, top = spacing.medium)
+                    ) {
+                        Row {
+                            Text(
+                                "Menu",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(end = spacing.medium)
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.sprite_11_2),
+                                contentDescription = "Open Drawer",
+                                modifier = Modifier.size((screenWidth * 0.03f).dp)
+                            )
+                        }
+                    }
+                }
+            }
         )
 
-        is ScreenShape.TabletPortrait -> DashBoardPhonePortrait(
-            modifier = modifier,
-            toggleSetUpPopup = toggleSetUpPopup,
-            setDurationMinutes = setDurationMinutes,
-            setRestDurationMinutes = setRestDurationMinutes,
-            setSessions = setSessions,
-            listFocusDuration = listFocusDuration,
-            listRestDuration = listRestDuration,
-            listSessions = listSessions,
-            confirmBut = confirmBut,
-            initSetUpState = initSetUpState,
-            updateMonsterPickedIndex = updateMonsterPickedIndex,
-            windowSizeClass = windowSizeClass
-            )
-        is ScreenShape.TabletLandscape -> DashBoardPhoneLandScape(
-            modifier = modifier,
-            toggleSetUpPopup = toggleSetUpPopup,
-            setDurationMinutes = setDurationMinutes,
-            setRestDurationMinutes = setRestDurationMinutes,
-            setSessions = setSessions,
-            listFocusDuration = listFocusDuration,
-            listRestDuration = listRestDuration,
-            listSessions = listSessions,
-            confirmBut = confirmBut,
-            initSetUpState = initSetUpState,
-            updateMonsterPickedIndex = updateMonsterPickedIndex,
-            windowSizeClass = windowSizeClass
+        is ScreenShape.TabletPortrait -> Drawer(
+            navHostController = navHostController,
+            viewModelChart = viewModelChart,
+            scope = scope,
+            drawerState = drawerState,
+            drawerContent = {
+                DashBoardPhonePortrait(
+                    modifier = modifier,
+                    toggleSetUpPopup = toggleSetUpPopup,
+                    setDurationMinutes = setDurationMinutes,
+                    setRestDurationMinutes = setRestDurationMinutes,
+                    setSessions = setSessions,
+                    listFocusDuration = listFocusDuration,
+                    listRestDuration = listRestDuration,
+                    listSessions = listSessions,
+                    confirmBut = confirmBut,
+                    initSetUpState = initSetUpState,
+                    updateMonsterPickedIndex = updateMonsterPickedIndex,
+                    windowSizeClass = windowSizeClass,
+                )
+            }
+        )
+
+        is ScreenShape.TabletLandscape -> RightSideDrawer(
+            isOpen = false,
+            onClose = {},
+            drawerContent = {
+                ModalDrawerSheet(
+                    modifier = Modifier.width(200.dp)
+                ) {
+                    Row() {
+                        Icon(
+                            painter = painterResource(R.drawable.sprite_11_2),
+                            contentDescription = null,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        Text(
+                            stringResource(R.string.menu),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.statistics)) },
+                        selected = false,
+                        onClick = {
+                            navHostController.navigate(EnumScreenClass.STATISTICS.name)
+                            scope.launch {
+                                drawerState.close()
+                                viewModelChart.generateChart(ViewMode.Day)
+                            }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Home screen") },
+                        selected = false,
+                        onClick = {
+                            navHostController.navigate(EnumScreenClass.PICKMONSTER.name)
+                            scope.launch {
+                                drawerState.close()
+                            }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.about)) },
+                        selected = false,
+                        onClick = { /*TODO*/ }
+                    )
+                }
+            },
+            mainContent = {
+                DashBoardPhoneLandScape(
+                    modifier = modifier,
+                    toggleSetUpPopup = toggleSetUpPopup,
+                    setDurationMinutes = setDurationMinutes,
+                    setRestDurationMinutes = setRestDurationMinutes,
+                    setSessions = setSessions,
+                    listFocusDuration = listFocusDuration,
+                    listRestDuration = listRestDuration,
+                    listSessions = listSessions,
+                    confirmBut = confirmBut,
+                    initSetUpState = initSetUpState,
+                    updateMonsterPickedIndex = updateMonsterPickedIndex,
+                    windowSizeClass = windowSizeClass,
+                )
+            }
         )
     }
 
