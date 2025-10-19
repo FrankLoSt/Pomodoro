@@ -15,9 +15,7 @@ import javax.inject.Inject
 class ViewModelChart @Inject constructor (
     private val settingsRepository: SettingsRepositoryImpl,
 ): ViewModel() {
-    init {
-        generateChart(ViewMode.Day)
-    }
+
 
     val lastDayActive: StateFlow<String?> = settingsRepository.getLastDayActive()
 

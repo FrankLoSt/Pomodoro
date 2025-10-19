@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.navigation.NavHostController
@@ -54,6 +55,7 @@ import com.example.pomodoro.R
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
+import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import java.time.format.DateTimeFormatter
 
 
@@ -128,8 +130,6 @@ fun LineChartScreen(
         } //ViewMode
 
 
-
-
         when (chartUpdate.viewMode) {
             ViewMode.Month -> {
                 colorMonth = Color.Red
@@ -181,7 +181,7 @@ fun LineChartScreen(
                 )
                 ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
             }
-            else -> {
+            ViewMode.Year -> {
                 colorYear = Color.Red
                 colorWeek = Color.LightGray
                 colorMonth = Color.LightGray
@@ -206,7 +206,6 @@ fun LineChartScreen(
         }
     }
 }
-
 
 
 
@@ -286,276 +285,6 @@ fun ButtonViewChart (
 
 
 
-@Composable
-fun DropdownFunDay (
-    itemLists: List<String>?,
-    onItemSelected: (String) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var day by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
-
-    Box(
-        modifier = Modifier
-            .padding(8.dp)
-            .background(Color.LightGray),
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .wrapContentSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Text(
-                text = "${day?.substring(0, 5)}",
-                modifier = Modifier
-                    .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp) // limit height
-        ) {
-            itemLists?.forEach { date ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = date)
-                    },
-                    onClick = {
-                        onItemSelected(date)
-                        day = date
-                        expanded = false
-                    }
-                )
-            }?: Text(text = "No Data")
-        }
-    }
-}
-
-
-
-@Composable
-fun DropdownFunWeek (
-    itemLists: List<Int>?,
-    onItemSelected: (Int) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var week by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
-
-    Box(
-        modifier = Modifier
-            .padding(8.dp)
-            .background(Color.LightGray),
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .wrapContentSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Text(
-                text = "$week",
-                modifier = Modifier
-                    .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp) // limit height
-        ) {
-            itemLists?.forEach { weekNum ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "$weekNum")
-                    },
-                    onClick = {
-                        onItemSelected(weekNum)
-                        week = weekNum
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DropdownFunYear (
-    itemLists: List<Int>?,
-    onItemSelected: (Int) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var year by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
-
-    Box(
-        modifier = Modifier
-            .padding(8.dp)
-            .background(Color.LightGray),
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .wrapContentSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Text(
-                text = "$year",
-                modifier = Modifier
-                    .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp) // limit height
-        ) {
-            itemLists?.forEach { date ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "$year")
-                    },
-                    onClick = {
-                        onItemSelected(date)
-                        year = date
-                        expanded = false
-                    }
-                )
-            }?: Text(text = "No Data")
-        }
-    }
-}
-
-
-
-
-@Composable
-fun DropdownFunMonth (
-    itemLists: List<Int>?,
-    onItemSelected: (Int) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var month by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
-
-    Box(
-        modifier = Modifier
-            .padding(8.dp)
-            .background(Color.LightGray),
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .wrapContentSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Text(
-                text = "$month",
-                modifier = Modifier
-                    .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp) // limit height
-        ) {
-            itemLists?.forEach { date ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "$date")
-                    },
-                    onClick = {
-                        onItemSelected(date)
-                        month = date
-                        expanded = false
-                    }
-                )
-            }?: Text(text = "No Data")
-        }
-    }
-}
-
-@Composable
-fun DropdownFunViewMode (
-    itemLists: List<ViewMode>?,
-    onItemSelected: (ViewMode) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var viewMode1 by rememberSaveable { mutableStateOf(itemLists?.get(0)) }
-
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .background(Color.LightGray),
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .width(150.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Text(
-                text = "ViewMode: $viewMode1",
-                modifier = Modifier
-                    .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp) // limit height
-        ) {
-            itemLists?.forEach { viewMode ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "$viewMode")
-                    },
-                    onClick = {
-                        onItemSelected(viewMode)
-                        Log.d("DEBUG", "DropdownFunViewMode: $viewMode")
-                        viewMode1 = viewMode
-                        expanded = false
-                    }
-                )
-            }?: Text(text = "No Data")
-        }
-    }
-}
 
 
 
@@ -572,146 +301,8 @@ fun DropdownFunViewMode (
 
 
 
-@Composable
-fun ScrollableDropdownMenuDemo() {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf<String?>(null) }
 
-    val items = List(50) { "Item ${it + 1}" } // Simulate a long list
-    val listState = rememberLazyListState()
 
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp)) {
-        OutlinedTextField(
-            value = selectedItem ?: "Select an item",
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Dropdown") },
-            trailingIcon = {
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    modifier = Modifier.clickable { expanded = !expanded }
-                )
-            }
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .height(200.dp) // Limit height to enable scrolling
-                .fillMaxWidth()
-        ) {
-            LazyColumn(state = listState) {
-                items(items) { item ->
-                    DropdownMenuItem(
-                        text = { Text(item) },
-                        onClick = {
-                            selectedItem = item
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ScrollableDropdownMenuWithScrollbar() {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf<String?>(null) }
-
-    val items = List(50) { "Item ${it + 1}" }
-    val listState = rememberLazyListState()
-    val dropdownHeight = 200.dp
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        var textFieldHeight by remember { mutableStateOf(0) }
-
-        Column {
-            OutlinedTextField(
-                value = selectedItem ?: "Select an item",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onGloballyPositioned {
-                        textFieldHeight = it.size.height
-                    }
-                    .clickable { expanded = !expanded },
-                label = { Text("Dropdown") },
-                trailingIcon = {
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null
-                    )
-                }
-            )
-
-            if (expanded) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(dropdownHeight)
-                        .offset(y = with(LocalDensity.current) { textFieldHeight.toDp() })
-                ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(end = 8.dp)
-                    ) {
-                        items(items) { item ->
-                            Text(
-                                text = item,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        selectedItem = item
-                                        expanded = false
-                                    }
-                                    .padding(16.dp)
-                            )
-                        }
-                    }
-
-                    // Scrollbar
-                    val totalItems = items.size
-                    val visibleItems = listState.layoutInfo.visibleItemsInfo.size
-                    val firstVisibleIndex = listState.firstVisibleItemIndex
-                    val maxScrollIndex = (totalItems - visibleItems).coerceAtLeast(1)
-                    val scrollProgress =
-                        (firstVisibleIndex.toFloat() / maxScrollIndex).coerceIn(0f, 1f)
-
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxHeight()
-                            .width(4.dp)
-                            .background(Color.LightGray.copy(alpha = 0.3f))
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .fillMaxHeight(fraction = 0.2f)
-                            .offset(y = scrollProgress * dropdownHeight)
-                            .width(4.dp)
-                            .background(Color.Gray)
-                    )
-                }
-            }
-        }
-    }
-}
 
 
 

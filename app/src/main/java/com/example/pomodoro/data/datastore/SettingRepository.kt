@@ -11,7 +11,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import co.yml.charts.common.model.Point
 import com.example.pomodoro.data.MonsterFightingHourlyFocus
 import com.example.pomodoro.ui.pickmonster.MonsterDataControllerImpl
-import dagger.Provides
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -125,6 +124,9 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
     private val formatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
 
     private val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
+
+    private val formaterYearFirst = DateTimeFormatter.ofPattern("yyyy MM dd")
+
 
     private val _chartState = MutableStateFlow(ChartState())
     val chartState: StateFlow<ChartState> = _chartState.asStateFlow()
@@ -309,26 +311,29 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         _chartUpdate.update { it.copy(viewMode = viewMode) }
 
         val todayKey: LocalDate = todayKey
-        val preferencesObject: Preferences = preferencesObj
-        val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
         val weekFields: WeekFields = WeekFields.of(weekStart, 1)
         val weekOfYearField: TemporalField = weekFields.weekOfYear()
         val dayOfWeekField: TemporalField = weekFields.dayOfWeek()
 
         val firstDayOfYear: LocalDate = LocalDate.of(todayKey.year, 1, 1)
 
-        val totalFocusOfADay = preferencesObject.asMap()
-            .filterKeys {
-                regexDayHourKey.matches(it.name)
-                //return a Map that only contains keys that matches the form : "29 09 2025T0"
-            }.toList()
-            .groupBy { it.first.name.substringBefore("T") }
-            //this will just return an empty Map if preferencesObject is empty
-            .mapValues { values ->
-                values.value.sumOf { pair ->
-                    pair.second.toString().toIntOrNull() ?: 0
-                }
+       // val monsterHourFocusData = monsterDataControllerImpl.getHourFocusData()
+
+
+
+        val totalFocusOfADay = monsterDataControllerImpl.getHourFocusData().groupBy {
+            obj ->
+            obj.hour.substringBefore("T")
+        }.mapKeys{ entry ->
+            val transformed = LocalDate.parse(entry.key, formaterYearFirst)
+            transformed.format(formatterDay)
+        }
+            .mapValues { entry ->
+            entry.value.sumOf{ monsterFightingHourlyFocus ->
+                monsterFightingHourlyFocus.focusTime
             }
+        }
+        Log.d("ROOM", "generateChart - totalFocusOfADay: $totalFocusOfADay")
 
         val listDays: List<LocalDate> = totalFocusOfADay
             .mapNotNull { runCatching { LocalDate.parse(it.key, formatterDay) }.getOrNull() }
@@ -561,10 +566,10 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                 //Log.d("DEBUG", "generateChart - chartDataDayHours: ${chartState.value.chartDataDayHours}")
 
                 val availableDays: List<String> = chartDataDayHourRoom.keys.toList()
-                    .map { LocalDate.parse(it, formatterDay) }
+                    .map { LocalDate.parse(it, formaterYearFirst) }
                     .sortedDescending()
                     .map {
-                        it.format(formatterDay)
+                        it.format(formaterYearFirst)
                     }
                 //  Log.d("DEBUG", "generateChart - availableDays: $availableDays")
 
@@ -585,9 +590,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                     }
                 }
             }
-
         }
-
     }
 
     fun pickDay(viewMode: ViewMode = ViewMode.Day, leftOrRight: Boolean) {

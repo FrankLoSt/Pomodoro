@@ -71,6 +71,7 @@ interface MonsterFightingDao {
     @Query("SELECT * FROM MonsterFightingHourlyFocus")
     suspend fun getAllHourFocusData(): List<MonsterFightingHourlyFocus>
 
+    
 
     @Query("DELETE FROM MonsterFightingHourlyFocus")
     suspend fun clearAllSessions()

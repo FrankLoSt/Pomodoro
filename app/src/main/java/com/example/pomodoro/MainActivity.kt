@@ -79,7 +79,9 @@ import com.example.pomodoro.ui.statistics.LineChartScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.system.measureTimeMillis
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -158,9 +160,9 @@ class MainActivity : ComponentActivity() {
                                         navHostController.navigate(EnumScreenClass.STATISTICS.name)
                                         scope.launch {
                                             showDrawer = false
-                                            monsterViewModel.migrateHourFocusData()
 
                                             viewModelChart.generateChart(ViewMode.Day)
+
                                         }
                                     }
                                 )

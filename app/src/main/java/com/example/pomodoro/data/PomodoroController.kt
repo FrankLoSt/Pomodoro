@@ -249,6 +249,8 @@ class PomodoroControllerImpl @Inject constructor(
                 Log.d("ROOM", "Monster fight data updated ${updated}")
             }
 
+            monsterDataController.migrateHourFocusData()
+
             _focusUiState.update { it.copy(appPhrase = AppPhase.FINISHED) } // if appPhase == FINISHED ->
             Log.d("DEBUG", "start: start() ends")
         }
@@ -294,6 +296,7 @@ class PomodoroControllerImpl @Inject constructor(
             if(update != null) {
                 monsterDataController.updateMonsterFightData(update)
             }
+            monsterDataController.migrateHourFocusData()
             Log.d("ROOM", "latest Row = ${monsterDataController.getLatestById()}")
         }
         //Update

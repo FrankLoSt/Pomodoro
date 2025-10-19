@@ -6,8 +6,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.room.withTransaction
 import co.yml.charts.common.model.Point
 import com.example.pomodoro.R
+import com.example.pomodoro.data.AppDatabase
 import com.example.pomodoro.data.MonsterFightingDB
 import com.example.pomodoro.data.MonsterFightingDao
 import com.example.pomodoro.data.MonsterFightingHourlyFocus
@@ -52,6 +54,7 @@ interface MonsterDataController {
     suspend fun getHourFocusData(): List<MonsterFightingHourlyFocus>
 
 
+
     fun updateMonsterPickedIndex(index: Int)
 
 }
@@ -78,14 +81,20 @@ class MonsterDataControllerImpl @Inject constructor(
     private val initSetUpStateHolder: InitSetUpStateHolder
 ): MonsterDataController {
 
-    init{
-        scope.launch {
-            migrateHourFocusData()
-        }
-    }
-
     val initSetUpState = initSetUpStateHolder.initSetUpState
 
+    @Inject lateinit var db: AppDatabase
+    suspend fun migrateData(listData: List<MonsterFightingHourlyFocus>) {
+        db.withTransaction {
+            val dao = db.monsterFightingDao()
+
+            dao.insertAllHourFocusData(listData)
+            val target = if (listData.size <= 1) listData.lastOrNull() else listData.first()
+            target?.let {
+                dao.updateHourFocusTime(it.hour, it.focusTime)
+            }
+        }
+    }
 
 
     val monsterList: List<MonsterInfo> = listOf(
@@ -197,54 +206,43 @@ class MonsterDataControllerImpl @Inject constructor(
         return dao.getAllHourFocusData()
     }
 
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
+    val formatterYearFirst: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy MM dd'T'HH")
+
+    val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
     override suspend fun migrateHourFocusData() {
 
         val preferObj = dataStore.data.first()
-
-        val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
-        Log.d("ROOM", "migrateHourFocusData1: ${dataStore.data.first()}")
+        
+        Log.d("ROOM", "migrateHourFocusData1: $preferObj")
 
         val filtered  = preferObj.asMap().filterKeys {
             regexDayHourKey.matches(it.name)
         }
-        val focusList = filtered.map {
-            val localDate: LocalDateTime = LocalDateTime.parse(it.key.name, DateTimeFormatter.ofPattern("dd MM yyyy'T'HH"))
-            val converted: String = localDate.format(DateTimeFormatter.ofPattern("yyyy MM dd'T'HH"))
 
-            Log.d("ROOM", "migrateHourFocusData: $converted")
+        val focusList = buildList {
+            for ((prefKey, value) in preferObj.asMap()) {
+                val keyName = prefKey.name
+                if (!regexDayHourKey.matches(keyName)) continue
 
-
-            MonsterFightingHourlyFocus(
-                hour = converted,
-                focusTime = it.value.toString().toIntOrNull() ?: 0
-            )
+                // Avoid creating new formatter each loop — reuse precompiled
+                val parsed = runCatching { LocalDateTime.parse(keyName, formatter) }.getOrNull() ?: continue
+                val converted = formatterYearFirst.format(parsed)
+                val focusTime = value.toString().toIntOrNull() ?: 0
+                add(MonsterFightingHourlyFocus(converted, focusTime))
+            }
         }
+
+        migrateData(focusList)
+
+        Log.d("ROOM", "migrateHourFocusData: Upate done - clean start")
 
         dataStore.edit { pref ->
             filtered.forEach {
                 pref.remove(it.key)
             }
         } //delete every trace of hour focus data in dataStore.
-
-        dao.insertAllHourFocusData(focusList)
-
-        if(focusList.size == 1 || focusList.isEmpty()) {
-            val lastHourData = focusList.lastOrNull()
-
-            if (lastHourData != null) {
-                dao.updateHourFocusTime(lastHourData.hour, lastHourData.focusTime)
-            }
-        }  else {
-            val firstFocus = focusList.first()
-            dao.updateHourFocusTime(firstFocus.hour, firstFocus.focusTime)
-        }
-
-
-        Log.d("ROOM", "migrateHourFocusData2: ${dataStore.data.first()}")
-
-        Log.d("ROOM", "updateHourFocusTime - getAllHourFocusData: ${dao.getAllHourFocusData()}")
     }
-
 
 
 
