@@ -1,8 +1,12 @@
 package com.example.pomodoro.ui.statistics
 
 
+
+
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,11 +16,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,13 +35,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Fill
+import androidx.compose.ui.graphics.vector.VectorProperty
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import co.yml.charts.axis.AxisConfig
+import co.yml.charts.axis.AxisData
+import co.yml.charts.axis.DataCategoryOptions
+import co.yml.charts.common.model.AccessibilityConfig
+import co.yml.charts.common.model.Point
+import co.yml.charts.ui.barchart.BarChart
+import co.yml.charts.ui.barchart.models.BarChartData
+import co.yml.charts.ui.barchart.models.BarChartType
+import co.yml.charts.ui.barchart.models.BarData
+import co.yml.charts.ui.barchart.models.BarStyle
+import co.yml.charts.ui.barchart.models.SelectionHighlightData
+import co.yml.charts.ui.wavechart.model.AxisPosition
 import com.example.pomodoro.R
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
@@ -70,52 +93,160 @@ fun PortraitStatisticsScreen (
 fun PortraitInforNaviCard (
     base: Dp
 ) {
-    Card(
-        modifier = Modifier.padding(16.dp)
-            .fillMaxWidth()
-            .height(base * 0.25f),
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom
-        ){
-            Text("This is the Infor card")
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+        Card(
+            modifier = Modifier.padding(16.dp)
+                .fillMaxWidth()
+                .height(base * 0.25f),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
             ) {
-                Button(
-                    onClick = { /*TODO*/ }
-                ){
-                    Text("Shop")
+                Text("This is the Infor card")
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(Color.Transparent)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.monster1),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(base * 0.1f)
+                        )
+                    }
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(Color.Transparent)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.treemonster),
+                            contentDescription = null,
+                            tint = Color.Unspecified // disables tinting
+                        )
+                    }
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(Color.Transparent)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.spider),
+                            contentDescription = null,
+                            tint = Color.Unspecified
+                        )
+                    }
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(Color.Transparent)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.warrior2),
+                            contentDescription = null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 }
-                Button(
-                    onClick = { /*TODO*/ },
-                    colors = ButtonDefaults.buttonColors(Color.Transparent)
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.storepixel),
-                        contentDescription = null,
-                        tint = Color.Unspecified // disables tinting
+            }
+        }
+        val barData = listOf(
+            BarData(Point(0f, 4f), Color(0xFF4CAF50), "Mon"),
+            BarData(Point(1f, 6f), Color(0xFF2196F3), "Tue"),
+            BarData(Point(2f, 3.5f), Color(0xFFFFC107), "Wed"),
+            BarData(Point(3f, 7f), Color(0xFFF44336), "Thu"),
+            BarData(Point(4f, 5f), Color(0xFF9C27B0), "Fri")
+        )
+
+        // 🔹 X-Axis Configuration
+        val xAxisData = AxisData.Builder()
+            .axisStepSize(60.dp)
+            .steps(barData.size - 1)
+            .labelData { i -> barData[i].label }
+            .axisLabelFontSize(14.sp)
+            .axisLabelColor(Color(0xFF616161))
+            .axisLineColor(Color.Transparent)
+            .axisLabelAngle(0f)
+            .startDrawPadding(20.dp) // 👈 add initial offset for the first bar
+            .build()
+
+        // 🔹 Y-Axis Configuration
+        val yAxisData = AxisData.Builder()
+            .steps(6)
+            .labelData { i -> (i * 2).toString() }
+            .axisLineColor(Color(0xFFE0E0E0))
+            .axisLabelColor(Color(0xFF757575))
+            .axisLabelFontSize(12.sp)
+            .axisLabelAngle(0f)
+            .axisStepSize(40.dp)
+            .build()
+
+        // 🔹 Bar Styling
+        val barStyle = BarStyle(
+            barWidth = 36.dp,                        // slightly wider for better spacing
+            cornerRadius = 10.dp,                    // smoother edges for a modern look
+            paddingBetweenBars = 20.dp,              // consistent breathing room
+            isGradientEnabled = true,                // enables gradient rendering
+            barBlendMode = BlendMode.SrcOver,        // softer blending
+            // solid fill
+            selectionHighlightData = SelectionHighlightData( // highlight when tapped
+                isHighlightBarRequired = true,
+                highlightBarColor = Color(0xFF4CAF50),
+                highlightBarStrokeWidth = 12.dp,
+                highlightBarCornerRadius = 10.dp
+            ),
+
+        )
+
+
+        // 🔹 Bar Chart Data
+        val barChartData = BarChartData(
+            chartData = barData,
+            xAxisData = xAxisData,
+            yAxisData = yAxisData,
+            backgroundColor = Color(0xFFF5F5F5),
+            horizontalExtraSpace = 40.dp,
+            barStyle = barStyle,
+            paddingTop = 24.dp,
+            paddingEnd = 16.dp,
+            tapPadding = 12.dp,
+            showYAxis = true,
+            showXAxis = true,
+            barChartType = BarChartType.VERTICAL,
+
+        )
+
+        // 🔹 Chart Layout
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFF5F5F5))
+                .padding(16.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                shape = RoundedCornerShape(24.dp),
+
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    BarChart(
+                        modifier = Modifier.fillMaxSize(),
+                        barChartData = barChartData
                     )
-                }
-                Button(
-                    onClick = { /*TODO*/ },
-                    colors = ButtonDefaults.buttonColors(Color.Transparent)
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.trophy),
-                        contentDescription = null,
-                        tint = Color.Unspecified
-                    )
-                }
-                Button(
-                    onClick = { /*TODO*/ }
-                ){
-                    Text("Settings")
                 }
             }
         }
@@ -132,6 +263,19 @@ fun PreviewInfo (){
         PortraitInforNaviCard(base = 400.dp)
     }
 }
+data class ChartDataPoint(
+    val value: Float,
+    val description: String,
+    val color: Color
+)
+
+data class DataCategoryOption(
+    val name: String,
+    val color: Color
+)
+
+
+
 
 
 @Composable

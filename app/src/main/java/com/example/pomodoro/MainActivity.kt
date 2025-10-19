@@ -11,6 +11,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -27,6 +28,7 @@ import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
 import com.example.pomodoro.ui.statistics.LineChartScreen
+import com.example.pomodoro.ui.statistics.PortraitInforNaviCard
 import com.example.pomodoro.ui.statistics.PortraitStatisticsScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,9 +46,8 @@ class MainActivity : ComponentActivity() {
                 val viewModelChart: ViewModelChart = hiltViewModel()
                 val monsterViewModel: MonsterViewModel = hiltViewModel()
 
-                PortraitStatisticsScreen(
-                    viewModelChart = viewModelChart,
-                    navHostController = navHostController
+                PortraitInforNaviCard(
+                    base = 400.dp,
                 )
             }
         }
