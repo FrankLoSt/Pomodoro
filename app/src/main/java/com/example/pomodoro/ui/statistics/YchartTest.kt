@@ -599,17 +599,7 @@ fun BarChartMonthDay (
         // 🔹 Y-Axis Configuration
         val yAxisData = AxisData.Builder()
             .steps(5)
-            .labelData { i -> if(yScale >0) (i * yScale).toInt().toString() else {
-                when (i) {
-                    0 -> "0"
-                    1 -> "5"
-                    2 -> "10"
-                    3 -> "15"
-                    4 -> "20"
-                    5 -> "25"
-                    else -> ""
-                }
-            } }
+            .labelData { i -> (i * yScale).toInt().toString() }
             .axisLineColor(Color.Transparent)
             .axisLabelColor(Color(0xFF757575))
             .axisLabelFontSize(12.sp)
@@ -886,18 +876,7 @@ fun BarChartYearMonth(
         // 🔹 Y-Axis Configuration
         val yAxisData = AxisData.Builder()
             .steps(5)
-            .labelData { i -> if(yScale >0) (i * yScale).toInt().toString() else {
-                when (i + 1) {
-                    1 -> "1"
-                    3 -> "3"
-                    5 -> "5"
-                    7 -> "7"
-                    9 -> "9"
-                    12 -> "12"
-                    else -> ""
-                }
-              }
-            }
+            .labelData { i -> (i * yScale).toInt().toString() }
             .axisLineColor(Color.Transparent)
             .axisLabelColor(Color(0xFF757575))
             .axisLabelFontSize(12.sp)

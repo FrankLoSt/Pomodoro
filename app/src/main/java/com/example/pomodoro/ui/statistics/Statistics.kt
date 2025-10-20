@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,6 +60,7 @@ import androidx.compose.ui.graphics.vector.VectorProperty
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -170,7 +172,7 @@ fun PortraitStatisticsScreen (
         BarChartScreen(
             viewModelChart = viewModelChart,
         )
-        MonsterLeaderboard(monsterState.value.top10)
+        MonsterLeaderboard2(monsterState.value.top10)
     }
 }
 
@@ -564,4 +566,104 @@ fun LeaderboardDataRow(rank: Int, data: TopMonsterData) {
 
 
 
+@Composable
+fun MonsterLeaderboard2(monsters: List<TopMonsterData>) {
+    // shared horizontal scroll for header and all rows
+    val horizontalScrollState = rememberScrollState()
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // ---------- 1) Fixed HEADER ----------
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF6F6F6))
+                    .padding(vertical = 8.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // left header (fixed width)
+                Row(modifier = Modifier.width(150.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("#", modifier = Modifier.width(30.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Monster", modifier = Modifier.width(110.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Start)
+                }
+
+                // right header (scrollable horizontally)
+                Row(
+                    modifier = Modifier
+                        .horizontalScroll(horizontalScrollState)
+                        .padding(start = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // column headers - use SAME widths as rows below
+                    Text("Time", modifier = Modifier.width(80.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text("Sessions", modifier = Modifier.width(90.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text("Wins", modifier = Modifier.width(60.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text("Loses", modifier = Modifier.width(60.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text("Win Rate", modifier = Modifier.width(90.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    // add extra columns here if needed (same widths used in rows)
+                }
+            }
+
+            Divider(color = Color.LightGray, thickness = 1.dp)
+
+            // ---------- 2) Body: single LazyColumn (vertical scroll) ----------
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp) // adjust as needed
+            ) {
+                itemsIndexed(monsters) { index, monster ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // LEFT FIXED COLUMNS (scroll vertically WITH the list)
+                        Row(modifier = Modifier.width(150.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("${index + 1}", modifier = Modifier.width(30.dp), textAlign = TextAlign.Center)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                monster.monsterName,
+                                modifier = Modifier.width(110.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Start
+                            )
+                        }
+
+                        // RIGHT COLUMNS (horizontal scroll synchronized with header)
+                        Row(
+                            modifier = Modifier
+                                .horizontalScroll(horizontalScrollState)
+                                .padding(start = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Use same width values as header
+                            Text("${monster.totalTime} M", modifier = Modifier.width(80.dp), textAlign = TextAlign.Center)
+                            Text(monster.totalSessions.toString(), modifier = Modifier.width(90.dp), textAlign = TextAlign.Center)
+                            Text(monster.totalWins.toString(), modifier = Modifier.width(60.dp), textAlign = TextAlign.Center)
+                            Text(monster.totalLoses.toString(), modifier = Modifier.width(60.dp), textAlign = TextAlign.Center)
+                            Text(String.format("%.1f%%", monster.winRate), modifier = Modifier.width(90.dp), textAlign = TextAlign.Center,
+                                color = if (monster.winRate >= 75) Color(0xFF388E3C) else Color(0xFFF57C00))
+                            // match any additional columns as necessary
+                        }
+                    }
+
+                    Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                }
+            }
+        }
+    }
+}
 
