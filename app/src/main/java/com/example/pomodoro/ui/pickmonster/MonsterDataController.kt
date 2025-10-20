@@ -2,6 +2,7 @@ package com.example.pomodoro.ui.pickmonster
 
 
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -14,12 +15,14 @@ import com.example.pomodoro.data.MonsterFightingDao
 import com.example.pomodoro.data.MonsterFightingHourlyFocus
 import com.example.pomodoro.ui.statistics.TopMonsterData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -246,7 +249,7 @@ class MonsterDataControllerImpl @Inject constructor(
     }
 
     override suspend fun getTop10Monsters() {
-        val listTop10 = dao.getTop10Monsters()
+        val listTop10: Flow<List<TopMonsterData>> = dao.getTop10Monsters()
 
         Log.d("ROOM", "getTop10Monsters: $listTop10")
 
@@ -255,10 +258,15 @@ class MonsterDataControllerImpl @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-        val newState = monsterState.value.copy(
-            top10 = topMonstersStateFlow.value
-        )
-        initSetUpStateHolder.updateState(newState)
+
+        scope.launch {
+            topMonstersStateFlow.collect {
+                val newState = monsterState.value.copy(
+                    top10 = it
+                )
+                initSetUpStateHolder.updateState(newState)
+            }
+        }
 
     }
     //call everytime users want to see statics

@@ -1,56 +1,27 @@
-import android.util.Log
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.mutablePreferencesOf
-import androidx.datastore.preferences.core.stringPreferencesKey
-import co.yml.charts.common.model.Point
 import com.example.pomodoro.data.MonsterFightingHourlyFocus
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.Year
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.temporal.WeekFields
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
 
 
-fun main () {
-    val test2 = test.associate {
-        it.hour to it.focusTime
-    }.filterKeys{
-        it.substringBefore("T") == "2025 10 19"
+suspend fun main ()  {
+    var test = MutableStateFlow(0)
+
+    val flowTest = flow{
+        emit(1)
+        delay(1000L)
+        emit(2)
+        delay(1000L)
+        emit(3)
     }
-
-
-    println(test2)
-
-
-    val hourList = List(24) { index -> index }
-    val formatterDay = DateTimeFormatter.ofPattern("dd MM yyyy")
-
-    fun createHourKey(base: String, unit: Int): String {
-        val padded = unit.toString().padStart(2, '0')
-        return "${base}T$padded"
+    flowTest.collect {
+        test.value = it
     }
+    var stateFlow = MutableStateFlow(test.value)
 
-    fun create24HoursKey(
-        dateString: String,
-        hourFocusList: Map<String, Int>
-    ): List<Point> {
-        val chartDataDay = hourList.mapIndexed { index, hour ->
-            val hourKey = createHourKey(dateString, hour)
-            //2025 10 19T03 or 2025 10 19T12
-            Point(index.toFloat(), hourFocusList[hourKey]?.toFloat() ?: 0f)
-        }
-        return chartDataDay
-    }
-
-    val chartDataDay = create24HoursKey("2025 10 19", test2)
-
-    println(chartDataDay)
-
-
+    println(stateFlow)
 }
 
 

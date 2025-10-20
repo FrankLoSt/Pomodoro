@@ -3,6 +3,7 @@ package com.example.pomodoro.ui.statistics
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextPaint
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -101,10 +102,10 @@ fun BarChartDayHour(
             )
         }
 
-        val MIN_VISIBLE_HEIGHT = 0.7f // or 0.3f depending on visual scale
+        val minBarHeight = 0.9f   // or 0.3f depending on visual scale
 
         val adjustedBarData = barData.map{ bar ->
-           val adjustedY =  if(bar.point.y == 0f) MIN_VISIBLE_HEIGHT else bar.point.y
+           val adjustedY =  if(bar.point.y == 0f) minBarHeight else bar.point.y
             bar.copy(point = Point(bar.point.x, adjustedY))
         }
 
@@ -345,10 +346,10 @@ fun BarChartWeekDay(
             )
         }
 
-        val MIN_VISIBLE_HEIGHT = 0.7f // or 0.3f depending on visual scale
+        val minBarHeight = 0.9f  // or 0.3f depending on visual scale
 
         val adjustedBarData = barData.map{ bar ->
-            val adjustedY =  if(bar.point.y == 0f) MIN_VISIBLE_HEIGHT else bar.point.y
+            val adjustedY =  if(bar.point.y == 0f) minBarHeight else bar.point.y
             bar.copy(point = Point(bar.point.x, adjustedY))
         }
 
@@ -468,10 +469,10 @@ fun BarChartWeekDay(
 fun BarChartMonthDay (
     pointsData: List<Point> = listOf(
         Point(1f, 245f),
-        Point(2f, 60f),
-        Point(3f, 30f),
-        Point(4f, 90f),
-        Point(5f, 20f),
+        Point(2f, 0f),
+        Point(3f, 0f),
+        Point(4f, 0f),
+        Point(5f, 0f),
         Point(6f, 75f),
         Point(7f, 150f),
         Point(8f, 165f),
@@ -518,10 +519,10 @@ fun BarChartMonthDay (
             )
         }
 
-        val MIN_VISIBLE_HEIGHT = 0.7f // or 0.3f depending on visual scale
+        val minBarHeight = 0.9f  // or 0.3f depending on visual scale
 
         val adjustedBarData = barData.map{ bar ->
-            val adjustedY =  if(bar.point.y == 0f) MIN_VISIBLE_HEIGHT else bar.point.y
+            val adjustedY =  if(bar.point.y == 0f) minBarHeight else bar.point.y
             bar.copy(point = Point(bar.point.x, adjustedY))
         }
 
@@ -841,10 +842,10 @@ fun BarChartYearMonth(
             )
         }
 
-        val MIN_VISIBLE_HEIGHT = 0.7f // or 0.3f depending on visual scale
+        val minBarHeight = 0.9f   // or 0.3f depending on visual scale
 
         val adjustedBarData = barData.map{ bar ->
-            val adjustedY =  if(bar.point.y == 0f) MIN_VISIBLE_HEIGHT else bar.point.y
+            val adjustedY =  if(bar.point.y == 0f) minBarHeight else bar.point.y
             bar.copy(point = Point(bar.point.x, adjustedY))
         }
 
@@ -886,16 +887,17 @@ fun BarChartYearMonth(
         val yAxisData = AxisData.Builder()
             .steps(5)
             .labelData { i -> if(yScale >0) (i * yScale).toInt().toString() else {
-                when (i) {
-                    0 -> "0"
-                    1 -> "5"
-                    2 -> "10"
-                    3 -> "15"
-                    4 -> "20"
-                    5 -> "25"
+                when (i + 1) {
+                    1 -> "1"
+                    3 -> "3"
+                    5 -> "5"
+                    7 -> "7"
+                    9 -> "9"
+                    12 -> "12"
                     else -> ""
                 }
-            } }
+              }
+            }
             .axisLineColor(Color.Transparent)
             .axisLabelColor(Color(0xFF757575))
             .axisLabelFontSize(12.sp)
@@ -1040,6 +1042,18 @@ fun BarChartYearMonth(
                             .fillMaxSize(),
                         barChartData = barChartData,
                     )
+                    Canvas(
+                        modifier = Modifier
+                            .matchParentSize()
+                    ) {
+                        val yBaseline = size.height * 0.95f // 95% down from top (near bottom)
+                        drawLine(
+                            color = Color.Gray.copy(alpha = 0.6f),
+                            start = Offset(0f, yBaseline),
+                            end = Offset(size.width, yBaseline),
+                            strokeWidth = 2f
+                        )
+                    }
                 }
             }
         }
