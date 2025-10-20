@@ -11,6 +11,8 @@ import androidx.room.RoomDatabase
 import androidx.room.Update
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.pomodoro.ui.statistics.TopMonsterData
+import kotlinx.coroutines.flow.Flow
 
 data class FocusSummary(
     val day: String,
@@ -65,6 +67,18 @@ interface MonsterFightingDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllHourFocusData(data: List<MonsterFightingHourlyFocus>)
 
+    @Query("""
+    SELECT 
+        monsterName,
+        SUM(totalFocusTime) AS totalTime,
+        SUM(totalSessions) AS totalSessions,
+        SUM(sessionsCompleted) AS totalWins,
+        SUM(totalSessions - sessionsCompleted) AS totalLoses
+    FROM MonsterFightingDB
+    GROUP BY monsterName
+    ORDER BY totalTime DESC
+""")
+    fun getTop10Monsters(): Flow<List<TopMonsterData>>
 
 
 

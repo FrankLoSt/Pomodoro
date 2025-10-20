@@ -11,7 +11,6 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -23,11 +22,11 @@ import com.example.pomodoro.ui.countdown.CountDownScreen
 import com.example.pomodoro.ui.countdown.FocusUiState
 import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.ui.countdown.ViewModelCountDown
-import com.example.pomodoro.ui.pickmonster.InitSetUpState
+import com.example.pomodoro.ui.pickmonster.MonsterState
 import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
-import com.example.pomodoro.ui.statistics.LineChartScreen
+
 
 import com.example.pomodoro.ui.statistics.PortraitStatisticsScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
@@ -72,7 +71,7 @@ fun ScreenNavigation (
     focusUiState: FocusUiState = viewModel.focusUiState.collectAsState().value,
     restUiState: RestUiState = viewModel.restUiState.collectAsState().value,
     monsterViewModel: MonsterViewModel = hiltViewModel(),
-    initSetUpState: InitSetUpState = monsterViewModel.initSetUpState.collectAsState().value,
+    monsterState: MonsterState = monsterViewModel.monsterState.collectAsState().value,
     windowSizeClass: WindowSizeClass,
     ) {
     NavHost(
@@ -93,18 +92,20 @@ fun ScreenNavigation (
                     viewModel.startCountDown();
                     navHostController.navigate(EnumScreenClass.COUNTDOWN.name);
                     monsterViewModel.toggleSetUpPopup()
-                    Log.e("DEBUG", "Monster picked : ${initSetUpState.monsterPickedIndex}")
+                    Log.e("DEBUG", "Monster picked : ${monsterState.monsterPickedIndex}")
                              },
-                initSetUpState = initSetUpState,
+                monsterState = monsterState,
                 navHostController = navHostController,
                 updateMonsterPickedIndex = { monsterViewModel.updateMonsterPickedIndex(it) },
-                viewModelChart = viewModelChart
+                viewModelChart = viewModelChart,
+                monsterViewModel = monsterViewModel
             )
         }
         composable(EnumScreenClass.STATISTICS.name) {
             PortraitStatisticsScreen(
                 viewModelChart = viewModelChart,
                 navHostController = navHostController,
+                monsterViewModel = monsterViewModel
             )
         }
         composable(EnumScreenClass.COUNTDOWN.name) {
@@ -116,8 +117,8 @@ fun ScreenNavigation (
                 togglePauseResume = { viewModel.togglePauseResume() },
                 breakFunDialog = { viewModel.breakFunDialog() },
                 windowSizeClass = windowSizeClass,
-                monsterId = initSetUpState.monsterPickedIndex,
-                monsterList = initSetUpState.monsterList,
+                monsterId = monsterState.monsterPickedIndex,
+                monsterList = monsterState.monsterList,
                 onNavigate = { navHostController.navigate(EnumScreenClass.PICKMONSTER.name) },
                 countDownText = viewModel.formatter(if(focusUiState.appPhrase == AppPhase.FOCUSING) focusUiState.duration else if (focusUiState.appPhrase == AppPhase.RESTING) restUiState.restDuration else (focusUiState.initialDuration))
             )

@@ -1,8 +1,9 @@
 package com.example.pomodoro.ui.pickmonster
 
 import com.example.pomodoro.R
+import com.example.pomodoro.ui.statistics.TopMonsterData
 
-data class InitSetUpState(
+data class MonsterState(
     val toggleSetUp: Boolean = false,
     val monsterPickedIndex: Int = 0,
     val monsterList: List<MonsterInfo> = listOf(
@@ -63,5 +64,12 @@ data class InitSetUpState(
         MonsterInfo(R.drawable._19_2, "Uncertainty", "Creates anxiety about the future"),
         MonsterInfo(R.drawable._20_1, "Regret", "Chains you to the past")
     ),
-    val tag: String = "Study"
+    val tag: String = "Study",
+    val top10: List<TopMonsterData> = listOf(
+        TopMonsterData("Focus Fiend", 320, 18, 14, 4),
+        TopMonsterData("Procrastino", 150, 10, 6, 4),
+        TopMonsterData("Grind Goblin", 480, 25, 20, 5),
+        TopMonsterData("Task Titan", 275, 12, 9, 3),
+        TopMonsterData("Study Serpent", 360, 20, 15, 5)
+    )
 )

@@ -13,7 +13,8 @@ class MonsterViewModel @Inject constructor(
     private val monsterDataController: MonsterDataControllerImpl,
 ): ViewModel() {
 
-    val initSetUpState = monsterDataController.initSetUpState
+
+    val monsterState = monsterDataController.monsterState
 
     fun updateMonsterPickedIndex(index: Int) = monsterDataController.updateMonsterPickedIndex(index)
 
@@ -27,6 +28,7 @@ class MonsterViewModel @Inject constructor(
         return screen == EnumScreenClass.PICKMONSTER
     }
 
+    suspend fun getTop10Monsters() = monsterDataController.getTop10Monsters()
 }
 
 

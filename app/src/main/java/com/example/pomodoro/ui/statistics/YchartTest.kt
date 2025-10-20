@@ -7,12 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -21,15 +19,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.nativeCanvas
@@ -48,22 +43,10 @@ import co.yml.charts.ui.barchart.models.BarChartType
 import co.yml.charts.ui.barchart.models.BarData
 import co.yml.charts.ui.barchart.models.BarStyle
 import co.yml.charts.ui.barchart.models.SelectionHighlightData
-import co.yml.charts.ui.linechart.LineChart
-import co.yml.charts.ui.linechart.model.GridLines
-import co.yml.charts.ui.linechart.model.IntersectionPoint
-import co.yml.charts.ui.linechart.model.Line
-import co.yml.charts.ui.linechart.model.LineChartData
-import co.yml.charts.ui.linechart.model.LinePlotData
-import co.yml.charts.ui.linechart.model.LineStyle
-import co.yml.charts.ui.linechart.model.LineType
-import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
-import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
-import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.pomodoro.ui.pickmonster.FontSize
 import com.example.pomodoro.ui.pickmonster.LocalFontSize
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.theme.PomodoroTheme
-import kotlin.math.ceil
 
 
 @Composable
@@ -819,129 +802,7 @@ fun MonthPreview () {
 
 
 
-@Composable
-fun ChartYearMonth(
-    pointsData: List<Point> =  listOf(
-        Point(1f, 45f),
-        Point(2f, 60f),
-        Point(3f, 30f),
-        Point(4f, 90f),
-        Point(5f, 20f),
-        Point(6f, 75f),
-        Point(7f, 50f),
-        Point(8f, 65f),
-        Point(9f, 80f),
-        Point(10f, 40f),
-        Point(11f, 55f),
-        Point(12f, 70f)
-        //Point(31f, 700f)
-    )
-) {
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        val chartWidth = maxWidth
-        val stepCount = pointsData.size - 1
-        val dynamicStepSize = chartWidth / stepCount
-        val steps = 5
 
-        val pointsData = pointsData
-
-        val xAxisData = AxisData.Builder()
-            .axisStepSize(dynamicStepSize)
-            .backgroundColor(Color.Transparent)
-            .steps(stepCount)
-            .startPadding(25.dp)
-            .labelData { i ->
-                when (i + 1) {
-                    1 -> "   1"
-                    2 -> "2"
-                    3 -> "3"
-                    4 -> "4"
-                    5 -> "5"
-                    6 -> "6"
-                    7 -> "7"
-                    8 -> "8"
-                    9 -> "9"
-                    10 -> "10"
-                    11 -> "11"
-                    12 -> "12"
-                    else -> ""
-                }
-            }
-            .labelAndAxisLinePadding(12.dp)
-            .axisLineColor(MaterialTheme.colorScheme.tertiary)
-            .axisLabelColor(MaterialTheme.colorScheme.tertiary)
-            .build()
-
-        val yMax = pointsData.maxOf { it.y }
-        val yScale = yMax / steps
-
-        val yAxisData = AxisData.Builder()
-            .axisStepSize(100.dp)
-            .steps(5)
-            .backgroundColor(Color.Transparent)
-            .labelData { i -> (i * yScale).toInt().toString() }
-            .labelAndAxisLinePadding(35.dp)
-            .axisLineColor(Color.Transparent)
-            .axisLabelColor(MaterialTheme.colorScheme.tertiary)
-
-            .build()
-
-        val lineChartData = LineChartData(
-            linePlotData = LinePlotData(
-                lines = listOf(
-                    Line(
-                        dataPoints = pointsData,
-                        LineStyle(
-                            color = MaterialTheme.colorScheme.tertiary,
-                            lineType = LineType.SmoothCurve(isDotted = false)
-                        ),
-                        IntersectionPoint(
-                            color = MaterialTheme.colorScheme.tertiary,
-                            radius = 3.dp
-                        ),
-                        SelectionHighlightPoint(
-                            color = MaterialTheme.colorScheme.tertiary,
-                        ),
-                        ShadowUnderLine(
-                            alpha = 0.5f,
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.tertiary,
-                                    Color.Transparent
-                                )
-                            )
-                        ),
-                        SelectionHighlightPopUp()
-                    )
-                ),
-            ),
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            xAxisData = xAxisData,
-            yAxisData = yAxisData,
-            gridLines = GridLines(
-                color = Color.LightGray,
-                lineWidth = 1.dp,
-                enableHorizontalLines = true,
-                enableVerticalLines = false,
-            )
-        )
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clipToBounds(), // prevents overflow
-            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
-        ) {
-            LineChart(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(300.dp, 400.dp),
-                lineChartData = lineChartData,
-            )
-        }
-    }
-}
 
 
 @Composable

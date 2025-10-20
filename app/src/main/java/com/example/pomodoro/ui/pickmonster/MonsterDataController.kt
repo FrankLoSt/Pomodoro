@@ -7,17 +7,19 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.room.withTransaction
-import co.yml.charts.common.model.Point
 import com.example.pomodoro.R
 import com.example.pomodoro.data.AppDatabase
 import com.example.pomodoro.data.MonsterFightingDB
 import com.example.pomodoro.data.MonsterFightingDao
 import com.example.pomodoro.data.MonsterFightingHourlyFocus
+import com.example.pomodoro.ui.statistics.TopMonsterData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -53,6 +55,7 @@ interface MonsterDataController {
 
     suspend fun getHourFocusData(): List<MonsterFightingHourlyFocus>
 
+    suspend fun getTop10Monsters()
 
 
     fun updateMonsterPickedIndex(index: Int)
@@ -62,12 +65,10 @@ interface MonsterDataController {
 
 
 class InitSetUpStateHolder {
-    private val _initSetUpState = MutableStateFlow(InitSetUpState())
-    val initSetUpState: StateFlow<InitSetUpState> = _initSetUpState
+    private val _monsterState = MutableStateFlow(MonsterState())
+    val monsterState: StateFlow<MonsterState> = _monsterState.asStateFlow()
 
-    fun updateState(newState: InitSetUpState) {
-        _initSetUpState.value = newState
-    }
+    fun updateState(newState: MonsterState) { _monsterState.value = newState }
 }
 
 
@@ -81,7 +82,7 @@ class MonsterDataControllerImpl @Inject constructor(
     private val initSetUpStateHolder: InitSetUpStateHolder
 ): MonsterDataController {
 
-    val initSetUpState = initSetUpStateHolder.initSetUpState
+    val monsterState = initSetUpStateHolder.monsterState
 
     @Inject lateinit var db: AppDatabase
     suspend fun migrateData(listData: List<MonsterFightingHourlyFocus>) {
@@ -155,7 +156,7 @@ class MonsterDataControllerImpl @Inject constructor(
 
 
     override fun updateMonsterPickedIndex(index: Int) {
-        val newState = initSetUpState.value.copy(monsterPickedIndex = index)
+        val newState = monsterState.value.copy(monsterPickedIndex = index)
         initSetUpStateHolder.updateState(newState)
         Log.d("ROOM", "updateMonsterPickedIndex: $index")
     }
@@ -164,8 +165,8 @@ class MonsterDataControllerImpl @Inject constructor(
 
     fun toggleSetUpPopup() {
         initSetUpStateHolder.updateState(
-            initSetUpState.value.copy(
-                toggleSetUp =  !initSetUpState.value.toggleSetUp
+            monsterState.value.copy(
+                toggleSetUp =  !monsterState.value.toggleSetUp
             )
         )
     }
@@ -244,9 +245,24 @@ class MonsterDataControllerImpl @Inject constructor(
         } //delete every trace of hour focus data in dataStore.
     }
 
+    override suspend fun getTop10Monsters() {
+        val listTop10 = dao.getTop10Monsters()
 
+        Log.d("ROOM", "getTop10Monsters: $listTop10")
 
+        val topMonstersStateFlow = listTop10.stateIn(
+            scope = scope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+        val newState = monsterState.value.copy(
+            top10 = topMonstersStateFlow.value
+        )
+        initSetUpStateHolder.updateState(newState)
+
+    }
     //call everytime users want to see statics
+
 
 
     override suspend fun getLatestById(): MonsterFightingDB? {

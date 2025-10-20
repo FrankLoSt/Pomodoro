@@ -2,14 +2,11 @@ package com.example.pomodoro.data
 
 // --- PomodoroController.kt ---
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import com.example.pomodoro.data.datastore.SettingsRepository
-import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
 import com.example.pomodoro.ui.countdown.AppPhase
 import com.example.pomodoro.ui.countdown.FocusUiState
 import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.ui.countdown.TimerState
-import com.example.pomodoro.ui.pickmonster.InitSetUpState
 import com.example.pomodoro.ui.pickmonster.InitSetUpStateHolder
 import com.example.pomodoro.ui.pickmonster.MonsterDataController
 
@@ -90,7 +87,7 @@ class PomodoroControllerImpl @Inject constructor(
 
         if( monsterDataController.getLatestById() == null) {
             val newRow = MonsterFightingDB(
-                monsterName = initSetUpState.initSetUpState.value.monsterList[initSetUpState.initSetUpState.value.monsterPickedIndex].name,
+                monsterName = initSetUpState.monsterState.value.monsterList[initSetUpState.monsterState.value.monsterPickedIndex].name,
                 totalSessions = focusUiState.value.totalSessions,
                 timestampStart = System.currentTimeMillis(),
             )
@@ -128,7 +125,6 @@ class PomodoroControllerImpl @Inject constructor(
                         monsterDataController.updateMonsterFightData(updated)
                         Log.d("ROOM", "updateMonsterFightData: called")
                     }
-
                 }
             }
             //only save when isPause = false, app is running and users are studying
@@ -213,7 +209,7 @@ class PomodoroControllerImpl @Inject constructor(
 
         //Every time users press Start -> create a rew ROW
         val newRow = MonsterFightingDB(
-            monsterName = initSetUpState.initSetUpState.value.monsterList[initSetUpState.initSetUpState.value.monsterPickedIndex].name,
+            monsterName = initSetUpState.monsterState.value.monsterList[initSetUpState.monsterState.value.monsterPickedIndex].name,
             totalSessions = focusUiState.value.totalSessions,
             timestampStart = System.currentTimeMillis(),
         )
@@ -253,6 +249,8 @@ class PomodoroControllerImpl @Inject constructor(
 
             _focusUiState.update { it.copy(appPhrase = AppPhase.FINISHED) } // if appPhase == FINISHED ->
             Log.d("DEBUG", "start: start() ends")
+
+            monsterDataController.getTop10Monsters()
         }
     }
 
@@ -297,7 +295,8 @@ class PomodoroControllerImpl @Inject constructor(
                 monsterDataController.updateMonsterFightData(update)
             }
             monsterDataController.migrateHourFocusData()
-            Log.d("ROOM", "latest Row = ${monsterDataController.getLatestById()}")
+
+            monsterDataController.getTop10Monsters()
         }
         //Update
     }

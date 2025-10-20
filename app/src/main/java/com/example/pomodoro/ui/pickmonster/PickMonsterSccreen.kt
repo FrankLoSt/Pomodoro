@@ -7,8 +7,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,7 +52,6 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,16 +75,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.pomodoro.R
-import com.example.pomodoro.ScreenNavigation
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
 
 import com.example.pomodoro.ui.ScreenShape
-import com.example.pomodoro.ui.countdown.DropDownPortrait
 import com.example.pomodoro.ui.countdown.SetUpDialog
 import com.example.pomodoro.ui.detectScreenShape
 import com.example.pomodoro.ui.statistics.ViewModelChart
@@ -168,6 +161,7 @@ fun Drawer (
     scope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState,
     drawerContent: @Composable () -> Unit,
+    monsterViewModel: MonsterViewModel
 ) {
 
     val windowSize = LocalWindowInfo.current.containerSize
@@ -201,6 +195,7 @@ fun Drawer (
                         scope.launch {
                             drawerState.close()
                             viewModelChart.generateChart(ViewMode.Day)
+                            monsterViewModel.getTop10Monsters()
                         }
                     }
                 )
@@ -299,10 +294,11 @@ fun PickMonsterScreen (
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
-    initSetUpState: InitSetUpState,
+    monsterState: MonsterState,
     navHostController: NavHostController,
     updateMonsterPickedIndex: (Int) -> Unit,
-    viewModelChart: ViewModelChart
+    viewModelChart: ViewModelChart,
+    monsterViewModel: MonsterViewModel
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -340,11 +336,12 @@ fun PickMonsterScreen (
                     listRestDuration = listRestDuration,
                     listSessions = listSessions,
                     confirmBut = confirmBut,
-                    initSetUpState = initSetUpState,
+                    monsterState = monsterState,
                     updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
                 )
             },
+            monsterViewModel = monsterViewModel
         )
 
         is ScreenShape.PhoneLandscape -> RightSideDrawer(
@@ -375,9 +372,8 @@ fun PickMonsterScreen (
                             navHostController.navigate(EnumScreenClass.STATISTICS.name)
                             scope.launch {
                                 showDrawer = false
-
                                 viewModelChart.generateChart(ViewMode.Day)
-
+                                monsterViewModel.getTop10Monsters()
                             }
                         }
                     )
@@ -414,7 +410,7 @@ fun PickMonsterScreen (
                         listRestDuration = listRestDuration,
                         listSessions = listSessions,
                         confirmBut = confirmBut,
-                        initSetUpState = initSetUpState,
+                        monsterState = monsterState,
                         updateMonsterPickedIndex = updateMonsterPickedIndex,
                         windowSizeClass = windowSizeClass,
                     )
@@ -457,11 +453,12 @@ fun PickMonsterScreen (
                     listRestDuration = listRestDuration,
                     listSessions = listSessions,
                     confirmBut = confirmBut,
-                    initSetUpState = initSetUpState,
+                    monsterState = monsterState,
                     updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
                 )
-            }
+            },
+            monsterViewModel = monsterViewModel
         )
 
         is ScreenShape.TabletLandscape -> RightSideDrawer(
@@ -490,6 +487,7 @@ fun PickMonsterScreen (
                             scope.launch {
                                 drawerState.close()
                                 viewModelChart.generateChart(ViewMode.Day)
+                                monsterViewModel.getTop10Monsters()
                             }
                         }
                     )
@@ -521,7 +519,7 @@ fun PickMonsterScreen (
                     listRestDuration = listRestDuration,
                     listSessions = listSessions,
                     confirmBut = confirmBut,
-                    initSetUpState = initSetUpState,
+                    monsterState = monsterState,
                     updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
                 )
@@ -554,11 +552,11 @@ fun DashBoardPhonePortrait (
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
-    initSetUpState: InitSetUpState,
+    monsterState: MonsterState,
     updateMonsterPickedIndex: (Int) -> Unit = {},
     windowSizeClass: WindowSizeClass? = null
 ) {
-    val monsterPickedIndex = initSetUpState.monsterPickedIndex
+    val monsterPickedIndex = monsterState.monsterPickedIndex
 
     val spacing = LocalSpacing.current
     val fontSize = LocalFontSize.current
@@ -566,7 +564,7 @@ fun DashBoardPhonePortrait (
     Modifier.padding(horizontal = spacing.medium)
     Modifier.padding(vertical = spacing.large)
 
-    val monsterList: List<MonsterInfo> = initSetUpState.monsterList
+    val monsterList: List<MonsterInfo> = monsterState.monsterList
 
     BoxWithConstraints {
         val maxHeight = this.maxHeight
@@ -589,7 +587,7 @@ fun DashBoardPhonePortrait (
             fontSize = fontSize.large,
             toggleSetUpPopup = toggleSetUpPopup
         )
-        if (initSetUpState.toggleSetUp) {
+        if (monsterState.toggleSetUp) {
             SetUpDialog(
                 fightToggleDialog = toggleSetUpPopup,
                 setDurationMinutes = setDurationMinutes,
@@ -766,7 +764,7 @@ fun PortraitPickMonster (
 @Composable
 fun DashBoardPhoneLandScape(
     modifier: Modifier = Modifier,
-    initSetUpState: InitSetUpState,
+    monsterState: MonsterState,
     updateMonsterPickedIndex: (Int) -> Unit = {},
     windowSizeClass: WindowSizeClass?,
     setDurationMinutes: (Int) -> Unit = {},
@@ -781,9 +779,9 @@ fun DashBoardPhoneLandScape(
     val spacing: Spacing = LocalSpacing.current
     val fontSize: FontSize = LocalFontSize.current
 
-    val monsterPickedIndex = initSetUpState.monsterPickedIndex
+    val monsterPickedIndex = monsterState.monsterPickedIndex
 
-    val monsterList: List<MonsterInfo> = initSetUpState.monsterList
+    val monsterList: List<MonsterInfo> = monsterState.monsterList
 
     BoxWithConstraints(
         modifier = Modifier
@@ -818,7 +816,7 @@ fun DashBoardPhoneLandScape(
                 toggleSetUpPopup = toggleSetUpPopup
             )
         }
-        if (initSetUpState.toggleSetUp) {
+        if (monsterState.toggleSetUp) {
             SetUpDialog(
                 fightToggleDialog = toggleSetUpPopup,
                 setDurationMinutes = setDurationMinutes,
@@ -1580,7 +1578,7 @@ fun adaptiveFontSize(): TextUnit {
 fun PreviewPhonePortrait () {
     MyAppTheme {
         DashBoardPhonePortrait(
-            initSetUpState = InitSetUpState())
+            monsterState = MonsterState())
     }
 }
 
@@ -1590,7 +1588,7 @@ fun PreviewPhonePortrait () {
 fun PreviewPhoneLandscape () {
     MyAppTheme {
         DashBoardPhoneLandScape(
-            initSetUpState = InitSetUpState(),
+            monsterState = MonsterState(),
             windowSizeClass = null
         )
     }
@@ -1603,7 +1601,7 @@ fun PreviewPhoneLandscape () {
 fun PreviewPortraitTablet () {
     MyAppTheme {
         DashBoardPhonePortrait(
-            initSetUpState = InitSetUpState(),
+            monsterState = MonsterState(),
         )
     }
 }
@@ -1613,7 +1611,7 @@ fun PreviewPortraitTablet () {
 fun PreviewLandscapeTablet () {
     MyAppTheme {
         DashBoardPhoneLandScape(
-            initSetUpState = InitSetUpState(),
+            monsterState = MonsterState(),
             windowSizeClass = null
         )
     }
