@@ -320,7 +320,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
        // val monsterHourFocusData = monsterDataControllerImpl.getHourFocusData()
 
 
-
         val totalFocusOfADay = monsterDataControllerImpl.getHourFocusData().groupBy {
             obj ->
             obj.hour.substringBefore("T")
@@ -479,36 +478,6 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
                         }
                     }
 
-                /*
-                val duration: Duration = measureTime {
-                    // Your code here
-                    val chartDataWeekDays: Map<String, List<Point>> = buildMap {
-                        listDays.map { it.get(weekOfYearField) }
-                            .toSet()
-                            .forEach { weekNumber ->
-                                val firstWeekDate =
-                                    firstDayOfYear.with(weekOfYearField, weekNumber.toLong())
-                                //create a random date in a certain week, based on the given rule
-
-                                val startOfWeek = firstWeekDate.with(dayOfWeekField, 1) // Monday
-                                //from that, find the first day of the week based on the given week rule
-
-                                val datesInWeek: List<String> = (1..7).map {
-                                    startOfWeek.plusDays(it.toLong()).format(formatterDay)
-                                }
-
-
-                                put(weekNumber.toString(), datesInWeek)
-                            }//this returns Map<String, List<String>>
-                    }.mapValues { entry ->
-                        entry.value.mapIndexed { index, date ->
-                            Point(index.toFloat(), totalFocusOfADay[date]?.toFloat() ?: 0f)
-                        }
-                    }//transform string -> DataPoint
-                }
-
-                Log.d("DEBUG", "generateChart - chartDataWeekDays duration : $duration")
-                */  // ~3ms
 
 
                 updateChartState(chartDataWeekDays = chartDataWeekDays)

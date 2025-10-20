@@ -28,7 +28,7 @@ import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
 import com.example.pomodoro.ui.statistics.LineChartScreen
-import com.example.pomodoro.ui.statistics.PortraitInforNaviCard
+
 import com.example.pomodoro.ui.statistics.PortraitStatisticsScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,9 +45,11 @@ class MainActivity : ComponentActivity() {
                 val navHostController = rememberNavController()
                 val viewModelChart: ViewModelChart = hiltViewModel()
                 val monsterViewModel: MonsterViewModel = hiltViewModel()
-
-                PortraitInforNaviCard(
-                    base = 400.dp,
+                ScreenNavigation(
+                    navHostController = navHostController,
+                    monsterViewModel = monsterViewModel,
+                    viewModelChart = viewModelChart,
+                    windowSizeClass = windowSizeClass
                 )
             }
         }
@@ -100,7 +102,7 @@ fun ScreenNavigation (
             )
         }
         composable(EnumScreenClass.STATISTICS.name) {
-            LineChartScreen(
+            PortraitStatisticsScreen(
                 viewModelChart = viewModelChart,
                 navHostController = navHostController,
             )

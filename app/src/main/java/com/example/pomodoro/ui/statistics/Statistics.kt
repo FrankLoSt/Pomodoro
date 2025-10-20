@@ -5,6 +5,8 @@ package com.example.pomodoro.ui.statistics
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -67,7 +69,7 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun PortraitStatisticsScreen (
+fun Xbe (
     viewModelChart: ViewModelChart,
     navHostController: NavHostController
 ) {
@@ -79,177 +81,67 @@ fun PortraitStatisticsScreen (
 
         val base = maxOf(maxWidth, maxHeight)
 
-        Column() {
-            PortraitInforNaviCard(base)
-            LineChartScreen(
-                viewModelChart = viewModelChart,
-                navHostController = navHostController
-            )
+        Column(
+            modifier = Modifier.fillMaxSize().scrollable(rememberScrollState(), orientation = Orientation.Vertical),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
         }
     }
 }
 
 @Composable
-fun PortraitInforNaviCard (
-    base: Dp
+fun PortraitStatisticsScreen (
+    viewModelChart: ViewModelChart,
+    navHostController: NavHostController,
+
 ) {
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().verticalScroll(
+            rememberScrollState()
+        )
     ) {
         Card(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
                 .fillMaxWidth()
-                .height(base * 0.25f),
+                .height(300.dp)
         ) {
-            Column(
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
-            ) {
+                contentAlignment = Alignment.Center
+            ){
+
                 Text("This is the Infor card")
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).align(Alignment.BottomCenter),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
                         onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(Color.Transparent)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.monster1),
-                            contentDescription = null,
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(base * 0.1f)
-                        )
-                    }
+
+                    ) { Text("Button1") }
                     Button(
                         onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(Color.Transparent)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.treemonster),
-                            contentDescription = null,
-                            tint = Color.Unspecified // disables tinting
-                        )
-                    }
+
+                    ) {  Text("Button2")}
                     Button(
                         onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(Color.Transparent)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.spider),
-                            contentDescription = null,
-                            tint = Color.Unspecified
-                        )
-                    }
+
+                    ) { Text("Button3") }
                     Button(
                         onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(Color.Transparent)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.warrior2),
-                            contentDescription = null,
-                            tint = Color.Unspecified
-                        )
-                    }
+
+                    ) { Text("Button4") }
                 }
             }
         }
-        val barData = listOf(
-            BarData(Point(0f, 4f), Color(0xFF4CAF50), "Mon"),
-            BarData(Point(1f, 6f), Color(0xFF2196F3), "Tue"),
-            BarData(Point(2f, 3.5f), Color(0xFFFFC107), "Wed"),
-            BarData(Point(3f, 7f), Color(0xFFF44336), "Thu"),
-            BarData(Point(4f, 5f), Color(0xFF9C27B0), "Fri")
+        LineChartScreen(
+            viewModelChart = viewModelChart,
+            navHostController = navHostController
         )
-
-        // 🔹 X-Axis Configuration
-        val xAxisData = AxisData.Builder()
-            .axisStepSize(60.dp)
-            .steps(barData.size - 1)
-            .labelData { i -> barData[i].label }
-            .axisLabelFontSize(14.sp)
-            .axisLabelColor(Color(0xFF616161))
-            .axisLineColor(Color.Transparent)
-            .axisLabelAngle(0f)
-            .startDrawPadding(20.dp) // 👈 add initial offset for the first bar
-            .build()
-
-        // 🔹 Y-Axis Configuration
-        val yAxisData = AxisData.Builder()
-            .steps(6)
-            .labelData { i -> (i * 2).toString() }
-            .axisLineColor(Color(0xFFE0E0E0))
-            .axisLabelColor(Color(0xFF757575))
-            .axisLabelFontSize(12.sp)
-            .axisLabelAngle(0f)
-            .axisStepSize(40.dp)
-            .build()
-
-        // 🔹 Bar Styling
-        val barStyle = BarStyle(
-            barWidth = 36.dp,                        // slightly wider for better spacing
-            cornerRadius = 10.dp,                    // smoother edges for a modern look
-            paddingBetweenBars = 20.dp,              // consistent breathing room
-            isGradientEnabled = true,                // enables gradient rendering
-            barBlendMode = BlendMode.SrcOver,        // softer blending
-            // solid fill
-            selectionHighlightData = SelectionHighlightData( // highlight when tapped
-                isHighlightBarRequired = true,
-                highlightBarColor = Color(0xFF4CAF50),
-                highlightBarStrokeWidth = 12.dp,
-                highlightBarCornerRadius = 10.dp
-            ),
-
-        )
-
-
-        // 🔹 Bar Chart Data
-        val barChartData = BarChartData(
-            chartData = barData,
-            xAxisData = xAxisData,
-            yAxisData = yAxisData,
-            backgroundColor = Color(0xFFF5F5F5),
-            horizontalExtraSpace = 40.dp,
-            barStyle = barStyle,
-            paddingTop = 24.dp,
-            paddingEnd = 16.dp,
-            tapPadding = 12.dp,
-            showYAxis = true,
-            showXAxis = true,
-            barChartType = BarChartType.VERTICAL,
-
-        )
-
-        // 🔹 Chart Layout
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF5F5F5))
-                .padding(16.dp)
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                shape = RoundedCornerShape(24.dp),
-
-                elevation = CardDefaults.cardElevation(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    BarChart(
-                        modifier = Modifier.fillMaxSize(),
-                        barChartData = barChartData
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -260,19 +152,10 @@ fun PortraitInforNaviCard (
 @Composable
 fun PreviewInfo (){
     MyAppTheme {
-        PortraitInforNaviCard(base = 400.dp)
+
     }
 }
-data class ChartDataPoint(
-    val value: Float,
-    val description: String,
-    val color: Color
-)
 
-data class DataCategoryOption(
-    val name: String,
-    val color: Color
-)
 
 
 
@@ -304,10 +187,7 @@ fun LineChartScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(
-                rememberScrollState()
-            ),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -346,7 +226,6 @@ fun LineChartScreen(
                 colors = ButtonDefaults.buttonColors(colorYear),
 
             ) { Text("Year") }
-
         } //ViewMode
 
 
@@ -366,7 +245,7 @@ fun LineChartScreen(
                     viewMode = ViewMode.Month,
                     chartUpdate = chartUpdate
                 )
-                ChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
+                BarChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
 
             }
             ViewMode.Week -> {
@@ -383,7 +262,7 @@ fun LineChartScreen(
                     viewMode = ViewMode.Week,
                     chartUpdate = chartUpdate
                 )
-                ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
+                BarChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
             }
             ViewMode.Day -> {
                 colorDay = Color.Red
@@ -399,7 +278,7 @@ fun LineChartScreen(
                     viewMode = ViewMode.Day,
                     chartUpdate = chartUpdate
                 )
-                ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
+                BarChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
             }
             ViewMode.Year -> {
                 colorYear = Color.Red
@@ -415,15 +294,13 @@ fun LineChartScreen(
                     viewMode = ViewMode.Year,
                     chartUpdate = chartUpdate
                 )
-                ChartYearMonth(pointsData = chartUpdate.yearMonthDataPoints)
+                BarChartYearMonth(pointsData = chartUpdate.yearMonthDataPoints)
             }
         }
 
         Button(
             onClick = { navHostController.navigate(EnumScreenClass.PICKMONSTER.name) }
-        ) {
-            Text("Back")
-        }
+        ) { Text("Back") }
     }
 }
 
@@ -515,7 +392,7 @@ fun LandscapeLineChartScreen(
                     viewMode = ViewMode.Month,
                     chartUpdate = chartUpdate
                 )
-                ChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
+                BarChartMonthDay(pointsData = chartUpdate.monthDayDataPoints)
 
             }
             ViewMode.Week -> {
@@ -532,7 +409,7 @@ fun LandscapeLineChartScreen(
                     viewMode = ViewMode.Week,
                     chartUpdate = chartUpdate
                 )
-                ChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
+                BarChartWeekDay(pointsData = chartUpdate.weekDayDataPoints)
             }
             ViewMode.Day -> {
                 colorDay = Color.Red
@@ -548,7 +425,7 @@ fun LandscapeLineChartScreen(
                     viewMode = ViewMode.Day,
                     chartUpdate = chartUpdate
                 )
-                ChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
+                BarChartDayHour(pointsData = chartUpdate.dateHourDataPoint)
             }
             ViewMode.Year -> {
                 colorYear = Color.Red
