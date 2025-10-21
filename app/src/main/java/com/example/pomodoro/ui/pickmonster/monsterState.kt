@@ -89,3 +89,30 @@ data class MonsterState(
 data class FocusedHour(val hourOnly: String, val  avgTime: Int)
 data class FocusedDay(val dayOfWeek: String, val avgTime: Int)
 data class FocusedDayOfMonth(val dayOfMonth: Int, val avgTime: Int)
+
+
+data class SkillInfo(
+    val skillName: String,
+    val skillDescription: String,
+    val skillImage: Int,
+    val isFavorite: Boolean = false
+)
+
+data class WeaponInfo(
+    val weaponName: String,
+    val weaponDescription: String,
+    val weaponImage: Int,
+    val isFavorite: Boolean = false
+)
+
+data class MonsterInfo (
+    val imageId: Int,
+    val name: String,
+    val description: String,
+    val isFavorite: Boolean = false
+)
+
+data class Tags (
+    val tag: String,
+    val color: String
+)

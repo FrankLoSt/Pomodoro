@@ -14,10 +14,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.pomodoro.ui.pickmonster.FocusedDay
 import com.example.pomodoro.ui.pickmonster.FocusedDayOfMonth
 import com.example.pomodoro.ui.pickmonster.FocusedHour
+import com.example.pomodoro.ui.pickmonster.MonsterInfo
+import com.example.pomodoro.ui.pickmonster.SkillInfo
+import com.example.pomodoro.ui.pickmonster.WeaponInfo
 import com.example.pomodoro.ui.statistics.TopMonsterData
 import kotlinx.coroutines.flow.Flow
 
-
+//store users focus data used for report
 @Entity
 data class MonsterFightingDB (
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
@@ -32,8 +35,43 @@ data class MonsterFightingDB (
     val tag: String = "Study"
     )
 
+//store user focus data by hour unit -> used for chart
+@Entity
+data class MonsterFightingHourlyFocus (
+    @PrimaryKey() val date: String = "2025 18 10T16",
+    val focusTime: Int = 0,
+    val dayOfWeek: String = "Monday",
+    val dayOfMonth: Int = 1,
+)
+
+
+
+//store users' monster items
+
+@Entity(indices = [androidx.room.Index(value = ["itemType", "itemName"], unique = true)])
+data class MonsterItemsStorage(
+    @PrimaryKey (autoGenerate = true) val id: Int = 0,
+    val itemType: String,
+    val itemName: String,
+    val itemDescription: String,
+    val itemImage: Int,
+    val isFavorite: Boolean = false,
+)
+
+@Entity
+data class ROOMTags (
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val tag: String,
+    val color: String,
+)
+
+
+
+
+//this will do all sorts of things with users' focus data.
 @Dao
 interface MonsterFightingDao {
+    // ------------------------------MonsterFightingDb -------------------------------
     @Query("SELECT * FROM MonsterFightingDB")
     suspend fun getAllMonsterFightData(): List<MonsterFightingDB>
 
@@ -43,17 +81,6 @@ interface MonsterFightingDao {
 
     @Query("SELECT SUM(totalFocusTime) FROM monsterfightingdb WHERE timestampStart BETWEEN :startDate AND :endDate" )
     suspend fun getSumOfFocusTime(startDate: Long, endDate: Long): Int
-
-
-
-    @Query("UPDATE MonsterFightingHourlyFocus SET focusTime = focusTime + :duration WHERE date = :date")
-    suspend fun updateHourFocusTime(date: String, duration: Int)
-
-
-
-    @Query("SELECT * FROM MonsterFightingHourlyFocus ORDER BY date DESC LIMIT 1")
-    suspend fun getLatestHourById(): MonsterFightingHourlyFocus?
-
 
     @Query("""
     SELECT
@@ -67,6 +94,22 @@ interface MonsterFightingDao {
     ORDER BY totalTime DESC
 """)
     fun getTop10Monsters(): Flow<List<TopMonsterData>>
+
+    @Update
+    suspend fun updateMonsterFightData(monsterFightingDB: MonsterFightingDB)
+
+    @Insert
+    suspend fun insertMonsterFightData(monsterFightingDB: MonsterFightingDB)
+
+
+
+
+    // --------------------------MonsterFightingHourlyFocus-----------------------------
+
+    @Query("SELECT * FROM MonsterFightingHourlyFocus ORDER BY date DESC LIMIT 1")
+    suspend fun getLatestHourById(): MonsterFightingHourlyFocus?
+
+
 
 
 
@@ -91,6 +134,8 @@ interface MonsterFightingDao {
     fun getMostFocusedHour(): Flow<FocusedHour>
 
 
+    @Query("UPDATE MonsterFightingHourlyFocus SET focusTime = focusTime + :duration WHERE date = :date")
+    suspend fun updateHourFocusTime(date: String, duration: Int)
 
     @Query("""
         SELECT
@@ -143,38 +188,56 @@ interface MonsterFightingDao {
     fun getLeastFocusedDayOfMonth(): Flow<FocusedDayOfMonth>
 
 
-
-    @Update
-    suspend fun updateMonsterFightData(monsterFightingDB: MonsterFightingDB)
-
-    @Insert
-    suspend fun insertMonsterFightData(monsterFightingDB: MonsterFightingDB)
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllHourFocusData(data: List<MonsterFightingHourlyFocus>)
 }
 
 
-@Entity
-data class MonsterFightingHourlyFocus (
-    @PrimaryKey() val date: String = "2025 18 10T16",
-    val focusTime: Int = 0,
-    val dayOfWeek: String = "Monday",
-    val dayOfMonth: Int = 1,
-)
+//this will do all sorts of things with monster Item
+@Dao
+interface MonsterItemsDao {
+
+    @Query("SELECT * FROM MonsterItemsStorage")
+    suspend fun getAllItems(): List<MonsterItemsStorage>
+
+}
 
 
-@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class], version = 4)
+
+@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class, MonsterItemsStorage::class, ROOMTags::class], version = 5)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun monsterFightingDao(): MonsterFightingDao
+
+    abstract fun monsterItemsDao(): MonsterItemsDao
+
 
     companion object {
         //be careful, you need to save data before you change something. This is a hidden bom, not careful -> you screw things up
-        val MIGRATION_3_4 = object : Migration(3, 4) {
+        val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE MonsterFightingHourlyFocus RENAME hour to date")
-                db.execSQL("ALTER TABLE MonsterFightingHourlyFocus ADD COLUMN dayOfWeek TEXT NOT NULL DEFAULT 'Monday'")
-                db.execSQL("ALTER TABLE MonsterFightingHourlyFocus ADD COLUMN dayOfMonth INTEGER NOT NULL DEFAULT '1'")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS MonsterItemsStorage(
+                          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                          itemType TEXT NOT NULL, 
+                          itemName TEXT NOT NULL, 
+                          itemDescription TEXT NOT NULL, 
+                          itemImage INTEGER NOT NULL, 
+                          isFavorite INTEGER NOT NULL DEFAULT  0
+                    )
+                """.trimIndent())
+
+                db.execSQL("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS index_MonsterItemsStorage_itemType_itemName ON MonsterItemsStorage (itemType, itemName)
+                """.trimIndent())
+
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS ROOMTags(
+                          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                          tag TEXT NOT NULL, 
+                          color TEXT NOT NULL
+                    )
+                """.trimIndent())
             }
         }
     }

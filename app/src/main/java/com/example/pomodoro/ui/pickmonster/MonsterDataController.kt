@@ -32,11 +32,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
-data class MonsterInfo (
-    val imageId: Int,
-    val name: String,
-    val description: String,
-    )
+
 
 
 

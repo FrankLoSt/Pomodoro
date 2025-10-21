@@ -13,9 +13,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import com.example.pomodoro.data.AppDatabase
 
-import com.example.pomodoro.data.AppDatabase.Companion.MIGRATION_3_4
+import com.example.pomodoro.data.AppDatabase.Companion.MIGRATION_4_5
 
 import com.example.pomodoro.data.MonsterFightingDao
+import com.example.pomodoro.data.MonsterItemsDao
 import com.example.pomodoro.data.datastore.SettingsRepository
 import com.example.pomodoro.data.datastore.SettingsRepositoryImpl
 import com.example.pomodoro.ui.pickmonster.InitSetUpStateHolder
@@ -58,13 +59,18 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "monster_fighting_db"
-        ).addMigrations(MIGRATION_3_4)
+        ).addMigrations(MIGRATION_4_5)
             .build()
     }
 
     @Provides
     fun provideMonsterFightingDao(database: AppDatabase): MonsterFightingDao {
         return database.monsterFightingDao()
+    }
+
+    @Provides
+    fun provideMonsterItemsDao(database: AppDatabase): MonsterItemsDao {
+        return database.monsterItemsDao()
     }
 
     @Provides

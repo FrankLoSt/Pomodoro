@@ -21,8 +21,8 @@ val Typography = Typography(
     titleLarge = TextStyle(
         fontFamily = FontFamily(Font(R.font.jersey)),
         fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
+        fontSize = 28.sp,
+        lineHeight = 38.sp,
         letterSpacing = 0.sp
     ),
     labelSmall = TextStyle(

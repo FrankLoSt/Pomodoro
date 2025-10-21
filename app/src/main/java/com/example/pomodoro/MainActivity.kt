@@ -25,6 +25,8 @@ import com.example.pomodoro.ui.countdown.ViewModelCountDown
 import com.example.pomodoro.ui.pickmonster.MonsterState
 import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
+import com.example.pomodoro.ui.pickmonster.MyBottomSheetScreen
+import com.example.pomodoro.ui.pickmonster.PersistentBottomSheet
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
 
 
@@ -44,11 +46,11 @@ class MainActivity : ComponentActivity() {
                 val navHostController = rememberNavController()
                 val viewModelChart: ViewModelChart = hiltViewModel()
                 val monsterViewModel: MonsterViewModel = hiltViewModel()
+
                 ScreenNavigation(
                     navHostController = navHostController,
-                    monsterViewModel = monsterViewModel,
-                    viewModelChart = viewModelChart,
-                    windowSizeClass = windowSizeClass
+                    windowSizeClass = windowSizeClass,
+                    viewModelChart = viewModelChart
                 )
             }
         }
