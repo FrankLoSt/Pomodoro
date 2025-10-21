@@ -4,24 +4,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
+import java.time.temporal.ChronoField
+import java.time.temporal.TemporalField
+import java.time.temporal.WeekFields
+import java.util.Calendar.DAY_OF_WEEK
+import kotlin.time.Duration.Companion.days
 
 
 suspend fun main ()  {
-    var test = MutableStateFlow(0)
-
-    val flowTest = flow{
-        emit(1)
-        delay(1000L)
-        emit(2)
-        delay(1000L)
-        emit(3)
-    }
-    flowTest.collect {
-        test.value = it
-    }
-    var stateFlow = MutableStateFlow(test.value)
-
-    println(stateFlow)
+    val weekFields = WeekFields.of(java.time.DayOfWeek.MONDAY, 1)
+    val dayOfWeekField: TemporalField = weekFields.dayOfWeek()
+    val date: LocalDateTime = LocalDateTime.now()
+    val dayOfWeek: Int = date.get(dayOfWeekField)
+    println(dayOfWeek)
 }
 
 

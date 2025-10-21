@@ -1,6 +1,7 @@
 package com.example.pomodoro.ui.pickmonster
 
 import com.example.pomodoro.R
+import com.example.pomodoro.data.MonsterFightingHourlyFocus
 import com.example.pomodoro.ui.statistics.TopMonsterData
 
 data class MonsterState(
@@ -37,8 +38,8 @@ data class MonsterState(
                 "Uncontrolled Rage isolates its host. Friends and loved ones begin to walk on eggshells, fearing the next outburst. Over time, the host may feel ashamed, misunderstood, or even haunted by their own actions. The monster thrives in silence and denial — but shrinks when the host chooses vulnerability over violence.\n" +
                 "\n" +
                 "---\n"),
-        MonsterInfo(imageId = R.drawable.treemonster, "Bed rot", "rotting your future and health"),
-        MonsterInfo(R.drawable.spider, "Anxiety", "Makes everyday tasks feel overwhelming"),
+        MonsterInfo(imageId = R.drawable.treemonster, "Bed rotting", "rotting your future and health"),
+        MonsterInfo(R.drawable.spider, "Distraction", "Makes everyday tasks feel overwhelming"),
         MonsterInfo(R.drawable.monster1, "Porn addiction", "Drain your energy and destroy your relationship"),
         MonsterInfo(R.drawable._01_1, "Anxiety", "Makes everyday tasks feel overwhelming"),
         MonsterInfo(R.drawable._01_2, "Loneliness", "Leads to isolation and low self-worth"),
@@ -71,5 +72,5 @@ data class MonsterState(
         TopMonsterData("Grind Goblin", 480, 25, 20, 5),
         TopMonsterData("Task Titan", 275, 12, 9, 3),
         TopMonsterData("Study Serpent", 360, 20, 15, 5)
-    )
+    ),
 )

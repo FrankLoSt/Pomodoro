@@ -828,14 +828,14 @@ fun BarChartYearMonth(
             BarData(
                 it,
                 MaterialTheme.colorScheme.tertiary,
-                label =it.x.toInt().toString()
+                label = it.x.toInt().toString()
             )
         }
 
         val minBarHeight = 0.9f   // or 0.3f depending on visual scale
 
-        val adjustedBarData = barData.map{ bar ->
-            val adjustedY =  if(bar.point.y == 0f) minBarHeight else bar.point.y
+        val adjustedBarData = barData.map { bar ->
+            val adjustedY = if (bar.point.y == 0f) minBarHeight else bar.point.y
             bar.copy(point = Point(bar.point.x, adjustedY))
         }
 
@@ -889,7 +889,7 @@ fun BarChartYearMonth(
         val barStyle = BarStyle(
             barWidth = (maxWidth * 0.05f),                        // slightly wider for better spacing
             cornerRadius = 5.dp,                    // smoother edges for a modern look
-            paddingBetweenBars =(maxWidth * 0.01f),              // consistent breathing room
+            paddingBetweenBars = (maxWidth * 0.01f),              // consistent breathing room
             isGradientEnabled = true,                // enables gradient rendering
             barBlendMode = BlendMode.SrcOver,        // softer blending
             barDrawStyle = Fill,
@@ -900,7 +900,7 @@ fun BarChartYearMonth(
                 highlightBarColor = Color(0xFF4CAF50),
                 highlightBarStrokeWidth = 2.dp,
                 highlightBarCornerRadius = 5.dp,
-                popUpLabel = { x, y -> "${y.toInt()} M "},
+                popUpLabel = { x, y -> "${y.toInt()} M " },
 
                 drawPopUp = { selectedOffset, identifiedPoint, centerPointOfBar, selectedXAxisWidth, barChartType ->
 
@@ -1010,30 +1010,11 @@ fun BarChartYearMonth(
                 colors = CardDefaults.cardColors(containerColor = Color.White), // make the card white
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
-                Box(
+                BarChart(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White) // inner area also whi
-                ) {
-                    BarChart(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        barChartData = barChartData,
-                    )
-                    Canvas(
-                        modifier = Modifier
-                            .matchParentSize()
-                    ) {
-                        val yBaseline = size.height * 0.95f // 95% down from top (near bottom)
-                        drawLine(
-                            color = Color.Gray.copy(alpha = 0.6f),
-                            start = Offset(0f, yBaseline),
-                            end = Offset(size.width, yBaseline),
-                            strokeWidth = 2f
-                        )
-                    }
-                }
+                        .fillMaxSize(),
+                    barChartData = barChartData,
+                )
             }
         }
     }

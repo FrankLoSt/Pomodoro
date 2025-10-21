@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import co.yml.charts.common.model.Point
 import com.example.pomodoro.data.MonsterFightingHourlyFocus
+import com.example.pomodoro.ui.pickmonster.InitSetUpStateHolder
 import com.example.pomodoro.ui.pickmonster.MonsterDataControllerImpl
 
 import kotlinx.coroutines.CoroutineScope
@@ -115,7 +116,8 @@ data class ChartUpdate (
 class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need to inject this dependency in the constructor to build this class -> Hilt looks at it at compile time -> draw the graph -> then at run time -> it will inject the dependency
     private val dataStore: DataStore<Preferences>,
     private val scope: CoroutineScope,
-    private val monsterDataControllerImpl: MonsterDataControllerImpl
+    private val monsterDataControllerImpl: MonsterDataControllerImpl,
+    private val initSetUpStateHolder: InitSetUpStateHolder
 ) : SettingsRepository {
 
     private val LAST_FOCUS_KEY: Preferences.Key<String> =
@@ -322,7 +324,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
         val totalFocusOfADay = monsterDataControllerImpl.getHourFocusData().groupBy {
             obj ->
-            obj.hour.substringBefore("T")
+            obj.date.substringBefore("T")
         }.mapKeys{ entry ->
             val transformed = LocalDate.parse(entry.key, formaterYearFirst)
             transformed.format(formatterDay)
@@ -522,7 +524,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
 
                 val chartDataDayHourRoom = monsterDataControllerImpl.getHourFocusData()
                     .groupBy { obj ->
-                        obj.hour.substringBefore("T")
+                        obj.date.substringBefore("T")
                     }.mapValues { entry ->
                         create24HoursKeyTest2(entry.key, entry.value)
                     }
@@ -728,7 +730,7 @@ class SettingsRepositoryImpl @Inject constructor( //this tells Hilt that I need 
         val chartDataDay = hourList.mapIndexed { index, hour ->
             val key = dateString.format(formatterDay) + "T" + hour.toString().padStart(2, '0')
 
-            val converter = list.associate { it.hour to it.focusTime }
+            val converter = list.associate { it.date to it.focusTime }
 
             Point(index.toFloat(), converter[key]?.toFloat() ?: 0f) //Look up and get
         }

@@ -5,17 +5,12 @@ package com.example.pomodoro.ui.statistics
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,13 +20,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,66 +43,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Fill
-import androidx.compose.ui.graphics.vector.VectorProperty
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import co.yml.charts.axis.AxisConfig
-import co.yml.charts.axis.AxisData
-import co.yml.charts.axis.DataCategoryOptions
-import co.yml.charts.common.model.AccessibilityConfig
-import co.yml.charts.common.model.Point
-import co.yml.charts.ui.barchart.BarChart
-import co.yml.charts.ui.barchart.models.BarChartData
-import co.yml.charts.ui.barchart.models.BarChartType
-import co.yml.charts.ui.barchart.models.BarData
-import co.yml.charts.ui.barchart.models.BarStyle
-import co.yml.charts.ui.barchart.models.SelectionHighlightData
-import co.yml.charts.ui.wavechart.model.AxisPosition
-import coil.compose.AsyncImage
 import com.example.pomodoro.R
 import com.example.pomodoro.data.datastore.ChartUpdate
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
-import com.example.pomodoro.ui.pickmonster.MonsterState
 import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
-import com.google.apps.card.v1.Divider
 import java.time.format.DateTimeFormatter
 
-
-@Composable
-fun Xbe (
-    viewModelChart: ViewModelChart,
-    navHostController: NavHostController
-) {
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val maxWidth = maxWidth
-        val maxHeight: Dp = maxHeight
-
-        val base = maxOf(maxWidth, maxHeight)
-
-        Column(
-            modifier = Modifier.fillMaxSize().scrollable(rememberScrollState(), orientation = Orientation.Vertical),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-
-        }
-    }
-}
 
 @Composable
 fun PortraitStatisticsScreen (
@@ -136,7 +83,8 @@ fun PortraitStatisticsScreen (
                 contentAlignment = Alignment.Center
             ){
                 IconButton (
-                    onClick = {navHostController.navigate(EnumScreenClass.PICKMONSTER.name)}
+                    onClick = {navHostController.navigate(EnumScreenClass.PICKMONSTER.name)},
+                    modifier = Modifier.align(Alignment.TopStart)
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
@@ -368,20 +316,6 @@ fun BarChartScreen(
 }
 
 
-data class TopMonsterData (
-    val monsterName: String,
-    val totalTime: Int,
-    val totalSessions: Int,
-    val totalWins: Int,
-    val totalLoses: Int
-) {
-    val winRate: Float
-        get() = if (totalSessions == 0) 0f else totalWins * 100f / totalSessions
-}
-
-
-
-
 
 @Composable
 fun ButtonViewChart (
@@ -450,121 +384,16 @@ fun ButtonViewChart (
 
 
 
-
-
-
-@Preview(
-    showBackground = true,
-    widthDp = 412,
-    heightDp = 900
-)
-@Composable
-fun Preview2 () {
-    MyAppTheme {
-        MonsterLeaderboard(
-            listOf(
-                TopMonsterData("Focus Fiend", 320, 18, 14, 4),
-                TopMonsterData("Procrastino", 150, 10, 6, 4),
-                TopMonsterData("Grind Goblin", 480, 25, 20, 5),
-                TopMonsterData("Task Titan", 275, 12, 9, 3),
-                TopMonsterData("Study Serpent", 360, 20, 15, 5)
-        )
-        )
-    }
+data class TopMonsterData (
+    val monsterName: String,
+    val totalTime: Int,
+    val totalSessions: Int,
+    val totalWins: Int,
+    val totalLoses: Int
+) {
+    val winRate: Float
+        get() = if (totalSessions == 0) 0f else totalWins * 100f / totalSessions
 }
-
-
-@Composable
-fun MonsterLeaderboard(monsters: List<TopMonsterData>) {
-    val horizontalScroll = rememberScrollState()
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(8.dp)
-        ) {
-            // 🔹 Horizontal scroll container
-            Row(
-                modifier = Modifier
-                    .horizontalScroll(horizontalScroll)
-                    .padding(bottom = 8.dp)
-            ) {
-                Column {
-                    LeaderboardHeaderRow()
-                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-                    monsters.forEachIndexed { index, monster ->
-                        LeaderboardDataRow(rank = index + 1, data = monster)
-                        HorizontalDivider(
-                            thickness = 1.dp,
-                            color = Color.LightGray.copy(alpha = 0.3f),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-@Composable
-fun LeaderboardHeaderRow() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp, horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("#", modifier = Modifier.width(30.dp), fontWeight = FontWeight.Bold,textAlign = TextAlign.Center )
-        Text("Monster", modifier = Modifier.width(120.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center )
-        Text("Time", modifier = Modifier.width(80.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center )
-        Text("Sessions", modifier = Modifier.width(90.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center )
-        Text("Wins", modifier = Modifier.width(60.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Text("Loses", modifier = Modifier.width(60.dp), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center )
-        Text("Win Rate", modifier = Modifier.width(90.dp), fontWeight = FontWeight.Bold,textAlign = TextAlign.Center )
-    }
-}
-
-@Composable
-fun LeaderboardDataRow(rank: Int, data: TopMonsterData) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(rank.toString(), modifier = Modifier.width(30.dp), textAlign = TextAlign.Center)
-        Text(data.monsterName, modifier = Modifier.width(120.dp), textAlign = TextAlign.Center )
-        Text("${data.totalTime} M", modifier = Modifier.width(80.dp), textAlign = TextAlign.Center )
-        Text(data.totalSessions.toString(), modifier = Modifier.width(90.dp),textAlign = TextAlign.Center )
-        Text(data.totalWins.toString(), modifier = Modifier.width(60.dp),textAlign = TextAlign.Center )
-        Text(data.totalLoses.toString(), modifier = Modifier.width(60.dp), textAlign = TextAlign.Center )
-        Text(
-            String.format("%.1f%%", data.winRate),
-            modifier = Modifier.width(90.dp),
-            color = if (data.winRate >= 75) Color(0xFF388E3C) else Color(0xFFF57C00),
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-
 
 @Composable
 fun MonsterLeaderboard2(monsters: List<TopMonsterData>) {
@@ -613,7 +442,7 @@ fun MonsterLeaderboard2(monsters: List<TopMonsterData>) {
                 }
             }
 
-            Divider(color = Color.LightGray, thickness = 1.dp)
+            HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
 
             // ---------- 2) Body: single LazyColumn (vertical scroll) ----------
             LazyColumn(
@@ -654,16 +483,20 @@ fun MonsterLeaderboard2(monsters: List<TopMonsterData>) {
                             Text(monster.totalSessions.toString(), modifier = Modifier.width(90.dp), textAlign = TextAlign.Center)
                             Text(monster.totalWins.toString(), modifier = Modifier.width(60.dp), textAlign = TextAlign.Center)
                             Text(monster.totalLoses.toString(), modifier = Modifier.width(60.dp), textAlign = TextAlign.Center)
-                            Text(String.format("%.1f%%", monster.winRate), modifier = Modifier.width(90.dp), textAlign = TextAlign.Center,
+                            Text( String.format("%.1f%%", monster.winRate), modifier = Modifier.width(90.dp), textAlign = TextAlign.Center,
                                 color = if (monster.winRate >= 75) Color(0xFF388E3C) else Color(0xFFF57C00))
                             // match any additional columns as necessary
                         }
                     }
 
-                    Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = Color.LightGray.copy(alpha = 0.3f)
+                    )
                 }
             }
         }
     }
 }
+
 

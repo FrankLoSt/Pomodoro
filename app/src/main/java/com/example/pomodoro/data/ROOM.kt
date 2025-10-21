@@ -1,5 +1,6 @@
 package com.example.pomodoro.data
 
+import androidx.core.i18n.DateTimeFormatterSkeletonOptions
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -47,35 +48,24 @@ interface MonsterFightingDao {
 
 
 
-    @Query ("""
-        SELECT strftime('%Y-%m-%d', datetime(timestampStart / 1000, 'unixepoch')) AS day,
-              SUM(totalFocusTime) AS focusTime
-        FROM monsterfightingdb
-        WHERE timestampStart BETWEEN :start AND :end
-        GROUP BY day
-        ORDER BY focusTime DESC
-        LIMIT 1
-    """)
-    suspend fun getMostFocusedDay(start: Long, end: Long): FocusSummary
+    @Query("UPDATE MonsterFightingHourlyFocus SET focusTime = focusTime + :duration WHERE date = :date")
+    suspend fun updateHourFocusTime(date: String, duration: Int)
 
-    @Query("UPDATE MonsterFightingHourlyFocus SET focusTime = focusTime + :duration WHERE hour = :hour")
-    suspend fun updateHourFocusTime(hour: String, duration: Int)
 
-    @Query("SELECT * FROM MonsterFightingHourlyFocus ORDER BY hour DESC LIMIT 1")
+
+    @Query("SELECT * FROM MonsterFightingHourlyFocus ORDER BY date DESC LIMIT 1")
     suspend fun getLatestHourById(): MonsterFightingHourlyFocus?
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllHourFocusData(data: List<MonsterFightingHourlyFocus>)
 
     @Query("""
-    SELECT 
-        monsterName,
+    SELECT
+    monsterName,
         SUM(totalFocusTime) AS totalTime,
         SUM(totalSessions) AS totalSessions,
         SUM(sessionsCompleted) AS totalWins,
         SUM(totalSessions - sessionsCompleted) AS totalLoses
-    FROM MonsterFightingDB
-    GROUP BY monsterName
+        FROM monsterfightingdb
+        GROUP BY monsterName
     ORDER BY totalTime DESC
 """)
     fun getTop10Monsters(): Flow<List<TopMonsterData>>
@@ -90,36 +80,50 @@ interface MonsterFightingDao {
     @Query("DELETE FROM MonsterFightingHourlyFocus")
     suspend fun clearAllSessions()
 
+
+    @Query("""
+    SELECT SUBSTR(date, INSTR(date, 'T') + 1) AS hourOnly,
+           SUM(focusTime) AS totalFocus
+    FROM MonsterFightingHourlyFocus
+    GROUP BY hourOnly
+    ORDER BY totalFocus DESC
+    LIMIT 1
+""")
+    fun getMostFocusedHour(): String
+
+
+
     @Update
     suspend fun updateMonsterFightData(monsterFightingDB: MonsterFightingDB)
 
     @Insert
     suspend fun insertMonsterFightData(monsterFightingDB: MonsterFightingDB)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllHourFocusData(data: List<MonsterFightingHourlyFocus>)
 }
 
 
 @Entity
 data class MonsterFightingHourlyFocus (
-    @PrimaryKey() val hour: String = "18 10 2025T16",
+    @PrimaryKey() val date: String = "2025 18 10T16",
     val focusTime: Int = 0,
+    val dayOfWeek: String = "Monday",
+    val dayOfMonth: Int = 1,
 )
 
 
-@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class], version = 3)
+@Database (entities = [MonsterFightingDB::class, MonsterFightingHourlyFocus::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun monsterFightingDao(): MonsterFightingDao
 
     companion object {
-        val MIGRATION_2_3 = object : Migration(2, 3) {
+        //be careful, you need to save data before you change something. This is a hidden bom, not careful -> you screw things up
+        val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("DROP TABLE IF EXISTS MonsterFightingHourlyFocus")
-                db.execSQL("""
-            CREATE TABLE MonsterFightingHourlyFocus (
-                hour TEXT NOT NULL PRIMARY KEY,
-                focusTime INTEGER NOT NULL
-            )
-        """.trimIndent())
+                db.execSQL("ALTER TABLE MonsterFightingHourlyFocus RENAME hour to date")
+                db.execSQL("ALTER TABLE MonsterFightingHourlyFocus ADD COLUMN dayOfWeek TEXT NOT NULL DEFAULT 'Monday'")
+                db.execSQL("ALTER TABLE MonsterFightingHourlyFocus ADD COLUMN dayOfMonth INTEGER NOT NULL DEFAULT '1'")
             }
         }
     }

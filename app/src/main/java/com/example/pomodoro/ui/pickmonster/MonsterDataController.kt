@@ -23,8 +23,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalField
+import java.time.temporal.WeekFields
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -95,7 +98,7 @@ class MonsterDataControllerImpl @Inject constructor(
             dao.insertAllHourFocusData(listData)
             val target = if (listData.size <= 1) listData.lastOrNull() else listData.first()
             target?.let {
-                dao.updateHourFocusTime(it.hour, it.focusTime)
+                dao.updateHourFocusTime(it.date, it.focusTime)
             }
         }
     }
@@ -140,7 +143,13 @@ class MonsterDataControllerImpl @Inject constructor(
     )
 
 
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
+    val formatterYearFirst: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy MM dd'T'HH")
 
+    val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+
+    val weekFields: WeekFields = WeekFields.of(DayOfWeek.MONDAY, 1)
+    val dayOfWeekField: TemporalField = weekFields.dayOfWeek()
     val sessionKey: Preferences.Key<Int> = intPreferencesKey("session")
 
     override suspend fun saveTick(duration: Int): Int {
@@ -210,10 +219,11 @@ class MonsterDataControllerImpl @Inject constructor(
         return dao.getAllHourFocusData()
     }
 
-    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MM yyyy'T'HH")
-    val formatterYearFirst: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy MM dd'T'HH")
 
-    val regexDayHourKey: Regex = Regex("""\d{2} \d{2} \d{4}T\d{2}""")
+    private fun findWeekDay (firstDay: DayOfWeek = DayOfWeek.MONDAY, date: LocalDateTime): Int {
+        return date.get(dayOfWeekField)
+    }
+
     override suspend fun migrateHourFocusData() {
 
         val preferObj = dataStore.data.first()
@@ -231,11 +241,22 @@ class MonsterDataControllerImpl @Inject constructor(
 
                 // Avoid creating new formatter each loop — reuse precompiled
                 val parsed = runCatching { LocalDateTime.parse(keyName, formatter) }.getOrNull() ?: continue
+
+                val dayOfWeek = findWeekDay(date = parsed)
+
+
                 val converted = formatterYearFirst.format(parsed)
                 val focusTime = value.toString().toIntOrNull() ?: 0
-                add(MonsterFightingHourlyFocus(converted, focusTime))
+                add(MonsterFightingHourlyFocus(
+                    date = converted,
+                    focusTime = focusTime,
+                    dayOfWeek = dayOfWeek.toString(),
+                    dayOfMonth = parsed.dayOfMonth
+                )
+                )
             }
         }
+        Log.d("ROOM", "migrateHourFocusData: $focusList")
 
         migrateData(focusList)
 
@@ -251,7 +272,7 @@ class MonsterDataControllerImpl @Inject constructor(
     override suspend fun getTop10Monsters() {
         val listTop10: Flow<List<TopMonsterData>> = dao.getTop10Monsters()
 
-        Log.d("ROOM", "getTop10Monsters: $listTop10")
+
 
         val topMonstersStateFlow = listTop10.stateIn(
             scope = scope,
