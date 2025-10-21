@@ -1,6 +1,5 @@
 package com.example.pomodoro.data
 
-import androidx.core.i18n.DateTimeFormatterSkeletonOptions
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -12,13 +11,12 @@ import androidx.room.RoomDatabase
 import androidx.room.Update
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.pomodoro.ui.pickmonster.FocusedDay
+import com.example.pomodoro.ui.pickmonster.FocusedDayOfMonth
+import com.example.pomodoro.ui.pickmonster.FocusedHour
 import com.example.pomodoro.ui.statistics.TopMonsterData
 import kotlinx.coroutines.flow.Flow
 
-data class FocusSummary(
-    val day: String,
-    val focusTime: Int
-)
 
 @Entity
 data class MonsterFightingDB (
@@ -81,15 +79,68 @@ interface MonsterFightingDao {
     suspend fun clearAllSessions()
 
 
+
     @Query("""
     SELECT SUBSTR(date, INSTR(date, 'T') + 1) AS hourOnly,
-           SUM(focusTime) AS totalFocus
+           SUM(focusTime) AS avgTime
     FROM MonsterFightingHourlyFocus
     GROUP BY hourOnly
-    ORDER BY totalFocus DESC
+    ORDER BY avgTime DESC
     LIMIT 1
 """)
-    fun getMostFocusedHour(): String
+    fun getMostFocusedHour(): Flow<FocusedHour>
+
+
+
+    @Query("""
+        SELECT
+              dayOfWeek, 
+              SUM(focusTime) AS avgTime
+        FROM MonsterFightingHourlyFocus
+        GROUP BY dayOfWeek
+        ORDER BY avgTime DESC
+        LIMIT 1
+    """)
+    fun getMostFocusedDay(): Flow<FocusedDay>
+
+
+
+
+    @Query("""
+        SELECT 
+        dayOfMonth, 
+        SUM(focusTime) AS avgTime
+        FROM MonsterFightingHourlyFocus
+        GROUP BY dayOfMonth
+        ORDER BY avgTime DESC
+        LIMIT 1
+    """)
+    fun getMostFocusedDayOfMonth(): Flow<FocusedDayOfMonth>
+
+
+
+    @Query("""
+        SELECT
+              dayOfWeek, 
+              SUM(focusTime) AS avgTime
+        FROM MonsterFightingHourlyFocus
+        GROUP BY dayOfWeek
+        ORDER BY avgTime ASC
+        LIMIT 1
+    """)
+    fun getLeastFocusedDay(): Flow<FocusedDay>
+
+
+    @Query("""
+        SELECT 
+        dayOfMonth, 
+        SUM(focusTime) AS avgTime
+        FROM MonsterFightingHourlyFocus
+        GROUP BY dayOfMonth
+        ORDER BY avgTime ASC
+        LIMIT 1
+    """)
+    fun getLeastFocusedDayOfMonth(): Flow<FocusedDayOfMonth>
 
 
 

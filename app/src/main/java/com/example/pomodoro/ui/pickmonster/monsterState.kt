@@ -1,7 +1,7 @@
 package com.example.pomodoro.ui.pickmonster
 
 import com.example.pomodoro.R
-import com.example.pomodoro.data.MonsterFightingHourlyFocus
+
 import com.example.pomodoro.ui.statistics.TopMonsterData
 
 data class MonsterState(
@@ -12,29 +12,29 @@ data class MonsterState(
                 "\n" +
                 "---\n" +
                 "\n" +
-                "## \uD83D\uDD25 Monster Profile: Uncontrolled Rage\n" +
+                " \uD83D\uDD25 Monster Profile: Uncontrolled Rage\n" +
                 "\n" +
-                "**Name:** Uncontrolled Rage  \n" +
-                "**Appearance:** A towering warrior with blazing eyes and clenched fists, wrapped in flickering red energy. His armor is cracked from past battles, and his roar echoes like a storm through the soul.\n" +
+                "Name: Uncontrolled Rage  \n" +
+                "Appearance: A towering warrior with blazing eyes and clenched fists, wrapped in flickering red energy. His armor is cracked from past battles, and his roar echoes like a storm through the soul.\n" +
                 "\n" +
-                "**Origin:** Born from suppressed emotions and unresolved trauma, Uncontrolled Rage emerges when boundaries are crossed, patience is tested, and the heart is wounded repeatedly. He feeds on injustice, betrayal, and the feeling of being unheard.\n" +
+                "Origin: Born from suppressed emotions and unresolved trauma, Uncontrolled Rage emerges when boundaries are crossed, patience is tested, and the heart is wounded repeatedly. He feeds on injustice, betrayal, and the feeling of being unheard.\n" +
                 "\n" +
-                "**Behavior:**  \n" +
+                "Behavior:  \n" +
                 "- Strikes without warning, often triggered by minor frustrations that mask deeper pain  \n" +
                 "- Overrides logic and empathy, replacing them with impulsive action  \n" +
                 "- Leaves destruction in his wake — broken relationships, shattered trust, and lingering regret\n" +
                 "\n" +
-                "**Abilities:**  \n" +
-                "- **Impulse Surge**: Forces the host to act before thinking, often saying or doing things they later regret  \n" +
-                "- **Tunnel Vision**: Blocks out reason and alternative perspectives, making the host feel justified in their fury  \n" +
-                "- **Emotional Aftershock**: Even after the rage subsides, the damage remains — apologies may not be enough to undo the harm\n" +
+                "Abilities:  \n" +
+                "- Impulse Surge: Forces the host to act before thinking, often saying or doing things they later regret  \n" +
+                "- Tunnel Vision: Blocks out reason and alternative perspectives, making the host feel justified in their fury  \n" +
+                "- Emotional Aftershock: Even after the rage subsides, the damage remains — apologies may not be enough to undo the harm\n" +
                 "\n" +
-                "**Weaknesses:**  \n" +
+                "Weaknesses:  \n" +
                 "- Vulnerable to reflection, mindfulness, and emotional regulation  \n" +
                 "- Loses power when the host learns to pause, breathe, and name their feelings  \n" +
                 "- Can be tamed through therapy, journaling, and honest conversations\n" +
                 "\n" +
-                "**Impact on the Host:**  \n" +
+                "Impact on the Host:  \n" +
                 "Uncontrolled Rage isolates its host. Friends and loved ones begin to walk on eggshells, fearing the next outburst. Over time, the host may feel ashamed, misunderstood, or even haunted by their own actions. The monster thrives in silence and denial — but shrinks when the host chooses vulnerability over violence.\n" +
                 "\n" +
                 "---\n"),
@@ -73,4 +73,19 @@ data class MonsterState(
         TopMonsterData("Task Titan", 275, 12, 9, 3),
         TopMonsterData("Study Serpent", 360, 20, 15, 5)
     ),
+
+
+    //Least and Most
+    val mostFocusedDay: FocusedDay = FocusedDay("Monday", 120),
+    val mostFocusedHour: FocusedHour = FocusedHour("16", 120),
+    val mostFocusedDayOfMonth: FocusedDayOfMonth = FocusedDayOfMonth(10, 120),
+    val leastFocusedDay: FocusedDay = FocusedDay("Monday", 10),
+    val leastFocusedDayOfMonth: FocusedDayOfMonth = FocusedDayOfMonth(10, 10),
 )
+
+
+
+
+data class FocusedHour(val hourOnly: String, val  avgTime: Int)
+data class FocusedDay(val dayOfWeek: String, val avgTime: Int)
+data class FocusedDayOfMonth(val dayOfMonth: Int, val avgTime: Int)

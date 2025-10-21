@@ -66,6 +66,18 @@ interface MonsterDataController {
 
     fun updateMonsterPickedIndex(index: Int)
 
+    suspend fun updateMostFocusedHour()
+
+    suspend fun  updateMostFocusedDayOfMonth()
+
+    suspend fun  updateMostFocusedDay()
+
+
+    suspend fun  updateLeastFocusedDayOfMonth()
+
+    suspend fun  updateLeastFocusedDay()
+
+
 }
 
 
@@ -242,7 +254,16 @@ class MonsterDataControllerImpl @Inject constructor(
                 // Avoid creating new formatter each loop — reuse precompiled
                 val parsed = runCatching { LocalDateTime.parse(keyName, formatter) }.getOrNull() ?: continue
 
-                val dayOfWeek = findWeekDay(date = parsed)
+                val dayOfWeek = when (findWeekDay(date = parsed)) {
+                    1 -> "Monday"
+                    2 -> "Tuesday"
+                    3 -> "Wednesday"
+                    4 -> "Thursday"
+                    5 -> "Friday"
+                    6 -> "Saturday"
+                    else -> "Sunday"
+                }
+
 
 
                 val converted = formatterYearFirst.format(parsed)
@@ -250,7 +271,7 @@ class MonsterDataControllerImpl @Inject constructor(
                 add(MonsterFightingHourlyFocus(
                     date = converted,
                     focusTime = focusTime,
-                    dayOfWeek = dayOfWeek.toString(),
+                    dayOfWeek = dayOfWeek,
                     dayOfMonth = parsed.dayOfMonth
                 )
                 )
@@ -270,25 +291,12 @@ class MonsterDataControllerImpl @Inject constructor(
     }
 
     override suspend fun getTop10Monsters() {
-        val listTop10: Flow<List<TopMonsterData>> = dao.getTop10Monsters()
-
-
-
-        val topMonstersStateFlow = listTop10.stateIn(
-            scope = scope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
         scope.launch {
-            topMonstersStateFlow.collect {
-                val newState = monsterState.value.copy(
-                    top10 = it
-                )
+            dao.getTop10Monsters().collect { top10 ->
+                val newState = monsterState.value.copy(top10 = top10)
                 initSetUpStateHolder.updateState(newState)
             }
         }
-
     }
     //call everytime users want to see statics
 
@@ -296,6 +304,60 @@ class MonsterDataControllerImpl @Inject constructor(
 
     override suspend fun getLatestById(): MonsterFightingDB? {
         return dao.getLatestById()
+    }
+
+
+    //------Most vs Least
+
+    override suspend fun  updateMostFocusedHour() {
+
+        scope.launch {
+            val mostFocusHour = dao.getMostFocusedHour()
+            mostFocusHour.collect{
+                val newState = monsterState.value.copy(mostFocusedHour = it)
+                initSetUpStateHolder.updateState(newState)
+            }
+        }
+    }
+
+    override suspend fun  updateMostFocusedDayOfMonth() {
+        scope.launch {
+            val mostFocusDayOfMonth = dao.getMostFocusedDayOfMonth()
+            mostFocusDayOfMonth.collect {
+                val newState = monsterState.value.copy(mostFocusedDayOfMonth = it)
+                initSetUpStateHolder.updateState(newState)
+            }
+        }
+    }
+
+    override suspend fun  updateMostFocusedDay() {
+        scope.launch {
+            val mostFocusDay = dao.getMostFocusedDay()
+            mostFocusDay.collect {
+                val newState = monsterState.value.copy(mostFocusedDay = it)
+                initSetUpStateHolder.updateState(newState)
+            }
+        }
+    }
+
+    override suspend fun  updateLeastFocusedDayOfMonth() {
+        scope.launch {
+            val leastFocusDayOfMonth = dao.getLeastFocusedDayOfMonth()
+            leastFocusDayOfMonth.collect {
+                val newState = monsterState.value.copy(leastFocusedDayOfMonth = it)
+                initSetUpStateHolder.updateState(newState)
+            }
+        }
+    }
+
+    override suspend fun  updateLeastFocusedDay() {
+        scope.launch {
+            val leastFocusDay = dao.getLeastFocusedDay()
+            leastFocusDay.collect {
+                val newState = monsterState.value.copy(leastFocusedDay = it)
+                initSetUpStateHolder.updateState(newState)
+            }
+        }
     }
 
 }
