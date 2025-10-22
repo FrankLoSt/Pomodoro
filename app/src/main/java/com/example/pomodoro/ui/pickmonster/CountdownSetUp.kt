@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
 import com.example.pomodoro.ui.countdown.DropDownPortrait
+import com.example.pomodoro.ui.countdown.SettingsCard
 import kotlinx.coroutines.launch
 
 
@@ -58,17 +59,7 @@ fun MyBottomSheetScreen(
         sheetState = sheetState,
         modifier = Modifier.fillMaxSize(),
     ) {
-        DropDownPortrait(
-            setDurationMinutes = setDurationMinutes,
-            setRestDurationMinutes = setRestDurationMinutes,
-            setSessions = setSessions,
-            listFocusDuration = listFocusDuration,
-            listRestDuration = listRestDuration,
-            listSessions = listSessions,
-            windowSizeClass = windowSizeClass,
-            fightToggleDialog = fightToggleDialog,
-            confirmBut = confirmBut
-        )
+
     }
 }
 

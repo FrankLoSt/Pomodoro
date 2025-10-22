@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -27,18 +26,14 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.pomodoro.R
-import com.example.pomodoro.ui.detectScreenShape
 import com.example.pomodoro.ui.pickmonster.FontSize
 import com.example.pomodoro.ui.pickmonster.LocalFontSize
 import com.example.pomodoro.ui.pickmonster.LocalSpacing
 import com.example.pomodoro.ui.pickmonster.MonsterInfo
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
 import com.example.pomodoro.ui.pickmonster.Spacing
-
-
 
 
 @Composable
@@ -153,7 +148,7 @@ fun ProgressViewPortraitMode (
             text =
                 when (focusUiState.appPhrase) {
                     AppPhase.FOCUSING -> stringResource(R.string.batling) + " " + monsterList[monsterIndex].name
-                    AppPhase.RESTING -> stringResource(R.string.Taking_a_break)
+                    AppPhase.RESTING -> if(restUiState.isLongBreak && focusUiState.sessions == restUiState.longBreakAfter)  stringResource(R.string.long_break) else stringResource(R.string.Taking_a_break)
                     else -> stringResource(R.string.finished)
                 },
             fontSize = (maxWidth.value * 0.06f).toInt().sp,
@@ -175,7 +170,7 @@ fun ProgressViewPortraitMode (
                 progress =
                     when (focusUiState.appPhrase) {
                         AppPhase.FOCUSING -> focusUiState.studyProgress()
-                        AppPhase.RESTING -> restUiState.restProgress()
+                        AppPhase.RESTING -> if(restUiState.isLongBreak && focusUiState.sessions == restUiState.longBreakAfter) restUiState.longRestProgress() else restUiState.restProgress()
                         else -> (1f)
                     },
                 modifier = Modifier.size(progressSize),

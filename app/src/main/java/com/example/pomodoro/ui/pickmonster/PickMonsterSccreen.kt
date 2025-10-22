@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,6 +54,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -84,7 +86,8 @@ import com.example.pomodoro.ui.EnumScreenClass
 
 import com.example.pomodoro.ui.ScreenShape
 import com.example.pomodoro.ui.countdown.DropDownPortrait
-import com.example.pomodoro.ui.countdown.SetUpDialog
+
+import com.example.pomodoro.ui.countdown.SettingsCard
 import com.example.pomodoro.ui.detectScreenShape
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import kotlinx.coroutines.CoroutineScope
@@ -301,7 +304,11 @@ fun PickMonsterScreen (
     navHostController: NavHostController,
     updateMonsterPickedIndex: (Int) -> Unit,
     viewModelChart: ViewModelChart,
-    monsterViewModel: MonsterViewModel
+    monsterViewModel: MonsterViewModel,
+    isLongBreak: Boolean = false,
+    toggleLongBreak: (Boolean) -> Unit,
+    setLongBreakMinutes: (Int) -> Unit ,
+    setLongBreakAfter: (Int) -> Unit
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -342,6 +349,11 @@ fun PickMonsterScreen (
                     monsterState = monsterState,
                     updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
+                    isLongBreak = isLongBreak,
+                    toggleLongBreak = toggleLongBreak,
+                    setLongBreakMinutes = setLongBreakMinutes,
+                    setLongBreakAfter = setLongBreakAfter
+
                 )
             },
             monsterViewModel = monsterViewModel
@@ -416,10 +428,15 @@ fun PickMonsterScreen (
                         monsterState = monsterState,
                         updateMonsterPickedIndex = updateMonsterPickedIndex,
                         windowSizeClass = windowSizeClass,
+                        isLongBreak = isLongBreak,
+                        toggleLongBreak = toggleLongBreak,
+                        setLongBreakMinutes = setLongBreakMinutes,
+                        setLongBreakAfter = setLongBreakAfter
                     )
                     IconButton(
                         onClick = { showDrawer = true },
-                        modifier = Modifier.size((screenWidth * 0.15f).dp)
+                        modifier = Modifier
+                            .size((screenWidth * 0.15f).dp)
                             .align(Alignment.TopEnd)
                             .padding(end = spacing.medium, top = spacing.medium)
                     ) {
@@ -459,6 +476,10 @@ fun PickMonsterScreen (
                     monsterState = monsterState,
                     updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
+                    isLongBreak = isLongBreak,
+                    toggleLongBreak = toggleLongBreak,
+                    setLongBreakMinutes = setLongBreakMinutes,
+                    setLongBreakAfter = setLongBreakAfter
                 )
             },
             monsterViewModel = monsterViewModel
@@ -525,6 +546,10 @@ fun PickMonsterScreen (
                     monsterState = monsterState,
                     updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
+                    isLongBreak = isLongBreak,
+                    toggleLongBreak = toggleLongBreak,
+                    setLongBreakMinutes = setLongBreakMinutes,
+                    setLongBreakAfter = setLongBreakAfter
                 )
             }
         )
@@ -539,13 +564,9 @@ fun PickMonsterScreen (
 
 
 
-
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashBoardPhonePortrait (
+fun DashBoardPhonePortrait(
     modifier: Modifier = Modifier,
     toggleSetUpPopup: () -> Unit = {},
     setDurationMinutes: (Int) -> Unit = {},
@@ -557,21 +578,21 @@ fun DashBoardPhonePortrait (
     confirmBut: () -> Unit = {},
     monsterState: MonsterState,
     updateMonsterPickedIndex: (Int) -> Unit = {},
-    windowSizeClass: WindowSizeClass? = null
+    windowSizeClass: WindowSizeClass? = null,
+    isLongBreak: Boolean = false,
+    toggleLongBreak: (Boolean) -> Unit,
+    setLongBreakMinutes: (Int) -> Unit ,
+    setLongBreakAfter: (Int) -> Unit
 ) {
     val monsterPickedIndex = monsterState.monsterPickedIndex
-
     val spacing = LocalSpacing.current
     val fontSize = LocalFontSize.current
-
-    Modifier.padding(horizontal = spacing.medium)
-    Modifier.padding(vertical = spacing.large)
-
     val monsterList: List<MonsterInfo> = monsterState.monsterList
 
     BoxWithConstraints {
         val maxHeight = this.maxHeight
         val maxWidth = this.maxWidth
+
         PortraitPickMonster(
             modifier = modifier,
             monsterList = monsterList,
@@ -582,7 +603,7 @@ fun DashBoardPhonePortrait (
             updateMonsterPickedIndex = updateMonsterPickedIndex,
             windowSizeClass = windowSizeClass
         )
-        //Fight Button
+
         FightButton(
             modifier = Modifier.align(Alignment.BottomCenter),
             maxWidth = maxWidth * 0.25f,
@@ -590,29 +611,50 @@ fun DashBoardPhonePortrait (
             fontSize = fontSize.large,
             toggleSetUpPopup = toggleSetUpPopup
         )
+
         if (monsterState.toggleSetUp) {
-            val sheetState = rememberModalBottomSheetState()
+            // 🟢 1. Skip the partially expanded state
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             val scope = rememberCoroutineScope()
+
+            // 🟢 2. Launch expansion when sheet shows
+            LaunchedEffect(Unit) {
+                sheetState.show()
+            }
+
             ModalBottomSheet(
                 onDismissRequest = { toggleSetUpPopup() },
                 sheetState = sheetState,
-                modifier = Modifier.fillMaxSize(),
+                // 🟢 fill width, height determined by child
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                DropDownPortrait(
-                    setDurationMinutes = setDurationMinutes,
-                    setRestDurationMinutes = setRestDurationMinutes,
-                    setSessions = setSessions,
-                    listFocusDuration = listFocusDuration,
-                    listRestDuration = listRestDuration,
-                    listSessions = listSessions,
-                    windowSizeClass = windowSizeClass,
-                    fightToggleDialog = toggleSetUpPopup,
-                    confirmBut = confirmBut
-                )
+                // 🟢 Child content that defines height — 80% of screen height
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(maxHeight * 0.8f)
+                ) {
+                    SettingsCard(
+                        setDurationMinutes = setDurationMinutes,
+                        setRestDurationMinutes = setRestDurationMinutes,
+                        setSessions = setSessions,
+                        listFocusDuration = listFocusDuration,
+                        listRestDuration = listRestDuration,
+                        listSessions = listSessions,
+                        windowSizeClass = windowSizeClass,
+                        fightToggleDialog = toggleSetUpPopup,
+                        confirmBut = confirmBut,
+                        isLongBreak = isLongBreak,
+                        toggleLongBreak = toggleLongBreak ,
+                        setLongBreakMinutes = setLongBreakMinutes,
+                        setLongBreakAfter = setLongBreakAfter
+                    )
+                }
             }
         }
     }
 }
+
 
 
 @Composable
@@ -726,10 +768,12 @@ fun PortraitPickMonster (
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
-                            if (monsterPickedIndex == index) null else updateMonsterPickedIndex(index)
+                            if (monsterPickedIndex == index) null else updateMonsterPickedIndex(
+                                index
+                            )
                             Log.e(
                                 "ROOM",
-                                 "monster being choose ${monsterList[index].name}"
+                                "monster being choose ${monsterList[index].name}"
                             )
                         },
                     colors = if (monsterPickedIndex == index) CardDefaults.cardColors(Color.LightGray) else CardDefaults.cardColors(
@@ -772,12 +816,11 @@ fun PortraitPickMonster (
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashBoardPhoneLandScape(
     modifier: Modifier = Modifier,
-    monsterState: MonsterState,
-    updateMonsterPickedIndex: (Int) -> Unit = {},
-    windowSizeClass: WindowSizeClass?,
+    toggleSetUpPopup: () -> Unit = {},
     setDurationMinutes: (Int) -> Unit = {},
     setRestDurationMinutes: (Int) -> Unit = {},
     setSessions: (Int) -> Unit = {},
@@ -785,7 +828,13 @@ fun DashBoardPhoneLandScape(
     listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
     listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
     confirmBut: () -> Unit = {},
-    toggleSetUpPopup: () -> Unit = {},
+    monsterState: MonsterState,
+    updateMonsterPickedIndex: (Int) -> Unit = {},
+    windowSizeClass: WindowSizeClass? = null,
+    isLongBreak: Boolean = false,
+    toggleLongBreak: (Boolean) -> Unit,
+    setLongBreakMinutes: (Int) -> Unit ,
+    setLongBreakAfter: (Int) -> Unit
 ) {
     val spacing: Spacing = LocalSpacing.current
     val fontSize: FontSize = LocalFontSize.current
@@ -828,17 +877,47 @@ fun DashBoardPhoneLandScape(
             )
         }
         if (monsterState.toggleSetUp) {
-            SetUpDialog(
-                fightToggleDialog = toggleSetUpPopup,
-                setDurationMinutes = setDurationMinutes,
-                setRestDurationMinutes = setRestDurationMinutes,
-                setSessions = setSessions,
-                listFocusDuration = listFocusDuration,
-                listRestDuration = listRestDuration,
-                listSessions = listSessions,
-                confirmBut = confirmBut,
-                windowSizeClass = windowSizeClass
-            )
+            // 🟢 1. Skip the partially expanded state
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val scope = rememberCoroutineScope()
+
+            // 🟢 2. Launch expansion when sheet shows
+            LaunchedEffect(Unit) {
+                sheetState.show()
+            }
+
+            ModalBottomSheet(
+                onDismissRequest = { toggleSetUpPopup() },
+                sheetState = sheetState,
+                // 🟢 fill width, height determined by child
+                modifier = Modifier.width(maxWidth * 0.5f)
+            ) {
+                // 🟢 Child content that defines height — 80% of screen height
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(maxHeight * 0.8f)
+                        .verticalScroll(
+                            rememberScrollState()
+                        )
+                ) {
+                    SettingsCard(
+                        setDurationMinutes = setDurationMinutes,
+                        setRestDurationMinutes = setRestDurationMinutes,
+                        setSessions = setSessions,
+                        listFocusDuration = listFocusDuration,
+                        listRestDuration = listRestDuration,
+                        listSessions = listSessions,
+                        windowSizeClass = windowSizeClass,
+                        fightToggleDialog = toggleSetUpPopup,
+                        confirmBut = confirmBut,
+                        isLongBreak = isLongBreak,
+                        toggleLongBreak = toggleLongBreak ,
+                        setLongBreakMinutes = setLongBreakMinutes,
+                        setLongBreakAfter = setLongBreakAfter
+                    )
+                }
+            }
         }
     }
 }
@@ -902,7 +981,9 @@ fun LandscapePickMonster (
                             .clip(RoundedCornerShape(16.dp))
                             .background(color = Color.DarkGray)
                             .clickable(onClick = {
-                                if (monsterPickedIndex == index) null else updateMonsterPickedIndex(index)
+                                if (monsterPickedIndex == index) null else updateMonsterPickedIndex(
+                                    index
+                                )
 
                                 Log.e(
                                     "DEBUG",
@@ -960,7 +1041,8 @@ fun LandscapePickMonster (
                             start = spacing.medium,
                             end = spacing.medium,
                             bottom = spacing.medium
-                        ).align(Alignment.CenterHorizontally)
+                        )
+                        .align(Alignment.CenterHorizontally)
                         .verticalScroll(rememberScrollState()),
                     elevation = CardDefaults.cardElevation(16.dp),
                     colors = CardDefaults.cardColors(Color(0xFFCCC127))
@@ -1588,8 +1670,6 @@ fun adaptiveFontSize(): TextUnit {
 @Composable
 fun PreviewPhonePortrait () {
     MyAppTheme {
-        DashBoardPhonePortrait(
-            monsterState = MonsterState())
     }
 }
 
@@ -1600,7 +1680,19 @@ fun PreviewPhoneLandscape () {
     MyAppTheme {
         DashBoardPhoneLandScape(
             monsterState = MonsterState(),
-            windowSizeClass = null
+            windowSizeClass = null,
+            toggleSetUpPopup = {},
+            setDurationMinutes = {},
+            setRestDurationMinutes = {},
+            setSessions = {},
+            listFocusDuration = listOf(),
+            listRestDuration = listOf(),
+            listSessions = listOf(),
+            confirmBut = {},
+            updateMonsterPickedIndex = {},
+            toggleLongBreak = {},
+            setLongBreakMinutes = {},
+            setLongBreakAfter = {}
         )
     }
 }
@@ -1611,9 +1703,7 @@ fun PreviewPhoneLandscape () {
 @Composable
 fun PreviewPortraitTablet () {
     MyAppTheme {
-        DashBoardPhonePortrait(
-            monsterState = MonsterState(),
-        )
+
     }
 }
 
@@ -1623,7 +1713,19 @@ fun PreviewLandscapeTablet () {
     MyAppTheme {
         DashBoardPhoneLandScape(
             monsterState = MonsterState(),
-            windowSizeClass = null
+            windowSizeClass = null,
+            toggleSetUpPopup = {},
+            setDurationMinutes = {},
+            setRestDurationMinutes = {},
+            setSessions = {},
+            listFocusDuration = listOf(),
+            listRestDuration = listOf(),
+            listSessions = listOf(),
+            confirmBut = {},
+            updateMonsterPickedIndex = {},
+            toggleLongBreak = {},
+            setLongBreakMinutes = {},
+            setLongBreakAfter = {}
         )
     }
 }

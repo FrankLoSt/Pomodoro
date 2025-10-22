@@ -56,6 +56,9 @@ class ViewModelCountDown @Inject constructor(
     fun setSessions(sessions: Int) = controller.setSessions(sessions)
 
 
+    fun toggleLongBreak(switch: Boolean) = controller.toggleLongBreak(switch)
+    fun setLongBreakMinutes(minutes: Int) = controller.setLongBreakMinutes(minutes)
+    fun setLongBreakAfter(sessions: Int) = controller.setLongBreakAfter(sessions)
 
 
     fun formatter(duration: Int): String = controller.formatter(duration)

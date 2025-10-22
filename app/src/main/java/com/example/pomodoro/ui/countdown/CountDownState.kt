@@ -31,7 +31,17 @@ data class RestUiState(
     val listRestDuration: List<Int> = listOf(1) + (5..30 step 5).toList(),
     val restDuration: Int = 5, //test with 30
     val initialRestDuration: Int = 5,//test with 30
+
+
+    val isLongBreak: Boolean = false,
+    val longBreakDurationsList: List<Int> = (5..180 step 5).toList(),
+    val longBreakAfterList: List<Int> = (1..30 step 1).toList(),
+    val longBreakDuration: Int = 15,
+    val initialLongBreakDuration: Int = 15,
+
+    val longBreakAfter: Int = 0,
 ) {
     fun restProgress(): Float = if (initialRestDuration > 0) 1f - restDuration.toFloat() / initialRestDuration else 0f
+    fun longRestProgress () : Float = if (initialLongBreakDuration > 0) 1f - longBreakDuration.toFloat() / initialLongBreakDuration else 0f
 }
 

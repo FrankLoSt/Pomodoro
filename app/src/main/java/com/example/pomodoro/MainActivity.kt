@@ -47,11 +47,7 @@ class MainActivity : ComponentActivity() {
                 val viewModelChart: ViewModelChart = hiltViewModel()
                 val monsterViewModel: MonsterViewModel = hiltViewModel()
 
-                ScreenNavigation(
-                    navHostController = navHostController,
-                    windowSizeClass = windowSizeClass,
-                    viewModelChart = viewModelChart
-                )
+                RowTest()
             }
         }
     }
@@ -100,7 +96,11 @@ fun ScreenNavigation (
                 navHostController = navHostController,
                 updateMonsterPickedIndex = { monsterViewModel.updateMonsterPickedIndex(it) },
                 viewModelChart = viewModelChart,
-                monsterViewModel = monsterViewModel
+                monsterViewModel = monsterViewModel,
+                toggleLongBreak = { viewModel.toggleLongBreak(it) },
+                isLongBreak = restUiState.isLongBreak,
+                setLongBreakMinutes = { viewModel.setLongBreakMinutes(it) },
+                setLongBreakAfter = { viewModel.setLongBreakAfter(it) }
             )
         }
         composable(EnumScreenClass.STATISTICS.name) {
@@ -122,7 +122,16 @@ fun ScreenNavigation (
                 monsterId = monsterState.monsterPickedIndex,
                 monsterList = monsterState.monsterList,
                 onNavigate = { navHostController.navigate(EnumScreenClass.PICKMONSTER.name) },
-                countDownText = viewModel.formatter(if(focusUiState.appPhrase == AppPhase.FOCUSING) focusUiState.duration else if (focusUiState.appPhrase == AppPhase.RESTING) restUiState.restDuration else (focusUiState.initialDuration))
+                countDownText = viewModel.formatter(
+                    if(focusUiState.appPhrase == AppPhase.FOCUSING)
+                        focusUiState.duration
+                    else if (focusUiState.sessions == restUiState.longBreakAfter && restUiState.isLongBreak && focusUiState.appPhrase == AppPhase.RESTING)
+                        restUiState.longBreakDuration
+                    else if ( focusUiState.sessions != restUiState.longBreakAfter && focusUiState.appPhrase == AppPhase.RESTING )
+                        restUiState.restDuration
+                    else
+                            (focusUiState.initialDuration)
+                )
             )
         }
     }

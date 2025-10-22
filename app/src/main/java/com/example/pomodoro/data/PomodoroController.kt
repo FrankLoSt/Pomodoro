@@ -25,6 +25,10 @@ interface PomodoroController {
 
     fun setSessions(sessions: Int)
 
+    fun setLongBreakMinutes (minutes: Int)
+    fun setLongBreakAfter (sessions: Int)
+
+
     fun start()
     fun breakFun()
     fun pause() // optional helper for tests\
@@ -72,6 +76,17 @@ class PomodoroControllerImpl @Inject constructor(
         Log.d("DEBUG", "setSessions: $sessions assigned")
     }
 
+    override fun setLongBreakMinutes(minutes: Int) {
+        _restUiState.update { it.copy(
+            longBreakDuration = minutes,
+            initialLongBreakDuration = minutes
+        )
+        }
+    }
+
+    override fun setLongBreakAfter(sessions: Int) {
+        _restUiState.update { it.copy(longBreakAfter = sessions) }
+    }
 
 
     //------------- Count down Logic-------------
@@ -162,6 +177,7 @@ class PomodoroControllerImpl @Inject constructor(
             if (
                 focusUiState.value.timerState  == TimerState.STOPPED ||
                 restUiState.value.restDuration <= 0 ||
+                restUiState.value.longBreakDuration <= 0 ||
                 focusUiState.value.appPhrase  == AppPhase.FINISHED ||
                 focusUiState.value.appPhrase == AppPhase.FOCUSING ||
                 focusUiState.value.appPhrase == AppPhase.IDLE
@@ -186,13 +202,26 @@ class PomodoroControllerImpl @Inject constructor(
                 }
             }
 
-            _restUiState.update { it.copy(restDuration = if (focusUiState.value.timerState == TimerState.PAUSED) it.restDuration else (it.restDuration - 1).coerceAtLeast(0)) }
+            if(restUiState.value.isLongBreak && focusUiState.value.sessions == restUiState.value.longBreakAfter) {
+                _restUiState.update { it.copy(
+                    longBreakDuration = if (focusUiState.value.timerState == TimerState.PAUSED) it.longBreakDuration else (it.longBreakDuration -1).coerceAtLeast(0))
+                }
+            } else {
+                _restUiState.update {
+                    it.copy(
+                        restDuration = if (focusUiState.value.timerState == TimerState.PAUSED) it.restDuration else (it.restDuration - 1).coerceAtLeast(
+                            0
+                        )
+                    )
+                }
+            }
                                                        //if isPause -> no update
             Log.d("DEBUG", "countdownRest: ${restUiState.value.restDuration}")
         }
         _restUiState.update{
             it.copy(
                 restDuration = it.initialRestDuration,
+                longBreakDuration = it.initialLongBreakDuration
             )
         }
     } //countdown for rest session
@@ -311,6 +340,9 @@ class PomodoroControllerImpl @Inject constructor(
         _focusUiState.update { it.copy(timerState = TimerState.RUNNING) }
     }
 
+    fun toggleLongBreak (switch: Boolean) {
+        _restUiState.update { it.copy(isLongBreak = switch) }
+    }
 
     override fun formatter(durationSeconds: Int): String {
         val m = durationSeconds / 60

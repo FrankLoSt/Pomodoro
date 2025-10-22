@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -25,7 +25,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -38,165 +38,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.example.pomodoro.R
 import com.example.pomodoro.ui.pickmonster.LocalSpacing
 import com.example.pomodoro.ui.pickmonster.Spacing
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
 
-@Composable
-fun SetUpDialog (
-    fightToggleDialog: () -> Unit  = {},
-    confirmBut: () ->Unit = {},
-    setDurationMinutes: (Int) -> Unit = {},
-    setRestDurationMinutes: (Int) -> Unit = {},
-    setSessions: (Int) -> Unit = {},
-    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
-    windowSizeClass: WindowSizeClass?
-) {
-    Dialog(
-        onDismissRequest = fightToggleDialog,
-
-    ) {
-        DropDownPortrait(
-            setDurationMinutes = setDurationMinutes,
-            setRestDurationMinutes = setRestDurationMinutes,
-            setSessions = setSessions,
-            listFocusDuration = listFocusDuration,
-            listRestDuration = listRestDuration,
-            listSessions = listSessions,
-            windowSizeClass = windowSizeClass,
-            fightToggleDialog = fightToggleDialog,
-            confirmBut = confirmBut
-        )
-    }
-}
-
-
-
-
-
-@Composable
-fun DropDownPortrait (
-    setDurationMinutes: (Int) -> Unit = {},
-    setRestDurationMinutes: (Int) -> Unit = {},
-    setSessions: (Int) -> Unit = {},
-    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
-    windowSizeClass: WindowSizeClass?,
-    fightToggleDialog: () -> Unit = {},
-    confirmBut: () -> Unit = {}
-) {
-    val spacing: Spacing = LocalSpacing.current
-    val maxWidth = LocalWindowInfo.current.containerSize.width
-    Column(
-        modifier = Modifier
-            .width(
-                if (windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Compact) (maxWidth * 0.8f).dp
-                else (maxWidth * 0.5f).dp
-            ),
-
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(Color.Transparent)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(
-                        spacing.small
-                    ).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.focus_duration),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    DropdownFun(
-                        itemLists = listFocusDuration,
-                        onItemSelected = { minutes ->
-                            setDurationMinutes(minutes)
-                        }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.padding(spacing.small).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.rest_duration),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    DropdownFun(
-                        itemLists = listRestDuration,
-                        onItemSelected = { minutes ->
-                            setRestDurationMinutes(minutes)
-                        }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.padding(
-                        start = spacing.small,
-                        end = spacing.small,
-                        top = spacing.small
-                    ).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.sessions),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    DropdownSessionFun(
-                        itemLists = listSessions,
-                        onItemSelected = { sessions ->
-                            setSessions(sessions)
-                        }
-                    )
-                }
-                LongBreakSetting(
-                    longBreakList = listRestDuration,
-                    sessionList = listSessions,
-                    onLongBreakSelected = {},
-                    onSessionSelected = {}
-
-                    )
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(
-                        onClick = fightToggleDialog
-                    ) { Text("Back") }
-                    Button(
-                        onClick = confirmBut
-                    ) { Text("Start") }
-                }
-            }
-        }
-    }
-}
 
 
 
@@ -211,6 +68,10 @@ fun SettingsCard(
     setSessions: (Int) -> Unit,
     fightToggleDialog: () -> Unit,
     confirmBut: () -> Unit,
+    isLongBreak: Boolean = false,
+    toggleLongBreak: (Boolean) -> Unit = {},
+    setLongBreakMinutes: (Int) -> Unit ,
+    setLongBreakAfter: (Int) -> Unit
 ) {
     val spacing: Spacing = LocalSpacing.current
     val maxWidth = LocalWindowInfo.current.containerSize.width
@@ -233,7 +94,7 @@ fun SettingsCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding( top = 16.dp, bottom = 16.dp, start = 20.dp),
+                    .padding(top = 16.dp, bottom = 16.dp, start = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(spacing.medium)
             ) {
 
@@ -272,38 +133,88 @@ fun SettingsCard(
 
                 // --- Long Break ---
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(end = 20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                LongBreakSetting(
-                    longBreakList = listRestDuration,
-                    sessionList = listSessions,
-                    onLongBreakSelected = {},
-                    onSessionSelected = {}
-                )
-                }
-
-                // --- Buttons ---
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(spacing.medium, Alignment.CenterHorizontally),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = spacing.medium)
+                        .padding(end = 20.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Button(
-                        onClick = fightToggleDialog,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Back") }
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Switch(
+                                checked = isLongBreak,
+                                onCheckedChange = toggleLongBreak,
+                            )
+                            Spacer(modifier = Modifier.width(spacing.medium))
+                            Text(
+                                text = if(isLongBreak) stringResource(R.string.long_break_enabled) else stringResource(R.string.long_break_disabled),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.alpha(if(isLongBreak) 1f else 0.5f)
+                            )
+                        }
+                        Box {
+                            LongBreakSetting(
+                                longBreakList = listRestDuration,
+                                sessionList = listSessions,
+                                onLongBreakSelected = setLongBreakMinutes,
+                                onSessionSelected = setLongBreakAfter
+                            )
+                            if (!isLongBreak) {
+                                Box(
+                                    Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .matchParentSize()
+                                        .background(Color(0xAAEEEEEE)) // translucent gray overlay
+                                        .pointerInput(Unit) {
+                                            // absorb all events
+                                            awaitPointerEventScope {
+                                                while (true) {
+                                                    awaitPointerEvent()
+                                                }
+                                            }
+                                        },
+                                )
+                            }
+                        }
+                    }
+                }
+                // --- Buttons ---
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(
+                            spacing.medium,
+                            Alignment.CenterHorizontally
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = spacing.medium, end = 20.dp)
+                    ) {
+                        Button(
+                            onClick = fightToggleDialog,
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Back") }
 
-                    Button(
-                        onClick = confirmBut,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Start") }
+                        Button(
+                            onClick = confirmBut,
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Start") }
+                    }
                 }
             }
         }
     }
 }
+
+
+
+
+
 
 @Composable
 fun SettingRow(
@@ -332,12 +243,6 @@ fun SettingRow(
 
 
 
-@Composable
-fun LongBreak () {
-
-}
-
-
 @Preview(
     name = "Expanded Landscape",
     widthDp = 915,
@@ -355,7 +260,11 @@ fun DropDownPreview () {
         setRestDurationMinutes = {},
         setSessions = {},
         fightToggleDialog = {},
-        confirmBut = {}
+        confirmBut = {},
+        isLongBreak = false,
+        toggleLongBreak = {},
+        setLongBreakMinutes = {},
+        setLongBreakAfter = {}
     )
 }
 
@@ -376,64 +285,17 @@ fun DropDownPreview2 () {
         setRestDurationMinutes = {},
         setSessions = {},
         fightToggleDialog = {},
-        confirmBut = {}
+        confirmBut = {},
+        isLongBreak = false,
+        toggleLongBreak = {},
+        setLongBreakMinutes = {},
+        setLongBreakAfter = {}
     )
 }
 
 
 
-@Composable
-fun DropdownFun1 (
-    itemLists: List<Int>,
-    onItemSelected: (Int) -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedDuration by rememberSaveable { mutableIntStateOf(itemLists[0]) }
 
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .background(Color.LightGray),
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .width(150.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-            Text(
-                text = if (selectedDuration == 1) "$selectedDuration min" else "$selectedDuration mins",
-                modifier = Modifier
-                    .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 200.dp) // limit height
-        ) {
-            itemLists.forEach { duration ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "$duration mins")
-                    },
-                    onClick = {
-                        onItemSelected(duration)
-                        selectedDuration = duration
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
 
 
 @Composable
@@ -459,7 +321,8 @@ fun DropdownFun(
             )
             .onGloballyPositioned { coordinates ->
                 parentWidth = coordinates.size.width
-            }.widthIn(min = 150.dp, max = 170.dp),
+            }
+            .widthIn(min = 150.dp, max = 170.dp),
     ) {
         Row(
             modifier = Modifier
@@ -541,7 +404,8 @@ fun DropdownSessionFun(
             )
             .onGloballyPositioned { coordinates ->
                 parentWidth = coordinates.size.width
-            }.widthIn(min = 150.dp, max = 170.dp),
+            }
+            .widthIn(min = 150.dp, max = 170.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -616,6 +480,7 @@ fun LongBreakSetting(
 
     Box(
         modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(Color.White, RoundedCornerShape(12.dp))
             .border(
@@ -625,13 +490,16 @@ fun LongBreakSetting(
             )
             .onGloballyPositioned { coordinates ->
                 parentWidth = coordinates.size.width
-            }.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
+            }
+            .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.align(Alignment.Center).padding(start = 8.dp)
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(start = 8.dp)
         ) {
             // --- First Dropdown (Long break duration) ---
             Text(text = "Long break", style = MaterialTheme.typography.bodyMedium)
@@ -639,10 +507,11 @@ fun LongBreakSetting(
             Box {
                 Row(
                     modifier = Modifier
+                        .width(with(LocalDensity.current) { parentWidth.toDp() / 4 })
                         .clickable { expandedBreak = !expandedBreak }
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -662,7 +531,7 @@ fun LongBreakSetting(
                     expanded = expandedBreak,
                     onDismissRequest = { expandedBreak = false },
                     modifier = Modifier
-                        .width(with(LocalDensity.current) { parentWidth.toDp() / 3 })
+                        .width(with(LocalDensity.current) { parentWidth.toDp() / 4 })
                         .heightIn(max = 200.dp)
                         .background(Color.White),
                     shape = RoundedCornerShape(12.dp)
@@ -690,6 +559,7 @@ fun LongBreakSetting(
                         .clickable { expandedSession = !expandedSession }
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
