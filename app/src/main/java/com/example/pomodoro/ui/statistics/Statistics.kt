@@ -427,7 +427,7 @@ fun MonsterLeaderboard2(monsters: List<TopMonsterData>) {
                 // right header (scrollable horizontally)
                 Row(
                     modifier = Modifier
-                        .horizontalScroll(horizontalScrollState)
+                        .horizontalScroll(horizontalScrollState) //use HorizontalScroll with shared scrollState for horizontalScroll / Great IDEA
                         .padding(start = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -449,7 +449,7 @@ fun MonsterLeaderboard2(monsters: List<TopMonsterData>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 400.dp) // adjust as needed
-            ) {
+            ) {  //use LazyColumn for verticalScroll
                 itemsIndexed(monsters) { index, monster ->
                     Row(
                         modifier = Modifier

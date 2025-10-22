@@ -37,6 +37,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -47,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Typography
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -81,6 +83,7 @@ import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
 
 import com.example.pomodoro.ui.ScreenShape
+import com.example.pomodoro.ui.countdown.DropDownPortrait
 import com.example.pomodoro.ui.countdown.SetUpDialog
 import com.example.pomodoro.ui.detectScreenShape
 import com.example.pomodoro.ui.statistics.ViewModelChart
@@ -588,17 +591,25 @@ fun DashBoardPhonePortrait (
             toggleSetUpPopup = toggleSetUpPopup
         )
         if (monsterState.toggleSetUp) {
-            SetUpDialog(
-                fightToggleDialog = toggleSetUpPopup,
-                setDurationMinutes = setDurationMinutes,
-                setRestDurationMinutes = setRestDurationMinutes,
-                setSessions = setSessions,
-                listFocusDuration = listFocusDuration,
-                listRestDuration = listRestDuration,
-                listSessions = listSessions,
-                confirmBut = confirmBut,
-                windowSizeClass = windowSizeClass
-            )
+            val sheetState = rememberModalBottomSheetState()
+            val scope = rememberCoroutineScope()
+            ModalBottomSheet(
+                onDismissRequest = { toggleSetUpPopup() },
+                sheetState = sheetState,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                DropDownPortrait(
+                    setDurationMinutes = setDurationMinutes,
+                    setRestDurationMinutes = setRestDurationMinutes,
+                    setSessions = setSessions,
+                    listFocusDuration = listFocusDuration,
+                    listRestDuration = listRestDuration,
+                    listSessions = listSessions,
+                    windowSizeClass = windowSizeClass,
+                    fightToggleDialog = toggleSetUpPopup,
+                    confirmBut = confirmBut
+                )
+            }
         }
     }
 }

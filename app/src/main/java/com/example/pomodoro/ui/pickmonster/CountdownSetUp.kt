@@ -14,6 +14,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -39,44 +40,38 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MyBottomSheetScreen() {
+fun MyBottomSheetScreen(
+    fightToggleDialog: () -> Unit  = {},
+    confirmBut: () ->Unit = {},
+    setDurationMinutes: (Int) -> Unit = {},
+    setRestDurationMinutes: (Int) -> Unit = {},
+    setSessions: (Int) -> Unit = {},
+    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
+    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
+    windowSizeClass: WindowSizeClass?
+) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-
-    val maxWidth: Int = LocalWindowInfo.current.containerSize.width
-    val maxHeight: Int = LocalWindowInfo.current.containerSize.height
-
-    val fontSize: FontSize = LocalFontSize.current
-
-    Column(
+    ModalBottomSheet(
+        onDismissRequest = { /* handle dismiss */ },
+        sheetState = sheetState,
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(
-            onClick = {
-                scope.launch { sheetState.show() }
-                Log.d("DEBUG", "MyBottomSheetScreen: Clicked")
-            }
-        ) {
-            Text("Open Bottom Sheet")
-        }
-        if (true) {
-            ModalBottomSheet(
-                onDismissRequest = { /* handle dismiss */ },
-                sheetState = sheetState,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                DropDownPortrait(
-                    setDurationMinutes = {},
-                    setRestDurationMinutes = {},
-                    setSessions = {},
-                    windowSizeClass = null
-                )
-            }
-        }
+        DropDownPortrait(
+            setDurationMinutes = setDurationMinutes,
+            setRestDurationMinutes = setRestDurationMinutes,
+            setSessions = setSessions,
+            listFocusDuration = listFocusDuration,
+            listRestDuration = listRestDuration,
+            listSessions = listSessions,
+            windowSizeClass = windowSizeClass,
+            fightToggleDialog = fightToggleDialog,
+            confirmBut = confirmBut
+        )
     }
 }
+
 
 @Preview(
     showBackground = true,
@@ -84,7 +79,7 @@ fun MyBottomSheetScreen() {
 @Composable
 fun PreviewBottomSheet () {
     MyAppTheme {
-        MyBottomSheetScreen()
+
     }
 }
 
@@ -96,7 +91,7 @@ fun PreviewBottomSheet () {
 @Composable
 fun LandScapePreviewBottomSheet () {
     MyAppTheme {
-        MyBottomSheetScreen()
+
     }
 }
 
