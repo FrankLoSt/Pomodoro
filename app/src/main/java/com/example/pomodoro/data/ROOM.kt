@@ -203,6 +203,9 @@ interface MonsterItemsDao {
     @Query("SELECT * FROM ROOMTags")
     suspend fun getAllTags() : List<ROOMTags>
 
+    @Insert
+    suspend fun insertNewTag (tag: ROOMTags)
+
 }
 
 

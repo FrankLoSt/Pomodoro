@@ -50,8 +50,6 @@ fun PhonePortraitCircularProgressBar (
     windowSizeClass: WindowSizeClass? = null,
 ) {
 
-
-
     val windowSizeClass = windowSizeClass
 
 

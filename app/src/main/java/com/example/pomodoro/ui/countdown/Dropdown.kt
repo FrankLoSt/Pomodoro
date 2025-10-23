@@ -48,8 +48,13 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.pomodoro.DropdownTags
 import com.example.pomodoro.R
+import com.example.pomodoro.ui.MonsterUIState
+import com.example.pomodoro.ui.SessionConfig
+import com.example.pomodoro.ui.SheetControl
 import com.example.pomodoro.ui.pickmonster.LocalSpacing
+import com.example.pomodoro.ui.pickmonster.MonsterState
 import com.example.pomodoro.ui.pickmonster.Spacing
 import com.example.pomodoro.ui.theme.PomodoroTheme
 
@@ -60,21 +65,33 @@ import com.example.pomodoro.ui.theme.PomodoroTheme
 @Composable
 fun SettingsCard(
     windowSizeClass: WindowSizeClass?,
-    listFocusDuration: List<Int>,
-    listRestDuration: List<Int>,
-    listSessions: List<Int>,
-    setDurationMinutes: (Int) -> Unit,
-    setRestDurationMinutes: (Int) -> Unit,
-    setSessions: (Int) -> Unit,
-    fightToggleDialog: () -> Unit,
-    confirmBut: () -> Unit,
-    isLongBreak: Boolean = false,
-    toggleLongBreak: (Boolean) -> Unit = {},
-    setLongBreakMinutes: (Int) -> Unit ,
-    setLongBreakAfter: (Int) -> Unit
+    monsterUIState: MonsterUIState,
+    sessionConfig: SessionConfig,
+    sheetControl: SheetControl
 ) {
     val spacing: Spacing = LocalSpacing.current
     val maxWidth = LocalWindowInfo.current.containerSize.width
+
+    val monsterState = monsterUIState.state
+    val setDurationMinutes = sessionConfig.setDurationMinutes
+    val setRestDurationMinutes = sessionConfig.setRestDurationMinutes
+    val setSessions = sessionConfig.setSessions
+    val setTag = sessionConfig.setTag
+
+
+    val listFocusDuration = sessionConfig.listFocusDuration
+    val listRestDuration = sessionConfig.listRestDuration
+    val listSessions = sessionConfig.listSessions
+
+    val isLongBreak = sessionConfig.isLongBreak
+    val toggleLongBreak = sessionConfig.toggleLongBreak
+    val setLongBreakMinutes = sessionConfig.setLongBreakMinutes
+    val setLongBreakAfter = sessionConfig.setLongBreakAfter
+
+    val fightToggleDialog = sheetControl.toggleSetUpPopup
+    val confirmBut = sheetControl.confirmBut
+
+
 
     Column(
         modifier = Modifier
@@ -88,8 +105,7 @@ fun SettingsCard(
     ) {
         Card(
             shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(Color.Transparent)
         ) {
             Column(
                 modifier = Modifier
@@ -131,6 +147,15 @@ fun SettingsCard(
                     }
                 )
 
+                //--- Tags ---
+                SettingRow(
+                    label = "Tags",
+                    content = {
+                        DropdownTags(
+                            onItemSelected = setTag
+                        )
+                    }
+                )
                 // --- Long Break ---
                 Box(
                     modifier = Modifier
@@ -253,18 +278,28 @@ fun SettingRow(
 fun DropDownPreview () {
     SettingsCard(
         windowSizeClass = null,
-        listFocusDuration = listOf(1,2,3,4,5),
-        listRestDuration = listOf(1,2,3,4,5),
-        listSessions = listOf(1,2,3,4,5),
-        setDurationMinutes = {},
-        setRestDurationMinutes = {},
-        setSessions = {},
-        fightToggleDialog = {},
-        confirmBut = {},
-        isLongBreak = false,
-        toggleLongBreak = {},
-        setLongBreakMinutes = {},
-        setLongBreakAfter = {}
+        monsterUIState = MonsterUIState(
+            state = MonsterState(),
+            onMonsterPicked = {}
+        ),
+        sessionConfig = SessionConfig(
+            setDurationMinutes = {},
+            setRestDurationMinutes = {},
+            setSessions = {},
+            listFocusDuration = listOf(1,2,3,
+                4,5),
+            listRestDuration = listOf(1,2,3,4,5),
+            listSessions = listOf(1,2,3,4,5),
+            isLongBreak = false,
+            toggleLongBreak = {},
+            setLongBreakMinutes = {},
+            setLongBreakAfter = {},
+            setTag = {}
+        ),
+        sheetControl = SheetControl(
+            toggleSetUpPopup = {},
+            confirmBut = {}
+        )
     )
 }
 
@@ -278,18 +313,28 @@ fun DropDownPreview () {
 fun DropDownPreview2 () {
     SettingsCard(
         windowSizeClass = null,
-        listFocusDuration = listOf(1,2,3,4,5),
-        listRestDuration = listOf(1,2,3,4,5),
-        listSessions = listOf(1,2,3,4,5),
-        setDurationMinutes = {},
-        setRestDurationMinutes = {},
-        setSessions = {},
-        fightToggleDialog = {},
-        confirmBut = {},
-        isLongBreak = false,
-        toggleLongBreak = {},
-        setLongBreakMinutes = {},
-        setLongBreakAfter = {}
+        monsterUIState = MonsterUIState(
+            state = MonsterState(),
+            onMonsterPicked = {}
+        ),
+        sessionConfig = SessionConfig(
+            setDurationMinutes = {},
+            setRestDurationMinutes = {},
+            setSessions = {},
+            listFocusDuration = listOf(1,2,3,
+                4,5),
+            listRestDuration = listOf(1,2,3,4,5),
+            listSessions = listOf(1,2,3,4,5),
+            isLongBreak = false,
+            toggleLongBreak = {},
+            setLongBreakMinutes = {},
+            setLongBreakAfter = {},
+            setTag = {}
+        ),
+        sheetControl = SheetControl(
+            toggleSetUpPopup = {},
+            confirmBut = {}
+        )
     )
 }
 

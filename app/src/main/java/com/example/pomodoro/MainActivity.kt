@@ -1,7 +1,7 @@
 package com.example.pomodoro
 
+
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +17,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pomodoro.ui.EnumScreenClass
+import com.example.pomodoro.ui.MonsterUIState
+import com.example.pomodoro.ui.SessionConfig
+import com.example.pomodoro.ui.SheetControl
 import com.example.pomodoro.ui.countdown.AppPhase
 import com.example.pomodoro.ui.countdown.CountDownScreen
 import com.example.pomodoro.ui.countdown.FocusUiState
@@ -25,11 +28,7 @@ import com.example.pomodoro.ui.countdown.ViewModelCountDown
 import com.example.pomodoro.ui.pickmonster.MonsterState
 import com.example.pomodoro.ui.pickmonster.MonsterViewModel
 import com.example.pomodoro.ui.pickmonster.MyAppTheme
-import com.example.pomodoro.ui.pickmonster.MyBottomSheetScreen
-import com.example.pomodoro.ui.pickmonster.PersistentBottomSheet
 import com.example.pomodoro.ui.pickmonster.PickMonsterScreen
-
-
 import com.example.pomodoro.ui.statistics.PortraitStatisticsScreen
 import com.example.pomodoro.ui.statistics.ViewModelChart
 import dagger.hilt.android.AndroidEntryPoint
@@ -83,29 +82,34 @@ fun ScreenNavigation (
     ){
         composable(EnumScreenClass.PICKMONSTER.name) {
             PickMonsterScreen(
+                monsterUI = MonsterUIState(
+                    state = monsterState,
+                    onMonsterPicked = { monsterViewModel.updateMonsterPickedIndex(it) }
+                ),
+                sessionConfig = SessionConfig(
+                    setDurationMinutes = { viewModel.setDurationMinutes(it) },
+                    setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
+                    setSessions = { viewModel.setSessions(it) },
+                    setLongBreakMinutes = { viewModel.setLongBreakMinutes(it) },
+                    setLongBreakAfter = { viewModel.setLongBreakAfter(it) },
+                    toggleLongBreak = { viewModel.toggleLongBreak(it) },
+                    listFocusDuration = focusUiState.listFocusDuration,
+                    listRestDuration = restUiState.listRestDuration,
+                    listSessions = focusUiState.listSessions,
+                    isLongBreak = restUiState.isLongBreak,
+                ),
+                sheetControl = SheetControl(
+                    toggleSetUpPopup = { monsterViewModel.toggleSetUpPopup() },
+                    confirmBut = {
+                        viewModel.startCountDown()
+                        navHostController.navigate(EnumScreenClass.COUNTDOWN.name)
+                        monsterViewModel.toggleSetUpPopup()
+
+                    }
+                ),
                 windowSizeClass = windowSizeClass,
-                toggleSetUpPopup = { monsterViewModel.toggleSetUpPopup() },
-                setDurationMinutes = { viewModel.setDurationMinutes(it) },
-                setRestDurationMinutes = { viewModel.setRestDurationMinutes(it) },
-                setSessions = { viewModel.setSessions(it) },
-                listFocusDuration = focusUiState.listFocusDuration,
-                listRestDuration = restUiState.listRestDuration,
-                listSessions = focusUiState.listSessions,
-                confirmBut = {
-                    viewModel.startCountDown();
-                    navHostController.navigate(EnumScreenClass.COUNTDOWN.name);
-                    monsterViewModel.toggleSetUpPopup()
-                    Log.e("DEBUG", "Monster picked : ${monsterState.monsterPickedIndex}")
-                             },
-                monsterState = monsterState,
                 navHostController = navHostController,
-                updateMonsterPickedIndex = { monsterViewModel.updateMonsterPickedIndex(it) },
-                viewModelChart = viewModelChart,
-                monsterViewModel = monsterViewModel,
-                toggleLongBreak = { viewModel.toggleLongBreak(it) },
-                isLongBreak = restUiState.isLongBreak,
-                setLongBreakMinutes = { viewModel.setLongBreakMinutes(it) },
-                setLongBreakAfter = { viewModel.setLongBreakAfter(it) }
+                viewModelChart = viewModelChart
             )
         }
         composable(EnumScreenClass.STATISTICS.name) {

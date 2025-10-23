@@ -9,6 +9,7 @@ import com.example.pomodoro.ui.countdown.RestUiState
 import com.example.pomodoro.ui.countdown.TimerState
 import com.example.pomodoro.ui.pickmonster.InitSetUpStateHolder
 import com.example.pomodoro.ui.pickmonster.MonsterDataController
+import com.example.pomodoro.ui.pickmonster.MonsterState
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -27,6 +28,8 @@ interface PomodoroController {
 
     fun setLongBreakMinutes (minutes: Int)
     fun setLongBreakAfter (sessions: Int)
+
+    fun setTag (tag: String)
 
 
     fun start()
@@ -87,6 +90,14 @@ class PomodoroControllerImpl @Inject constructor(
     override fun setLongBreakAfter(sessions: Int) {
         _restUiState.update { it.copy(longBreakAfter = sessions) }
     }
+
+    override fun setTag(tag: String) {
+        val new = MonsterState(
+            tag = tag,
+        )
+      initSetUpState.updateState(new)
+    }
+
 
 
     //------------- Count down Logic-------------

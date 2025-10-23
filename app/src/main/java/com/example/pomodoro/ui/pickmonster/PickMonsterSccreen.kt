@@ -83,8 +83,11 @@ import androidx.navigation.NavHostController
 import com.example.pomodoro.R
 import com.example.pomodoro.data.datastore.ViewMode
 import com.example.pomodoro.ui.EnumScreenClass
+import com.example.pomodoro.ui.MonsterUIState
 
 import com.example.pomodoro.ui.ScreenShape
+import com.example.pomodoro.ui.SessionConfig
+import com.example.pomodoro.ui.SheetControl
 
 
 import com.example.pomodoro.ui.countdown.SettingsCard
@@ -167,7 +170,7 @@ fun Drawer (
     scope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState,
     drawerContent: @Composable () -> Unit,
-    monsterViewModel: MonsterViewModel
+
 ) {
 
     val windowSize = LocalWindowInfo.current.containerSize
@@ -201,7 +204,6 @@ fun Drawer (
                         scope.launch {
                             drawerState.close()
                             viewModelChart.generateChart(ViewMode.Day)
-                            monsterViewModel.getTop10Monsters()
                         }
                     }
                 )
@@ -292,23 +294,11 @@ fun RightSideDrawer(
 fun PickMonsterScreen (
     modifier: Modifier = Modifier,
     windowSizeClass: WindowSizeClass,
-    toggleSetUpPopup: () -> Unit,
-    setDurationMinutes: (Int) -> Unit = {},
-    setRestDurationMinutes: (Int) -> Unit = {},
-    setSessions: (Int) -> Unit = {},
-    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
-    confirmBut: () -> Unit = {},
-    monsterState: MonsterState,
     navHostController: NavHostController,
-    updateMonsterPickedIndex: (Int) -> Unit,
+    monsterUI: MonsterUIState,
+    sessionConfig: SessionConfig,
+    sheetControl: SheetControl,
     viewModelChart: ViewModelChart,
-    monsterViewModel: MonsterViewModel,
-    isLongBreak: Boolean = false,
-    toggleLongBreak: (Boolean) -> Unit,
-    setLongBreakMinutes: (Int) -> Unit ,
-    setLongBreakAfter: (Int) -> Unit
 ) {
     val windowSizeCheck = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
@@ -325,7 +315,7 @@ fun PickMonsterScreen (
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val spacing = LocalSpacing.current
-    val fontSize: FontSize = LocalFontSize.current
+
 
 
     var showDrawer: Boolean by rememberSaveable { mutableStateOf(false) }
@@ -338,25 +328,12 @@ fun PickMonsterScreen (
             drawerContent = {
                 DashBoardPhonePortrait(
                     modifier = modifier,
-                    toggleSetUpPopup = toggleSetUpPopup,
-                    setDurationMinutes = setDurationMinutes,
-                    setRestDurationMinutes = setRestDurationMinutes,
-                    setSessions = setSessions,
-                    listFocusDuration = listFocusDuration,
-                    listRestDuration = listRestDuration,
-                    listSessions = listSessions,
-                    confirmBut = confirmBut,
-                    monsterState = monsterState,
-                    updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
-                    isLongBreak = isLongBreak,
-                    toggleLongBreak = toggleLongBreak,
-                    setLongBreakMinutes = setLongBreakMinutes,
-                    setLongBreakAfter = setLongBreakAfter
-
+                    monsterUI = monsterUI,
+                    sessionConfig = sessionConfig,
+                    sheetControl = sheetControl,
                 )
             },
-            monsterViewModel = monsterViewModel
         )
 
         is ScreenShape.PhoneLandscape -> RightSideDrawer(
@@ -388,7 +365,6 @@ fun PickMonsterScreen (
                             scope.launch {
                                 showDrawer = false
                                 viewModelChart.generateChart(ViewMode.Day)
-                                monsterViewModel.getTop10Monsters()
                             }
                         }
                     )
@@ -417,21 +393,10 @@ fun PickMonsterScreen (
                 ) {
                     DashBoardPhoneLandScape(
                         modifier = modifier,
-                        toggleSetUpPopup = toggleSetUpPopup,
-                        setDurationMinutes = setDurationMinutes,
-                        setRestDurationMinutes = setRestDurationMinutes,
-                        setSessions = setSessions,
-                        listFocusDuration = listFocusDuration,
-                        listRestDuration = listRestDuration,
-                        listSessions = listSessions,
-                        confirmBut = confirmBut,
-                        monsterState = monsterState,
-                        updateMonsterPickedIndex = updateMonsterPickedIndex,
                         windowSizeClass = windowSizeClass,
-                        isLongBreak = isLongBreak,
-                        toggleLongBreak = toggleLongBreak,
-                        setLongBreakMinutes = setLongBreakMinutes,
-                        setLongBreakAfter = setLongBreakAfter
+                        monsterUI = monsterUI,
+                        sessionConfig = sessionConfig,
+                        sheetControl = sheetControl,
                     )
                     IconButton(
                         onClick = { showDrawer = true },
@@ -465,24 +430,12 @@ fun PickMonsterScreen (
             drawerContent = {
                 DashBoardPhonePortrait(
                     modifier = modifier,
-                    toggleSetUpPopup = toggleSetUpPopup,
-                    setDurationMinutes = setDurationMinutes,
-                    setRestDurationMinutes = setRestDurationMinutes,
-                    setSessions = setSessions,
-                    listFocusDuration = listFocusDuration,
-                    listRestDuration = listRestDuration,
-                    listSessions = listSessions,
-                    confirmBut = confirmBut,
-                    monsterState = monsterState,
-                    updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
-                    isLongBreak = isLongBreak,
-                    toggleLongBreak = toggleLongBreak,
-                    setLongBreakMinutes = setLongBreakMinutes,
-                    setLongBreakAfter = setLongBreakAfter
+                    monsterUI = monsterUI,
+                    sessionConfig = sessionConfig,
+                    sheetControl = sheetControl,
                 )
             },
-            monsterViewModel = monsterViewModel
         )
 
         is ScreenShape.TabletLandscape -> RightSideDrawer(
@@ -511,7 +464,6 @@ fun PickMonsterScreen (
                             scope.launch {
                                 drawerState.close()
                                 viewModelChart.generateChart(ViewMode.Day)
-                                monsterViewModel.getTop10Monsters()
                             }
                         }
                     )
@@ -535,21 +487,10 @@ fun PickMonsterScreen (
             mainContent = {
                 DashBoardPhoneLandScape(
                     modifier = modifier,
-                    toggleSetUpPopup = toggleSetUpPopup,
-                    setDurationMinutes = setDurationMinutes,
-                    setRestDurationMinutes = setRestDurationMinutes,
-                    setSessions = setSessions,
-                    listFocusDuration = listFocusDuration,
-                    listRestDuration = listRestDuration,
-                    listSessions = listSessions,
-                    confirmBut = confirmBut,
-                    monsterState = monsterState,
-                    updateMonsterPickedIndex = updateMonsterPickedIndex,
                     windowSizeClass = windowSizeClass,
-                    isLongBreak = isLongBreak,
-                    toggleLongBreak = toggleLongBreak,
-                    setLongBreakMinutes = setLongBreakMinutes,
-                    setLongBreakAfter = setLongBreakAfter
+                    monsterUI = monsterUI,
+                    sessionConfig = sessionConfig,
+                    sheetControl = sheetControl,
                 )
             }
         )
@@ -558,28 +499,7 @@ fun PickMonsterScreen (
 
 }
 
-data class MonsterUIState(
-    val state: MonsterState,
-    val onMonsterPicked: (Int) -> Unit
-)
 
-data class SessionConfig(
-    val setDurationMinutes: (Int) -> Unit,
-    val setRestDurationMinutes: (Int) -> Unit,
-    val setSessions: (Int) -> Unit,
-    val listFocusDuration: List<Int>,
-    val listRestDuration: List<Int>,
-    val listSessions: List<Int>,
-    val isLongBreak: Boolean,
-    val toggleLongBreak: (Boolean) -> Unit,
-    val setLongBreakMinutes: (Int) -> Unit,
-    val setLongBreakAfter: (Int) -> Unit
-)
-
-data class SheetControl(
-    val toggleSetUpPopup: () -> Unit,
-    val confirmBut: () -> Unit
-)
 
 
 
@@ -590,25 +510,18 @@ data class SheetControl(
 @Composable
 fun DashBoardPhonePortrait(
     modifier: Modifier = Modifier,
-    toggleSetUpPopup: () -> Unit = {},
-    setDurationMinutes: (Int) -> Unit = {},
-    setRestDurationMinutes: (Int) -> Unit = {},
-    setSessions: (Int) -> Unit = {},
-    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
-    confirmBut: () -> Unit = {},
-    monsterState: MonsterState,
-    updateMonsterPickedIndex: (Int) -> Unit = {},
     windowSizeClass: WindowSizeClass? = null,
-    isLongBreak: Boolean = false,
-    toggleLongBreak: (Boolean) -> Unit,
-    setLongBreakMinutes: (Int) -> Unit ,
-    setLongBreakAfter: (Int) -> Unit
-) {
+    monsterUI: MonsterUIState,
+    sessionConfig: SessionConfig,
+    sheetControl: SheetControl,
+
+    ) {
+    val monsterState = monsterUI.state
+
     val monsterPickedIndex = monsterState.monsterPickedIndex
     val spacing = LocalSpacing.current
     val fontSize = LocalFontSize.current
+
     val monsterList: List<MonsterInfo> = monsterState.monsterList
 
     BoxWithConstraints {
@@ -622,7 +535,7 @@ fun DashBoardPhonePortrait(
             monsterPickedIndex = monsterPickedIndex,
             maxWidth = maxWidth,
             maxHeight = maxHeight,
-            updateMonsterPickedIndex = updateMonsterPickedIndex,
+            updateMonsterPickedIndex = monsterUI.onMonsterPicked,
             windowSizeClass = windowSizeClass
         )
 
@@ -631,7 +544,7 @@ fun DashBoardPhonePortrait(
             maxWidth = maxWidth * 0.25f,
             maxHeight = maxHeight * 0.05f,
             fontSize = fontSize.large,
-            toggleSetUpPopup = toggleSetUpPopup
+            toggleSetUpPopup = sheetControl.toggleSetUpPopup
         )
 
         if (monsterState.toggleSetUp) {
@@ -645,7 +558,7 @@ fun DashBoardPhonePortrait(
             }
 
             ModalBottomSheet(
-                onDismissRequest = { toggleSetUpPopup() },
+                onDismissRequest = { sheetControl.toggleSetUpPopup() },
                 sheetState = sheetState,
                 // 🟢 fill width, height determined by child
                 modifier = Modifier.fillMaxWidth(),
@@ -657,19 +570,10 @@ fun DashBoardPhonePortrait(
                         .height(maxHeight * 0.8f)
                 ) {
                     SettingsCard(
-                        setDurationMinutes = setDurationMinutes,
-                        setRestDurationMinutes = setRestDurationMinutes,
-                        setSessions = setSessions,
-                        listFocusDuration = listFocusDuration,
-                        listRestDuration = listRestDuration,
-                        listSessions = listSessions,
+                        monsterUIState = monsterUI,
+                        sessionConfig = sessionConfig,
                         windowSizeClass = windowSizeClass,
-                        fightToggleDialog = toggleSetUpPopup,
-                        confirmBut = confirmBut,
-                        isLongBreak = isLongBreak,
-                        toggleLongBreak = toggleLongBreak ,
-                        setLongBreakMinutes = setLongBreakMinutes,
-                        setLongBreakAfter = setLongBreakAfter
+                        sheetControl = sheetControl
                     )
                 }
             }
@@ -842,25 +746,15 @@ fun PortraitPickMonster (
 @Composable
 fun DashBoardPhoneLandScape(
     modifier: Modifier = Modifier,
-    toggleSetUpPopup: () -> Unit = {},
-    setDurationMinutes: (Int) -> Unit = {},
-    setRestDurationMinutes: (Int) -> Unit = {},
-    setSessions: (Int) -> Unit = {},
-    listFocusDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listRestDuration: List<Int> = listOf(1, 2, 3, 4, 5),
-    listSessions: List<Int> = listOf(1, 2, 3, 4, 5),
-    confirmBut: () -> Unit = {},
-    monsterState: MonsterState,
-    updateMonsterPickedIndex: (Int) -> Unit = {},
     windowSizeClass: WindowSizeClass? = null,
-    isLongBreak: Boolean = false,
-    toggleLongBreak: (Boolean) -> Unit,
-    setLongBreakMinutes: (Int) -> Unit ,
-    setLongBreakAfter: (Int) -> Unit
+    monsterUI: MonsterUIState,
+    sessionConfig: SessionConfig,
+    sheetControl: SheetControl,
 ) {
     val spacing: Spacing = LocalSpacing.current
     val fontSize: FontSize = LocalFontSize.current
 
+    val monsterState = monsterUI.state
     val monsterPickedIndex = monsterState.monsterPickedIndex
 
     val monsterList: List<MonsterInfo> = monsterState.monsterList
@@ -883,8 +777,8 @@ fun DashBoardPhoneLandScape(
             LandscapePickMonster(
                 monsterList = monsterList,
                 spacing = spacing,
-                monsterPickedIndex = monsterPickedIndex,
-                updateMonsterPickedIndex = updateMonsterPickedIndex,
+                monsterPickedIndex = monsterState.monsterPickedIndex,
+                updateMonsterPickedIndex = monsterUI.onMonsterPicked,
                 maxWidth = maxWidth,
                 windowSizeClass = windowSizeClass
             )
@@ -895,7 +789,7 @@ fun DashBoardPhoneLandScape(
                 maxWidth = maxWidth * 0.09f,
                 maxHeight = maxHeight * 0.1f,
                 fontSize = fontSize.medium,
-                toggleSetUpPopup = toggleSetUpPopup
+                toggleSetUpPopup = sheetControl.toggleSetUpPopup
             )
         }
         if (monsterState.toggleSetUp) {
@@ -909,7 +803,7 @@ fun DashBoardPhoneLandScape(
             }
 
             ModalBottomSheet(
-                onDismissRequest = { toggleSetUpPopup() },
+                onDismissRequest = { sheetControl.toggleSetUpPopup() },
                 sheetState = sheetState,
                 // 🟢 fill width, height determined by child
                 modifier = Modifier.width(maxWidth * 0.5f)
@@ -924,19 +818,10 @@ fun DashBoardPhoneLandScape(
                         )
                 ) {
                     SettingsCard(
-                        setDurationMinutes = setDurationMinutes,
-                        setRestDurationMinutes = setRestDurationMinutes,
-                        setSessions = setSessions,
-                        listFocusDuration = listFocusDuration,
-                        listRestDuration = listRestDuration,
-                        listSessions = listSessions,
+                        monsterUIState = monsterUI,
+                        sessionConfig = sessionConfig,
                         windowSizeClass = windowSizeClass,
-                        fightToggleDialog = toggleSetUpPopup,
-                        confirmBut = confirmBut,
-                        isLongBreak = isLongBreak,
-                        toggleLongBreak = toggleLongBreak ,
-                        setLongBreakMinutes = setLongBreakMinutes,
-                        setLongBreakAfter = setLongBreakAfter
+                        sheetControl = sheetControl
                     )
                 }
             }
@@ -1700,22 +1585,7 @@ fun PreviewPhonePortrait () {
 @Composable
 fun PreviewPhoneLandscape () {
     MyAppTheme {
-        DashBoardPhoneLandScape(
-            monsterState = MonsterState(),
-            windowSizeClass = null,
-            toggleSetUpPopup = {},
-            setDurationMinutes = {},
-            setRestDurationMinutes = {},
-            setSessions = {},
-            listFocusDuration = listOf(),
-            listRestDuration = listOf(),
-            listSessions = listOf(),
-            confirmBut = {},
-            updateMonsterPickedIndex = {},
-            toggleLongBreak = {},
-            setLongBreakMinutes = {},
-            setLongBreakAfter = {}
-        )
+
     }
 }
 
@@ -1733,21 +1603,6 @@ fun PreviewPortraitTablet () {
 @Composable
 fun PreviewLandscapeTablet () {
     MyAppTheme {
-        DashBoardPhoneLandScape(
-            monsterState = MonsterState(),
-            windowSizeClass = null,
-            toggleSetUpPopup = {},
-            setDurationMinutes = {},
-            setRestDurationMinutes = {},
-            setSessions = {},
-            listFocusDuration = listOf(),
-            listRestDuration = listOf(),
-            listSessions = listOf(),
-            confirmBut = {},
-            updateMonsterPickedIndex = {},
-            toggleLongBreak = {},
-            setLongBreakMinutes = {},
-            setLongBreakAfter = {}
-        )
+
     }
 }
