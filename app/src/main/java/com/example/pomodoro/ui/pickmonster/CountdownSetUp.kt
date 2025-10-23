@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.pomodoro.R
-import com.example.pomodoro.ui.countdown.DropDownPortrait
+
 import com.example.pomodoro.ui.countdown.SettingsCard
 import kotlinx.coroutines.launch
 

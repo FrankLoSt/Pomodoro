@@ -200,6 +200,9 @@ interface MonsterItemsDao {
     @Query("SELECT * FROM MonsterItemsStorage")
     suspend fun getAllItems(): List<MonsterItemsStorage>
 
+    @Query("SELECT * FROM ROOMTags")
+    suspend fun getAllTags() : List<ROOMTags>
+
 }
 
 

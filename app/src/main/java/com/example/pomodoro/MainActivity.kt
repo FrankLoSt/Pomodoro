@@ -47,7 +47,12 @@ class MainActivity : ComponentActivity() {
                 val viewModelChart: ViewModelChart = hiltViewModel()
                 val monsterViewModel: MonsterViewModel = hiltViewModel()
 
-                RowTest()
+                ScreenNavigation(
+                    navHostController = navHostController,
+                    monsterViewModel = monsterViewModel,
+                    windowSizeClass = windowSizeClass,
+                    viewModelChart = viewModelChart
+                )
             }
         }
     }
